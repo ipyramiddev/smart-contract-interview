@@ -1,0 +1,6 @@
+.idea/*
+.DS_Store
+build/*
+node_modules
+types
+contract/keys.json
