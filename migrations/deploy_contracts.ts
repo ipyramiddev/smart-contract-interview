@@ -7,6 +7,6 @@ module.exports = (artifacts: Truffle.Artifacts, web3: Web3) => {
         await deployer.deploy(PORB);
 
         const PORBInstance = await PORB.deployed();
-        console.log(`Metacoin deployed at ${PORBInstance.address} in network: ${network}.`);
+        console.log(`PORB deployed at ${PORBInstance.address} in network: ${network}.`);
     };
 };
