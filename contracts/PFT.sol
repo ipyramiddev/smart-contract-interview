@@ -5,8 +5,8 @@ pragma solidity ^0.8.0;
 import "./ERC20.sol";
 import "./Ownable.sol";
 
-contract PORB is ERC20, Ownable {
-    constructor() ERC20("PORB","PORB"){}
+contract PFT is ERC20, Ownable {
+    constructor() ERC20("PFT","PFT"){}
 
     // a mapping from an address to whether or not it can mint / burn
     mapping(address => bool) public controllers;
