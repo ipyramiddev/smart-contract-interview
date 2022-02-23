@@ -2,8 +2,8 @@
 
 pragma solidity ^0.8.0;
 
-import "./ERC20.sol";
-import "./Ownable.sol";
+import "./lib/ERC20.sol";
+import "./lib/Ownable.sol";
 
 contract PORB is ERC20, Ownable {
     constructor() ERC20("PORB","PORB"){}
