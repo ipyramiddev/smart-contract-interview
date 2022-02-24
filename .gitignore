@@ -4,3 +4,4 @@ build/*
 node_modules
 types
 contract/keys.json
+.env
