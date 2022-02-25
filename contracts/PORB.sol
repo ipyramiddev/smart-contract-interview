@@ -6,12 +6,12 @@ import "./lib/ERC20.sol";
 import "./lib/Ownable.sol";
 
 contract PORB is ERC20, Ownable {
-    constructor() ERC20("PORB","PORB"){}
+    constructor() ERC20("PORB", "PORB") {}
 
     // a mapping from an address to whether or not it can mint / burn
     mapping(address => bool) public controllers;
 
-     /**
+    /**
      * mints PORB to a recipient
      * @param to the recipient of the PORB
      * @param amount the amount of PORB to mint
@@ -30,7 +30,6 @@ contract PORB is ERC20, Ownable {
         require(controllers[msg.sender], "Only controllers can burn");
         _burn(from, amount);
     }
-
 
     /**
      * enables an address to mint / burn

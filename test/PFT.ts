@@ -7,21 +7,28 @@ contract("PFT.sol", ([owner, account1, account2, account3, account4, account5, a
         const pftInstance = await PFT.deployed();
 
         const tokenName = await pftInstance.name();
-        localExpect(tokenName).to.equal("PFT");
+        expect(tokenName).to.equal("PFT");
     });
 
     it("has token symbol set to 'PFT'", async () => {
         const pftInstance = await PFT.deployed();
 
         const tokenSymbol = await pftInstance.symbol();
-        localExpect(tokenSymbol).to.equal("PFT");
+        expect(tokenSymbol).to.equal("PFT");
     });
 
     it("has 18 token decimals", async () => {
         const pftInstance = await PFT.deployed();
 
         const decimals = (await pftInstance.decimals()).toString();
-        localExpect(decimals).to.equal("18");
+        expect(decimals).to.equal("18");
+    });
+
+    it("has the contract owner set to the deployer address", async () => {
+        const pftInstance = await PFT.deployed();
+
+        const contractOwner = await pftInstance.owner();
+        expect(contractOwner).to.equal(owner);
     });
 
     it("allows the contract owner to add a controller", async () => {
@@ -62,6 +69,7 @@ contract("PFT.sol", ([owner, account1, account2, account3, account4, account5, a
         const amountToMint = web3.utils.toWei("1", "ether");
         const totalSupplyBefore = (await pftInstance.totalSupply()).toString();
         const expectedTotalSupplyAfter = bigInt(amountToMint).add(bigInt(totalSupplyBefore)).toString();
+        const balanceOfAccountBefore = (await pftInstance.balanceOf(account2)).toString();
 
         await localExpect(pftInstance.mint(account2, amountToMint, { from: account2 })).to.eventually.be.fulfilled;
 
@@ -69,9 +77,9 @@ contract("PFT.sol", ([owner, account1, account2, account3, account4, account5, a
 
         expect(totalSupplyAfter).to.equal(expectedTotalSupplyAfter);
 
-        const balanceOfAccount = (await pftInstance.balanceOf(account2)).toString();
+        const balanceOfAccountAfter = (await pftInstance.balanceOf(account2)).toString();
 
-        expect(balanceOfAccount).to.equal(amountToMint);
+        expect(balanceOfAccountAfter).to.equal(bigInt(amountToMint).plus(balanceOfAccountBefore).toString());
     });
 
     it("allows a controller account to burn tokens", async () => {
@@ -82,8 +90,9 @@ contract("PFT.sol", ([owner, account1, account2, account3, account4, account5, a
         const amountToMint = web3.utils.toWei("1", "ether");
         const amountToBurn = web3.utils.toWei("0.1", "ether");
         const expectedChangeInTotalSupply = bigInt(amountToMint).subtract(amountToBurn).toString();
-        const totalSupplyBefore = await (await pftInstance.totalSupply()).toString();
+        const totalSupplyBefore = (await pftInstance.totalSupply()).toString();
         const expectedTotalSupplyAfter = bigInt(totalSupplyBefore).add(bigInt(expectedChangeInTotalSupply)).toString();
+        const balanceOfAccountBefore = (await pftInstance.balanceOf(account3)).toString();
 
         await pftInstance.mint(account3, amountToMint, { from: account3 });
         await localExpect(pftInstance.burn(account3, amountToBurn, { from: account3 })).to.eventually.be.fulfilled;
@@ -92,9 +101,9 @@ contract("PFT.sol", ([owner, account1, account2, account3, account4, account5, a
 
         expect(totalSupplyAfter).to.equal(expectedTotalSupplyAfter);
 
-        const balanceOfAccount = (await pftInstance.balanceOf(account3)).toString();
+        const balanceOfAccountAfter = (await pftInstance.balanceOf(account3)).toString();
 
-        expect(balanceOfAccount).to.equal(expectedChangeInTotalSupply);
+        expect(balanceOfAccountAfter).to.equal(bigInt(expectedChangeInTotalSupply).plus(balanceOfAccountBefore).toString());
     });
 
     it("doesn't allow a non-controller account to mint tokens", async () => {
