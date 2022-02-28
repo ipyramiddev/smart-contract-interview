@@ -335,4 +335,12 @@ contract("Porble.sol", ([owner, account1, account2, account3, account4, account5
 
         await localExpect(PorbleInstance.safeMint(newsignature, 2, { from: testAccountsData[1].address })).to.eventually.be.fulfilled;
     });
+
+    // @TODO: Update this test when we have the final base URI implemented in the contract
+    it("generates a valid token URI", async () => {
+        const porbleInstance = await Porble.deployed();
+
+        const tokenURI = await porbleInstance.tokenURI("1");
+        expect(tokenURI).to.equal("https://www.portalfantasy.io/1");
+    });
 });

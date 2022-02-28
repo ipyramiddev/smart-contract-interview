@@ -18,14 +18,9 @@ contract Porble is ERC721Enumerable, EIP712, Ownable, Pausable {
         _mintApprover = _approver;
     }
 
-    function setMintApprover(address _approver) external onlyOwner {
-        _mintApprover = _approver;
-    }
-
-    // Enable the owner to pause / unpause minting
-    function setPaused(bool _paused) external onlyOwner {
-        if (_paused) _pause();
-        else _unpause();
+    // @TODO: Have added a placeholder baseURI. Need to replace with actual when it's implemented.
+    function _baseURI() internal view virtual override returns (string memory) {
+        return "https://www.portalfantasy.io/";
     }
 
     function safeMint(bytes calldata signature, uint256 tokenId) external {
@@ -51,5 +46,15 @@ contract Porble is ERC721Enumerable, EIP712, Ownable, Pausable {
         require(signer != address(0), "ECDSA: invalid signature");
 
         _safeMint(_msgSender(), tokenId);
+    }
+
+    function setMintApprover(address _approver) external onlyOwner {
+        _mintApprover = _approver;
+    }
+
+    // Enable the owner to pause / unpause minting
+    function setPaused(bool _paused) external onlyOwner {
+        if (_paused) _pause();
+        else _unpause();
     }
 }
