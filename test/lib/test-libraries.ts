@@ -5,3 +5,7 @@ localChai.use(require("chai-as-promised"));
 export const localExpect = localChai.expect;
 
 export const bigInt = require("big-integer");
+
+export const addMonths = require("date-fns/addMonths");
+export const differenceInDays = require("date-fns/differenceInDays");
+export const differenceInSeconds = require("date-fns/differenceInSeconds");
