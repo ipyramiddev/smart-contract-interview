@@ -21,8 +21,6 @@ const porbleMintConditions = { minter: testAccountsData[1].address, tokenId: 1 }
 
 module.exports = async function (callback) {
     try {
-        const accounts = await web3.eth.getAccounts();
-
         const PorbleInstance = await Porble.deployed();
 
         const domain = {
