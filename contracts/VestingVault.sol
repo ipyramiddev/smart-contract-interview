@@ -160,10 +160,19 @@ contract VestingVault is Ownable {
         return tokenGrant.monthsClaimed;
     }
 
+    function getGrantTotalClaimed(address _recipient)
+        public
+        view
+        returns (uint256)
+    {
+        Grant storage tokenGrant = tokenGrants[_recipient];
+        return tokenGrant.totalClaimed;
+    }
+
     // Calculate the vested (months and amount) of tokens available for `_recipient` to claim
     // Due to rounding errors once grant duration is reached, returns the entire left grant amount
     function calculateGrantClaim(address _recipient)
-        private
+        public
         view
         returns (uint16, uint256)
     {
