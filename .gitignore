@@ -5,3 +5,4 @@ node_modules
 types
 contract/keys.json
 .env
+prod-master-keys.ts

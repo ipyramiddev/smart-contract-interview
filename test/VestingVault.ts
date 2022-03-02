@@ -9,7 +9,7 @@ const VestingVault = artifacts.require("VestingVault");
 // have this. Look into an alternative way to time-travel in ava-sim. Until then, remember to skip these tests and
 // run against Ganache manually when necessary.
 
-contract("VestingVault.sol", ([owner, account1, account2, account3, account4, account5, account6, account7, account8, account9]) => {
+contract.skip("VestingVault.sol", ([owner, account1, account2, account3, account4, account5, account6, account7, account8, account9]) => {
     let PFTInstance: PFTInstance;
     let VestingVaultInstance: VestingVaultInstance;
     let initialAmountMintedToOwner: string;
@@ -63,6 +63,25 @@ contract("VestingVault.sol", ([owner, account1, account2, account3, account4, ac
         const expectedTokensClaimed = web3.utils.toWei(((timeInMonthsIncrement - cliffInMonths) / vestingDurationInMonths).toString(), "ether");
 
         expect(balanceOfRecipient).to.equal(expectedTokensClaimed);
+    });
+
+    it("rejects a claim that preceeds a successful claim, because nothing has vested yet", async () => {
+        // Grant tokens for account1, with a cliff and linear vesting schedule
+        const cliffInMonths = 2;
+        const vestingDurationInMonths = 10;
+        const amountToGrant = web3.utils.toWei("1", "ether");
+        await VestingVaultInstance.addTokenGrant(account1, amountToGrant, vestingDurationInMonths, cliffInMonths);
+
+        // Time travel
+        const timeInMonthsIncrement = 3;
+        const timeInSecondsIncrement = differenceInSeconds(addMonths(Date.now(), timeInMonthsIncrement), Date.now());
+        await advanceTimeAndBlock(timeInSecondsIncrement);
+
+        // Expect the claim to be successful because some tokens should have vested after time travel
+        await localExpect(VestingVaultInstance.claimVestedTokensForRecipient(account1, { from: owner })).to.eventually.be.fulfilled;
+
+        // Expect the claim to be rejected since nothing has vested yet after the previous claim
+        await localExpect(VestingVaultInstance.claimVestedTokensForRecipient(account1, { from: owner })).to.eventually.be.rejected;
     });
 
     it("vests the correct amount 7 months after the TGE, which can be claimed for the recipient", async () => {
