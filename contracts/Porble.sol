@@ -9,20 +9,29 @@ import "./lib/Pausable.sol";
 
 contract Porble is ERC721Enumerable, EIP712, Ownable, Pausable {
     // The expected signer of the signature required for minting
-    address private _mintApprover;
+    address private _mintSigner;
 
-    constructor(address _approver)
+    constructor(address signer)
         ERC721("Porble", "PRBL")
         EIP712("PortalFantasy", "1")
     {
-        _mintApprover = _approver;
+        _mintSigner = signer;
     }
 
     // @TODO: Have added a placeholder baseURI. Need to replace with actual when it's implemented.
+    /**
+     * Overriding the parent _baseURI() with required baseURI
+     */
     function _baseURI() internal view virtual override returns (string memory) {
         return "https://www.portalfantasy.io/";
     }
 
+    /**
+     * Allows the caller to mint a token with specified tokenId if the signature is valid
+     * The recipient and the tokenId to be minted is determined by the signer
+     * @param signature the signed message specifying the recipient and tokenId to mint and transfer
+     * @param tokenId the tokenId to mint and transfer to the caller
+     */
     function safeMint(bytes calldata signature, uint256 tokenId) external {
         // Only allow the caller to mint if the signature is valid
         bytes32 digest = _hashTypedDataV4(
@@ -40,7 +49,7 @@ contract Porble is ERC721Enumerable, EIP712, Ownable, Pausable {
         address signer = ECDSA.recover(digest, signature);
 
         require(
-            signer == _mintApprover,
+            signer == _mintSigner,
             "PorbleMintConditions: invalid signature"
         );
         require(signer != address(0), "ECDSA: invalid signature");
@@ -48,11 +57,18 @@ contract Porble is ERC721Enumerable, EIP712, Ownable, Pausable {
         _safeMint(_msgSender(), tokenId);
     }
 
-    function setMintApprover(address _approver) external onlyOwner {
-        _mintApprover = _approver;
+    /**
+     * Set the address of the signer which can sign messages specifying the mint conditions
+     * @param signer the address of the signer to point to
+     */
+    function setMintSigner(address signer) external onlyOwner {
+        _mintSigner = signer;
     }
 
-    // Enable the owner to pause / unpause minting
+    /**
+     * Enable the owner to pause / unpause minting
+     * @param _paused paused when set to `true`, unpause when set to `false`
+     */
     function setPaused(bool _paused) external onlyOwner {
         if (_paused) _pause();
         else _unpause();

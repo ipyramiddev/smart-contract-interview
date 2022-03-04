@@ -30,6 +30,11 @@ contract.skip("PFT.sol", ([owner, account1, account2, account3, account4, accoun
         expect(contractOwner).to.equal(owner);
     });
 
+    it("sets the owner as a controller on construction", async () => {
+        const isController = await (PFTInstance as any).controllers.call(owner);
+        expect(isController).to.be.true;
+    });
+
     it("allows the contract owner to add a controller", async () => {
         await localExpect(PFTInstance.addController(account2, { from: owner })).to.eventually.be.fulfilled;
 
@@ -111,7 +116,7 @@ contract.skip("PFT.sol", ([owner, account1, account2, account3, account4, accoun
 
         await PFTInstance.mint(account5, amountToMint, { from: account4 });
 
-        await localExpect(PFTInstance.burn(account5, amountToBurn), { from: account5 }).to.eventually.be.rejected;
+        await localExpect(PFTInstance.burn(account5, amountToBurn, { from: account5 })).to.eventually.be.rejected;
 
         const balanceOfAccount = (await PFTInstance.balanceOf(account5)).toString();
 

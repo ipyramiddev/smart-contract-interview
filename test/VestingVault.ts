@@ -8,6 +8,7 @@ const VestingVault = artifacts.require("VestingVault");
 // @TODO: Currently having to run the tests with Ganache because of the time-travel feature. ava-sim doesn't seem to
 // have this. Look into an alternative way to time-travel in ava-sim. Until then, remember to skip these tests and
 // run against Ganache manually when necessary.
+// Run: truffle test --network developmentGanache
 
 contract.skip("VestingVault.sol", ([owner, account1, account2, account3, account4, account5, account6, account7, account8, account9]) => {
     let PFTInstance: PFTInstance;
