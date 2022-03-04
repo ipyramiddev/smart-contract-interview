@@ -10,7 +10,7 @@ module.exports = (artifacts: Truffle.Artifacts, web3: Web3) => {
         const PFTInstance = await PFT.deployed();
 
         const PORB = artifacts.require("PORB");
-        await deployer.deploy(PORB);
+        await deployer.deploy<any[]>(PORB, accounts[1], accounts[0]);
 
         const porble = artifacts.require("Porble");
         await deployer.deploy<any[]>(porble, accounts[1]);

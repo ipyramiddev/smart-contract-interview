@@ -274,16 +274,16 @@ contract.skip("Porble.sol", ([owner, account1, account2, account3, account4, acc
         await localExpect(porbleInstance.safeMint(tamperedSignature, 2, { from: testAccountsData[1].address })).to.eventually.be.rejected;
     });
 
-    it("only allows the owner to change the _mintApprover", async () => {
+    it("only allows the owner to change the _mintSigner", async () => {
         // Should fail since caller is not the owner
-        await localExpect(porbleInstance.setMintApprover(account3, { from: account1 })).to.eventually.be.rejected;
+        await localExpect(porbleInstance.setMintSigner(account3, { from: account1 })).to.eventually.be.rejected;
 
-        await localExpect(porbleInstance.setMintApprover(account3, { from: owner })).to.eventually.be.fulfilled;
+        await localExpect(porbleInstance.setMintSigner(account3, { from: owner })).to.eventually.be.fulfilled;
     });
 
-    it("only allows a token to be minted if the signer is updated to match the contract's changed _mintApprover", async () => {
-        // Change the mint approver
-        await porbleInstance.setMintApprover(account2, { from: owner });
+    it("only allows a token to be minted if the signer is updated to match the contract's changed _mintSigner", async () => {
+        // Change the mint signer
+        await porbleInstance.setMintSigner(account2, { from: owner });
 
         const types = {
             PorbleMintConditions: [
@@ -304,7 +304,7 @@ contract.skip("Porble.sol", ([owner, account1, account2, account3, account4, acc
         // Sign according to the EIP-712 standard
         const signature = await signer._signTypedData(domain, types, porbleMintConditions);
 
-        // This should fail because the _mintApprover has changed and no longer matches the signer
+        // This should fail because the _mintSigner has changed and no longer matches the signer
         await localExpect(porbleInstance.safeMint(signature, 2, { from: testAccountsData[1].address })).to.eventually.be.rejected;
 
         const newSigner = new ethers.Wallet(testAccountsData[2].privateKey, provider);

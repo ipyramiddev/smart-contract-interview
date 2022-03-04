@@ -6,13 +6,15 @@ import "./lib/ERC20.sol";
 import "./lib/Ownable.sol";
 
 contract PFT is ERC20, Ownable {
-    constructor() ERC20("PFT", "PFT") {}
+    constructor() ERC20("PFT", "PFT") {
+        controllers[owner()] = true;
+    }
 
-    // a mapping from an address to whether or not it can mint / burn
+    // Mapping from an address to whether or not it can mint / burn
     mapping(address => bool) public controllers;
 
     /**
-     * mints PORB to a recipient
+     * Mints PORB to a recipient
      * @param to the recipient of the PORB
      * @param amount the amount of PORB to mint
      */
@@ -22,7 +24,7 @@ contract PFT is ERC20, Ownable {
     }
 
     /**
-     * burns PORB from a holder
+     * Burns PORB from a holder
      * @param from the holder of the PORB
      * @param amount the amount of PORB to burn
      */
@@ -32,7 +34,7 @@ contract PFT is ERC20, Ownable {
     }
 
     /**
-     * enables an address to mint / burn
+     * Enables an address to mint / burn
      * @param controller the address to enable
      */
     function addController(address controller) external onlyOwner {
@@ -40,7 +42,7 @@ contract PFT is ERC20, Ownable {
     }
 
     /**
-     * disables an address from minting / burning
+     * Disables an address from minting / burning
      * @param controller the address to disbale
      */
     function removeController(address controller) external onlyOwner {
