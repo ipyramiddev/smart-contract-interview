@@ -18,9 +18,9 @@ contract.skip("PORB.sol", ([owner, account1, account2, account3, account4, accou
         PORBInstance = await PORB.new(account1, owner);
     });
 
-    it("has token name set to 'PORB'", async () => {
+    it("has token name set to 'Portal Fantasy Orb'", async () => {
         const tokenName = await PORBInstance.name();
-        expect(tokenName).to.equal("PORB");
+        expect(tokenName).to.equal("Portal Fantasy Orb");
     });
 
     it("has token symbol set to 'PORB'", async () => {

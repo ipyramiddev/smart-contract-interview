@@ -18,7 +18,7 @@ contract.skip("Porble.sol", ([owner, account1, account2, account3, account4, acc
         porbleInstance = await Porble.new(account1);
     });
 
-    it("has token name set to 'Porble'", async () => {
+    it("has token name set to 'Portal Fantasy Porble'", async () => {
         const tokenName = await porbleInstance.name();
         expect(tokenName).to.equal("Porble");
     });
@@ -338,5 +338,39 @@ contract.skip("Porble.sol", ([owner, account1, account2, account3, account4, acc
 
         const tokenURI = await porbleInstance.tokenURI("1");
         expect(tokenURI).to.equal("https://www.portalfantasy.io/1");
+    });
+
+    it("allows only the owner to change the base URI", async () => {
+        const types = {
+            PorbleMintConditions: [
+                { name: "minter", type: "address" },
+                { name: "tokenId", type: "uint256" },
+            ],
+        };
+
+        const porbleMintConditions = { minter: testAccountsData[1].address, tokenId: 1 };
+
+        const domain = {
+            name: "PortalFantasy",
+            version: "1",
+            chainId: 43214,
+            verifyingContract: porbleInstance.address,
+        };
+
+        // Sign according to the EIP-712 standard
+        const signature: string = await signer._signTypedData(domain, types, porbleMintConditions);
+
+        await porbleInstance.safeMint(signature, 1, { from: testAccountsData[1].address });
+
+        let tokenURI = await porbleInstance.tokenURI("1");
+        expect(tokenURI).to.equal("https://www.portalfantasy.io/1");
+
+        // Expect this to fail, as only the owner can change the base URI
+        await localExpect(porbleInstance.setBaseURIString("https://www.foo.com/", { from: account1 })).to.eventually.be.rejected;
+
+        await localExpect(porbleInstance.setBaseURIString("https://www.bar.com/", { from: owner })).to.eventually.be.fulfilled;
+
+        tokenURI = await porbleInstance.tokenURI("1");
+        expect(tokenURI).to.equal("https://www.bar.com/1");
     });
 });

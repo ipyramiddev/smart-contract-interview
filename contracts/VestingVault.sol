@@ -3,7 +3,7 @@
 pragma solidity ^0.8.0;
 
 import "./lib/BokkyPooBahsDateTimeLibrary.sol";
-import "./lib/ERC20.sol";
+import "./lib/IERC20.sol";
 import "./lib/Ownable.sol";
 import "./lib/SafeMath.sol";
 
@@ -28,16 +28,16 @@ contract VestingVault is Ownable {
         uint256 amountNotVested
     );
 
-    ERC20 public token;
+    IERC20 public PFT;
 
     // Recipient to Grant mapping
     mapping(address => Grant) private tokenGrants;
 
     uint256 public totalVestingCount;
 
-    constructor(ERC20 _token) {
-        require(address(_token) != address(0));
-        token = _token;
+    constructor(IERC20 _PFT) {
+        require(address(_PFT) != address(0));
+        PFT = _PFT;
     }
 
     function addTokenGrant(
@@ -69,10 +69,8 @@ contract VestingVault is Ownable {
         );
 
         // Transfer the grant tokens from the owner to the control of this contract
-        require(
-            token.transferFrom(owner(), address(this), _amount),
-            "Token transfer from the owner to the vesting contract failed"
-        );
+        // Don't need to check return value since we with PFT.sol reverts properly on failure
+        PFT.transferFrom(owner(), address(this), _amount);
 
         Grant memory grant = Grant({
             startTime: BokkyPooBahsDateTimeLibrary.addMonths(
@@ -108,10 +106,7 @@ contract VestingVault is Ownable {
             tokenGrant.totalClaimed.add(amountVested)
         );
 
-        require(
-            token.transfer(_recipient, amountVested),
-            "Vesting contract doesn't have sufficient tokens to send to the recipient"
-        );
+        PFT.transfer(_recipient, amountVested);
 
         emit GrantTokensClaimed(_recipient, amountVested);
     }
@@ -129,8 +124,8 @@ contract VestingVault is Ownable {
             tokenGrant.amount.sub(tokenGrant.totalClaimed)
         ).sub(amountVested);
 
-        require(token.transfer(owner(), amountNotVested));
-        require(token.transfer(_recipient, amountVested));
+        PFT.transfer(owner(), amountNotVested);
+        PFT.transfer(_recipient, amountVested);
 
         delete tokenGrants[_recipient];
 

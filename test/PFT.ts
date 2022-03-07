@@ -10,9 +10,9 @@ contract.skip("PFT.sol", ([owner, account1, account2, account3, account4, accoun
         PFTInstance = await PFT.new();
     });
 
-    it("has token name set to 'PFT'", async () => {
+    it("has token name set to 'Portal Fantasy Token'", async () => {
         const tokenName = await PFTInstance.name();
-        expect(tokenName).to.equal("PFT");
+        expect(tokenName).to.equal("Portal Fantasy Token");
     });
 
     it("has token symbol set to 'PFT'", async () => {

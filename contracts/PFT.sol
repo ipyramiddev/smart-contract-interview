@@ -6,7 +6,7 @@ import "./lib/ERC20.sol";
 import "./lib/Ownable.sol";
 
 contract PFT is ERC20, Ownable {
-    constructor() ERC20("PFT", "PFT") {
+    constructor() ERC20("Portal Fantasy Token", "PFT") {
         controllers[owner()] = true;
     }
 

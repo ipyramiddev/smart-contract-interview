@@ -10,6 +10,8 @@ const VestingVault = artifacts.require("VestingVault");
 // run against Ganache manually when necessary.
 // Run: truffle test --network developmentGanache
 
+// @NOTE: Have seen the last test fail intermittently
+
 contract.skip("VestingVault.sol", ([owner, account1, account2, account3, account4, account5, account6, account7, account8, account9]) => {
     let PFTInstance: PFTInstance;
     let VestingVaultInstance: VestingVaultInstance;
@@ -22,7 +24,6 @@ contract.skip("VestingVault.sol", ([owner, account1, account2, account3, account
         // Mint 1B PFT and transfer to the owner
         // Approve the vesting contract to have access to all of this
         initialAmountMintedToOwner = web3.utils.toWei("1000000000", "ether");
-        await PFTInstance.addController(owner);
         await PFTInstance.mint(owner, initialAmountMintedToOwner);
         await PFTInstance.approve(VestingVaultInstance.address, initialAmountMintedToOwner);
     });
