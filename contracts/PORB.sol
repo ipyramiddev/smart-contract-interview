@@ -17,7 +17,7 @@ contract PORB is ERC20, EIP712, Ownable {
     address private _PORBVaultTransferSigner;
 
     constructor(address signer, address vault)
-        ERC20("PORB", "PORB")
+        ERC20("Portal Fantasy Orb", "PORB")
         EIP712("PortalFantasy", "1")
     {
         controllers[owner()] = true;

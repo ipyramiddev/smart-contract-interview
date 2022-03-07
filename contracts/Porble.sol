@@ -8,22 +8,25 @@ import "./lib/Ownable.sol";
 import "./lib/Pausable.sol";
 
 contract Porble is ERC721Enumerable, EIP712, Ownable, Pausable {
+    string public baseURIString;
+
     // The expected signer of the signature required for minting
-    address private _mintSigner;
+    address public mintSigner;
 
     constructor(address signer)
-        ERC721("Porble", "PRBL")
+        ERC721("Portal Fantasy Porble", "PRBL")
         EIP712("PortalFantasy", "1")
     {
-        _mintSigner = signer;
+        // @TODO: Have added a placeholder baseURIString. Need to replace with actual when it's implemented.
+        baseURIString = "https://www.portalfantasy.io/";
+        mintSigner = signer;
     }
 
-    // @TODO: Have added a placeholder baseURI. Need to replace with actual when it's implemented.
     /**
      * Overriding the parent _baseURI() with required baseURI
      */
     function _baseURI() internal view virtual override returns (string memory) {
-        return "https://www.portalfantasy.io/";
+        return baseURIString;
     }
 
     /**
@@ -49,7 +52,7 @@ contract Porble is ERC721Enumerable, EIP712, Ownable, Pausable {
         address signer = ECDSA.recover(digest, signature);
 
         require(
-            signer == _mintSigner,
+            signer == mintSigner,
             "PorbleMintConditions: invalid signature"
         );
         require(signer != address(0), "ECDSA: invalid signature");
@@ -58,11 +61,22 @@ contract Porble is ERC721Enumerable, EIP712, Ownable, Pausable {
     }
 
     /**
+     * Allows the owner to set a new base URI
+     * @param _baseURIString the new base URI to point to
+     */
+    function setBaseURIString(string calldata _baseURIString)
+        external
+        onlyOwner
+    {
+        baseURIString = _baseURIString;
+    }
+
+    /**
      * Set the address of the signer which can sign messages specifying the mint conditions
      * @param signer the address of the signer to point to
      */
     function setMintSigner(address signer) external onlyOwner {
-        _mintSigner = signer;
+        mintSigner = signer;
     }
 
     /**

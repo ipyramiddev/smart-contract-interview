@@ -12,6 +12,14 @@ module.exports = (artifacts: Truffle.Artifacts, web3: Web3) => {
         const PORB = artifacts.require("PORB");
         await deployer.deploy<any[]>(PORB, accounts[1], accounts[0]);
 
+        // Use accounts[9] as a vault because it's less likely to interfere in testing
+        const hero = artifacts.require("Hero");
+        await deployer.deploy<any[]>(hero, PORB.address, accounts[9]);
+
+        // Use accounts[9] as a vault because it's less likely to interfere in testing
+        const architect = artifacts.require("Architect");
+        await deployer.deploy<any[]>(architect, PORB.address, accounts[9]);
+
         const porble = artifacts.require("Porble");
         await deployer.deploy<any[]>(porble, accounts[1]);
 
