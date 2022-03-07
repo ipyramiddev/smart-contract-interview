@@ -33,7 +33,7 @@ contract VestingVault is Ownable {
     // Recipient to Grant mapping
     mapping(address => Grant) private tokenGrants;
 
-    uint256 public totalVestingCount;
+    uint256 public totalClaimedByAll;
 
     constructor(IERC20 _PFT) {
         require(address(_PFT) != address(0));
@@ -105,6 +105,7 @@ contract VestingVault is Ownable {
         tokenGrant.totalClaimed = uint256(
             tokenGrant.totalClaimed.add(amountVested)
         );
+        totalClaimedByAll += amountVested;
 
         PFT.transfer(_recipient, amountVested);
 

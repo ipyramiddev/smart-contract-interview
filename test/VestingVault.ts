@@ -65,25 +65,10 @@ contract.skip("VestingVault.sol", ([owner, account1, account2, account3, account
         const expectedTokensClaimed = web3.utils.toWei(((timeInMonthsIncrement - cliffInMonths) / vestingDurationInMonths).toString(), "ether");
 
         expect(balanceOfRecipient).to.equal(expectedTokensClaimed);
-    });
 
-    it("rejects a claim that preceeds a successful claim, because nothing has vested yet", async () => {
-        // Grant tokens for account1, with a cliff and linear vesting schedule
-        const cliffInMonths = 2;
-        const vestingDurationInMonths = 10;
-        const amountToGrant = web3.utils.toWei("1", "ether");
-        await VestingVaultInstance.addTokenGrant(account1, amountToGrant, vestingDurationInMonths, cliffInMonths);
+        const tokensClaimed = (await VestingVaultInstance.totalClaimedByAll()).toString();
 
-        // Time travel
-        const timeInMonthsIncrement = 3;
-        const timeInSecondsIncrement = differenceInSeconds(addMonths(Date.now(), timeInMonthsIncrement), Date.now());
-        await advanceTimeAndBlock(timeInSecondsIncrement);
-
-        // Expect the claim to be successful because some tokens should have vested after time travel
-        await localExpect(VestingVaultInstance.claimVestedTokensForRecipient(account1, { from: owner })).to.eventually.be.fulfilled;
-
-        // Expect the claim to be rejected since nothing has vested yet after the previous claim
-        await localExpect(VestingVaultInstance.claimVestedTokensForRecipient(account1, { from: owner })).to.eventually.be.rejected;
+        expect(tokensClaimed).to.equal(expectedTokensClaimed);
     });
 
     it("vests the correct amount 7 months after the TGE, which can be claimed for the recipient", async () => {
@@ -106,6 +91,29 @@ contract.skip("VestingVault.sol", ([owner, account1, account2, account3, account
         const expectedTokensClaimed = web3.utils.toWei(((timeInMonthsIncrement - cliffInMonths) / vestingDurationInMonths).toString(), "ether");
 
         expect(balanceOfRecipient).to.equal(expectedTokensClaimed);
+
+        const tokensClaimed = (await VestingVaultInstance.totalClaimedByAll()).toString();
+
+        expect(tokensClaimed).to.equal(expectedTokensClaimed);
+    });
+
+    it("rejects a claim that preceeds a successful claim, because nothing has vested yet", async () => {
+        // Grant tokens for account1, with a cliff and linear vesting schedule
+        const cliffInMonths = 2;
+        const vestingDurationInMonths = 10;
+        const amountToGrant = web3.utils.toWei("1", "ether");
+        await VestingVaultInstance.addTokenGrant(account1, amountToGrant, vestingDurationInMonths, cliffInMonths);
+
+        // Time travel
+        const timeInMonthsIncrement = 3;
+        const timeInSecondsIncrement = differenceInSeconds(addMonths(Date.now(), timeInMonthsIncrement), Date.now());
+        await advanceTimeAndBlock(timeInSecondsIncrement);
+
+        // Expect the claim to be successful because some tokens should have vested after time travel
+        await localExpect(VestingVaultInstance.claimVestedTokensForRecipient(account1, { from: owner })).to.eventually.be.fulfilled;
+
+        // Expect the claim to be rejected since nothing has vested yet after the previous claim
+        await localExpect(VestingVaultInstance.claimVestedTokensForRecipient(account1, { from: owner })).to.eventually.be.rejected;
     });
 
     it("vests nothing for three separate seed recipients, 4 months after the TGE because the cliff is still in the future", async () => {
@@ -131,6 +139,10 @@ contract.skip("VestingVault.sol", ([owner, account1, account2, account3, account
         await localExpect(VestingVaultInstance.claimVestedTokensForRecipient(account1, { from: owner })).to.eventually.be.rejected;
         await localExpect(VestingVaultInstance.claimVestedTokensForRecipient(account2, { from: owner })).to.eventually.be.rejected;
         await localExpect(VestingVaultInstance.claimVestedTokensForRecipient(account3, { from: owner })).to.eventually.be.rejected;
+
+        const tokensClaimedByAll = (await VestingVaultInstance.totalClaimedByAll()).toString();
+
+        expect(tokensClaimedByAll).to.equal("0");
     });
 
     it("vests nothing for three separate seed recipients, 6 months after the TGE because the first vesting is 1 month after the cliff", async () => {
@@ -156,6 +168,10 @@ contract.skip("VestingVault.sol", ([owner, account1, account2, account3, account
         await localExpect(VestingVaultInstance.claimVestedTokensForRecipient(account1, { from: owner })).to.eventually.be.rejected;
         await localExpect(VestingVaultInstance.claimVestedTokensForRecipient(account2, { from: owner })).to.eventually.be.rejected;
         await localExpect(VestingVaultInstance.claimVestedTokensForRecipient(account3, { from: owner })).to.eventually.be.rejected;
+
+        const tokensClaimedByAll = (await VestingVaultInstance.totalClaimedByAll()).toString();
+
+        expect(tokensClaimedByAll).to.equal("0");
     });
 
     it("vests the correct amounts 8 months after the TGE (during linear vesting), which can be claimed for the various recipients", async () => {
@@ -205,6 +221,11 @@ contract.skip("VestingVault.sol", ([owner, account1, account2, account3, account
             .toString();
 
         expect(balanceOfRecipient3).to.equal(expectedTokensClaimedForRecipient3);
+
+        const tokensClaimedByAll = (await VestingVaultInstance.totalClaimedByAll()).toString();
+        const expectedTotalClaimedByAll = bigInt(expectedTokensClaimedForRecipient1).add(expectedTokensClaimedForRecipient2).add(expectedTokensClaimedForRecipient3).toString();
+
+        expect(tokensClaimedByAll).to.equal(expectedTotalClaimedByAll);
     });
 
     it("vests the correct amounts 18 months after the TGE (at the end of linear vesting), which can be claimed for the various recipients", async () => {
@@ -254,6 +275,11 @@ contract.skip("VestingVault.sol", ([owner, account1, account2, account3, account
             .toString();
 
         expect(balanceOfRecipient3).to.equal(expectedTokensClaimedForRecipient3);
+
+        const tokensClaimedByAll = (await VestingVaultInstance.totalClaimedByAll()).toString();
+        const expectedTotalClaimedByAll = bigInt(expectedTokensClaimedForRecipient1).add(expectedTokensClaimedForRecipient2).add(expectedTokensClaimedForRecipient3).toString();
+
+        expect(tokensClaimedByAll).to.equal(expectedTotalClaimedByAll);
     });
 
     it("vests the correct amounts 32 months after the TGE (a long time after the end of linear vesting), which can be claimed for the various recipients", async () => {

@@ -11,10 +11,10 @@ contract PORB is ERC20, EIP712, Ownable {
     mapping(address => bool) public controllers;
 
     // The address of the PORB vault contract
-    address private _PORBVault;
+    address public PORBVault;
 
     // The expected signer of the signature required for transferring PORB from the vault to the caller
-    address private _PORBVaultTransferSigner;
+    address public PORBVaultTransferSigner;
 
     constructor(address signer, address vault)
         ERC20("Portal Fantasy Orb", "PORB")
@@ -23,9 +23,9 @@ contract PORB is ERC20, EIP712, Ownable {
         controllers[owner()] = true;
 
         // Only allowed to set during construction to protect balances of all owners
-        _PORBVault = vault;
+        PORBVault = vault;
 
-        _PORBVaultTransferSigner = signer;
+        PORBVaultTransferSigner = signer;
     }
 
     /**
@@ -69,7 +69,7 @@ contract PORB is ERC20, EIP712, Ownable {
      * @param signer the address of the signer to point to
      */
     function setPORBVaultTransferSigner(address signer) external onlyOwner {
-        _PORBVaultTransferSigner = signer;
+        PORBVaultTransferSigner = signer;
     }
 
     /**
@@ -97,12 +97,12 @@ contract PORB is ERC20, EIP712, Ownable {
         address signer = ECDSA.recover(digest, signature);
 
         require(
-            signer == _PORBVaultTransferSigner,
+            signer == PORBVaultTransferSigner,
             "PORBVaultTransferConditions: invalid signature"
         );
         require(signer != address(0), "ECDSA: invalid signature");
 
-        _approve(_PORBVault, _msgSender(), amount);
-        transferFrom(_PORBVault, _msgSender(), amount);
+        _approve(PORBVault, _msgSender(), amount);
+        transferFrom(PORBVault, _msgSender(), amount);
     }
 }
