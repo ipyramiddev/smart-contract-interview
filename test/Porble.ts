@@ -1,26 +1,40 @@
 import { localExpect } from "./lib/test-libraries";
-import { PorbleInstance } from "../types/truffle-contracts";
+import { PorbleInstance, MultiSigWalletInstance } from "../types/truffle-contracts";
+import PORBLE_JSON from "../build/contracts/Porble.json";
+import Web3 from "web3";
+import { AbiItem } from "web3-utils";
+import { getTxIdFromMultiSigWallet } from "./lib/test-helpers";
 
 const ethers = require("ethers");
 const testAccountsData = require("../test/data/test-accounts-data").testAccountsData;
 const config = require("../config").config;
 
-const Porble = artifacts.require("Porble");
+const porble = artifacts.require("Porble");
+const multiSigWallet = artifacts.require("MultiSigWallet");
 
 const rpcEndpoint = config.AVAX.localHTTP;
 const provider = new ethers.providers.JsonRpcProvider(rpcEndpoint);
 const signer = new ethers.Wallet(testAccountsData[1].privateKey, provider);
+const PORBLE_ABI = PORBLE_JSON.abi as AbiItem[];
+const web3 = new Web3(new Web3.providers.HttpProvider(config.AVAX.localHTTP));
 
 contract.skip("Porble.sol", ([owner, account1, account2, account3, account4, account5, account6, account7, account8, account9]) => {
     let porbleInstance: PorbleInstance;
+    let multiSigWalletInstance: MultiSigWalletInstance;
+    let porbleContract: any;
 
     beforeEach(async () => {
-        porbleInstance = await Porble.new(account1);
+        // Require 2 signatures for multiSig
+        multiSigWalletInstance = await multiSigWallet.new([owner, account1, account2], 2);
+        porbleInstance = await porble.new(account1);
+        await porbleInstance.transferOwnership(multiSigWalletInstance.address);
+
+        porbleContract = new web3.eth.Contract(PORBLE_ABI, porbleInstance.address);
     });
 
     it("has token name set to 'Portal Fantasy Porble'", async () => {
         const tokenName = await porbleInstance.name();
-        expect(tokenName).to.equal("Porble");
+        expect(tokenName).to.equal("Portal Fantasy Porble");
     });
 
     it("has token symbol set to 'PRBL'", async () => {
@@ -28,19 +42,22 @@ contract.skip("Porble.sol", ([owner, account1, account2, account3, account4, acc
         expect(tokenSymbol).to.equal("PRBL");
     });
 
-    it("has the contract owner set to the deployer address", async () => {
+    it("has the contract owner set to the multiSigWallet address", async () => {
         const contractOwner = await porbleInstance.owner();
-        expect(contractOwner).to.equal(owner);
+        expect(contractOwner).to.equal(multiSigWalletInstance.address);
     });
 
-    it("can only be paused/unpaused by the owner", async () => {
+    it("can only be paused/unpaused by the owner (multiSigWallet)", async () => {
         let isPaused = await porbleInstance.paused();
         expect(isPaused).to.be.false;
 
         // Non-owner account attempting to pause should fail
         await localExpect(porbleInstance.setPaused(true, { from: account1 })).to.be.rejected;
 
-        await porbleInstance.setPaused(true);
+        let data = porbleContract.methods.setPaused(true).encodeABI();
+        await multiSigWalletInstance.submitTransaction(porbleInstance.address, 0, data, { from: owner });
+        let txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await localExpect(multiSigWalletInstance.confirmTransaction(txId, { from: account1 })).to.eventually.be.fulfilled;
 
         isPaused = await porbleInstance.paused();
         expect(isPaused).to.be.true;
@@ -48,7 +65,10 @@ contract.skip("Porble.sol", ([owner, account1, account2, account3, account4, acc
         // Non-owner account attempting to unpause should fail
         await localExpect(porbleInstance.setPaused(false, { from: account1 })).to.be.rejected;
 
-        await porbleInstance.setPaused(false);
+        data = porbleContract.methods.setPaused(false).encodeABI();
+        await multiSigWalletInstance.submitTransaction(porbleInstance.address, 0, data, { from: owner });
+        txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await localExpect(multiSigWalletInstance.confirmTransaction(txId, { from: account1 })).to.eventually.be.fulfilled;
 
         isPaused = await porbleInstance.paused();
         expect(isPaused).to.be.false;
@@ -78,7 +98,7 @@ contract.skip("Porble.sol", ([owner, account1, account2, account3, account4, acc
         await localExpect(porbleInstance.safeMint(signature, 1, { from: testAccountsData[1].address })).to.eventually.be.fulfilled;
     });
 
-    it("prevents a porble token from being minted if the 'PorbleMintConditions' key is doesn't match the name of the object hard-coded in the contract", async () => {
+    it("prevents a porble token from being minted if the 'PorbleMintConditions' key doesn't match the name of the object hard-coded in the contract", async () => {
         const types = {
             PorbleMintConditionsWrong: [
                 { name: "minter", type: "address" },
@@ -278,12 +298,18 @@ contract.skip("Porble.sol", ([owner, account1, account2, account3, account4, acc
         // Should fail since caller is not the owner
         await localExpect(porbleInstance.setMintSigner(account3, { from: account1 })).to.eventually.be.rejected;
 
-        await localExpect(porbleInstance.setMintSigner(account3, { from: owner })).to.eventually.be.fulfilled;
+        const data = porbleContract.methods.setMintSigner(account3).encodeABI();
+        await multiSigWalletInstance.submitTransaction(porbleInstance.address, 0, data, { from: owner });
+        const txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await localExpect(multiSigWalletInstance.confirmTransaction(txId, { from: account1 })).to.eventually.be.fulfilled;
     });
 
     it("only allows a token to be minted if the signer is updated to match the contract's changed _mintSigner", async () => {
         // Change the mint signer
-        await porbleInstance.setMintSigner(account2, { from: owner });
+        const data = porbleContract.methods.setMintSigner(account2).encodeABI();
+        await multiSigWalletInstance.submitTransaction(porbleInstance.address, 0, data, { from: owner });
+        const txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
         const types = {
             PorbleMintConditions: [
@@ -368,7 +394,10 @@ contract.skip("Porble.sol", ([owner, account1, account2, account3, account4, acc
         // Expect this to fail, as only the owner can change the base URI
         await localExpect(porbleInstance.setBaseURIString("https://www.foo.com/", { from: account1 })).to.eventually.be.rejected;
 
-        await localExpect(porbleInstance.setBaseURIString("https://www.bar.com/", { from: owner })).to.eventually.be.fulfilled;
+        const data = porbleContract.methods.setBaseURIString("https://www.bar.com/").encodeABI();
+        await multiSigWalletInstance.submitTransaction(porbleInstance.address, 0, data, { from: owner });
+        const txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await localExpect(multiSigWalletInstance.confirmTransaction(txId, { from: account1 })).to.eventually.be.fulfilled;
 
         tokenURI = await porbleInstance.tokenURI("1");
         expect(tokenURI).to.equal("https://www.bar.com/1");

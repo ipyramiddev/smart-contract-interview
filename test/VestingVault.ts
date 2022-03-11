@@ -1,9 +1,21 @@
 import { localExpect, bigInt, addMonths, differenceInSeconds } from "./lib/test-libraries";
 import { advanceTimeAndBlock } from "../scripts/utils/time-travel";
-import { PFTInstance, VestingVaultInstance } from "../types/truffle-contracts";
+import { PFTInstance, VestingVaultInstance, MultiSigWalletInstance } from "../types/truffle-contracts";
+import VESTING_VAULT_JSON from "../build/contracts/VestingVault.json";
+import PFT_JSON from "../build/contracts/PFT.json";
+import Web3 from "web3";
+import { AbiItem } from "web3-utils";
+import { getTxIdFromMultiSigWallet } from "./lib/test-helpers";
+
+const config = require("../config").config;
 
 const PFT = artifacts.require("PFT");
-const VestingVault = artifacts.require("VestingVault");
+const vestingVault = artifacts.require("VestingVault");
+const multiSigWallet = artifacts.require("MultiSigWallet");
+
+const VESTING_VAULT_ABI = VESTING_VAULT_JSON.abi as AbiItem[];
+const PFT_ABI = PFT_JSON.abi as AbiItem[];
+const web3 = new Web3(new Web3.providers.HttpProvider(config.AVAX.localHTTP));
 
 // @TODO: Currently having to run the tests with Ganache because of the time-travel feature. ava-sim doesn't seem to
 // have this. Look into an alternative way to time-travel in ava-sim. Until then, remember to skip these tests and
@@ -14,18 +26,52 @@ const VestingVault = artifacts.require("VestingVault");
 
 contract.skip("VestingVault.sol", ([owner, account1, account2, account3, account4, account5, account6, account7, account8, account9]) => {
     let PFTInstance: PFTInstance;
-    let VestingVaultInstance: VestingVaultInstance;
+    let vestingVaultInstance: VestingVaultInstance;
+    let multiSigWalletInstance: MultiSigWalletInstance;
+    let vestingVaultContract: any;
+    let PFTContract: any;
+
     let initialAmountMintedToOwner: string;
 
     beforeEach(async () => {
+        // Require 2 signatures for multiSig
+        multiSigWalletInstance = await multiSigWallet.new([owner, account1, account2], 2);
         PFTInstance = await PFT.new();
-        VestingVaultInstance = await VestingVault.new(PFTInstance.address);
+        vestingVaultInstance = await vestingVault.new(PFTInstance.address);
+        await vestingVaultInstance.transferOwnership(multiSigWalletInstance.address);
+        await PFTInstance.transferOwnership(multiSigWalletInstance.address);
 
         // Mint 1B PFT and transfer to the owner
         // Approve the vesting contract to have access to all of this
         initialAmountMintedToOwner = web3.utils.toWei("1000000000", "ether");
-        await PFTInstance.mint(owner, initialAmountMintedToOwner);
-        await PFTInstance.approve(VestingVaultInstance.address, initialAmountMintedToOwner);
+
+        vestingVaultContract = new web3.eth.Contract(VESTING_VAULT_ABI, vestingVaultInstance.address);
+        PFTContract = new web3.eth.Contract(PFT_ABI, PFTInstance.address);
+
+        // MultiSig for adding MultiSigWallet contract as a controller
+        // Even though MultiSigWallet is currently the owner, it must be a controller before it can mint
+        let data = PFTContract.methods.addController(multiSigWalletInstance.address).encodeABI();
+        await multiSigWalletInstance.submitTransaction(PFTInstance.address, 0, data, { from: owner });
+        let txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
+
+        // Mint to MultiSigWallet
+        data = PFTContract.methods.mint(multiSigWalletInstance.address, initialAmountMintedToOwner).encodeABI();
+        await multiSigWalletInstance.submitTransaction(PFTInstance.address, 0, data, { from: owner });
+        txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
+
+        // Approve VestingVault as a spender
+        data = PFTContract.methods.approve(vestingVaultInstance.address, initialAmountMintedToOwner).encodeABI();
+        await multiSigWalletInstance.submitTransaction(PFTInstance.address, 0, data, { from: owner });
+        txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
+
+        // Set a claimer to avoid multiSig on claiming
+        data = vestingVaultContract.methods.setClaimer(account4).encodeABI();
+        await multiSigWalletInstance.submitTransaction(vestingVaultInstance.address, 0, data, { from: owner });
+        txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
     });
 
     it("is able to create a grant and transfer tokens belonging to the owner to the vesting contract", async () => {
@@ -33,10 +79,14 @@ contract.skip("VestingVault.sol", ([owner, account1, account2, account3, account
         const cliffInMonths = 2;
         const vestingDurationInMonths = 10;
         const amountToGrant = web3.utils.toWei("1", "ether");
-        await VestingVaultInstance.addTokenGrant(account1, amountToGrant, vestingDurationInMonths, cliffInMonths);
 
-        const balanceOfOwner = (await PFTInstance.balanceOf(owner)).toString();
-        const balanceOfVestingContract = (await PFTInstance.balanceOf(VestingVaultInstance.address)).toString();
+        const data = vestingVaultContract.methods.addTokenGrant(account1, amountToGrant, vestingDurationInMonths, cliffInMonths).encodeABI();
+        await multiSigWalletInstance.submitTransaction(vestingVaultInstance.address, 0, data, { from: owner });
+        const txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
+
+        const balanceOfOwner = (await PFTInstance.balanceOf(multiSigWalletInstance.address)).toString();
+        const balanceOfVestingContract = (await PFTInstance.balanceOf(vestingVaultInstance.address)).toString();
 
         const expectedBalanceOfOwner = bigInt(initialAmountMintedToOwner).subtract(amountToGrant).toString();
         const expectedBalanceOfVestingContract = amountToGrant;
@@ -50,7 +100,11 @@ contract.skip("VestingVault.sol", ([owner, account1, account2, account3, account
         const cliffInMonths = 2;
         const vestingDurationInMonths = 10;
         const amountToGrant = web3.utils.toWei("1", "ether");
-        await VestingVaultInstance.addTokenGrant(account1, amountToGrant, vestingDurationInMonths, cliffInMonths);
+
+        const data = vestingVaultContract.methods.addTokenGrant(account1, amountToGrant, vestingDurationInMonths, cliffInMonths).encodeABI();
+        await multiSigWalletInstance.submitTransaction(vestingVaultInstance.address, 0, data, { from: owner });
+        const txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
         // Time travel
         const timeInMonthsIncrement = 3;
@@ -58,7 +112,7 @@ contract.skip("VestingVault.sol", ([owner, account1, account2, account3, account
         await advanceTimeAndBlock(timeInSecondsIncrement);
 
         // Expect the claim to be successful because some tokens should have vested after time travel
-        await localExpect(VestingVaultInstance.claimVestedTokensForRecipient(account1, { from: owner })).to.eventually.be.fulfilled;
+        await localExpect(vestingVaultInstance.claimVestedTokensForRecipient(account1, { from: account4 })).to.eventually.be.fulfilled;
 
         const balanceOfRecipient = (await PFTInstance.balanceOf(account1)).toString();
 
@@ -66,7 +120,7 @@ contract.skip("VestingVault.sol", ([owner, account1, account2, account3, account
 
         expect(balanceOfRecipient).to.equal(expectedTokensClaimed);
 
-        const tokensClaimed = (await VestingVaultInstance.totalClaimedByAll()).toString();
+        const tokensClaimed = (await vestingVaultInstance.totalClaimedByAll()).toString();
 
         expect(tokensClaimed).to.equal(expectedTokensClaimed);
     });
@@ -76,7 +130,11 @@ contract.skip("VestingVault.sol", ([owner, account1, account2, account3, account
         const cliffInMonths = 2;
         const vestingDurationInMonths = 10;
         const amountToGrant = web3.utils.toWei("1", "ether");
-        await VestingVaultInstance.addTokenGrant(account1, amountToGrant, vestingDurationInMonths, cliffInMonths);
+
+        const data = vestingVaultContract.methods.addTokenGrant(account1, amountToGrant, vestingDurationInMonths, cliffInMonths).encodeABI();
+        await multiSigWalletInstance.submitTransaction(vestingVaultInstance.address, 0, data, { from: owner });
+        const txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
         // Time travel
         const timeInMonthsIncrement = 7;
@@ -84,7 +142,7 @@ contract.skip("VestingVault.sol", ([owner, account1, account2, account3, account
         await advanceTimeAndBlock(timeInSecondsIncrement);
 
         // Expect the claim to be successful because some tokens should have vested after time travel
-        await localExpect(VestingVaultInstance.claimVestedTokensForRecipient(account1, { from: owner })).to.eventually.be.fulfilled;
+        await localExpect(vestingVaultInstance.claimVestedTokensForRecipient(account1, { from: account4 })).to.eventually.be.fulfilled;
 
         const balanceOfRecipient = (await PFTInstance.balanceOf(account1)).toString();
 
@@ -92,7 +150,7 @@ contract.skip("VestingVault.sol", ([owner, account1, account2, account3, account
 
         expect(balanceOfRecipient).to.equal(expectedTokensClaimed);
 
-        const tokensClaimed = (await VestingVaultInstance.totalClaimedByAll()).toString();
+        const tokensClaimed = (await vestingVaultInstance.totalClaimedByAll()).toString();
 
         expect(tokensClaimed).to.equal(expectedTokensClaimed);
     });
@@ -102,7 +160,11 @@ contract.skip("VestingVault.sol", ([owner, account1, account2, account3, account
         const cliffInMonths = 2;
         const vestingDurationInMonths = 10;
         const amountToGrant = web3.utils.toWei("1", "ether");
-        await VestingVaultInstance.addTokenGrant(account1, amountToGrant, vestingDurationInMonths, cliffInMonths);
+
+        const data = vestingVaultContract.methods.addTokenGrant(account1, amountToGrant, vestingDurationInMonths, cliffInMonths).encodeABI();
+        await multiSigWalletInstance.submitTransaction(vestingVaultInstance.address, 0, data, { from: owner });
+        const txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
         // Time travel
         const timeInMonthsIncrement = 3;
@@ -110,10 +172,10 @@ contract.skip("VestingVault.sol", ([owner, account1, account2, account3, account
         await advanceTimeAndBlock(timeInSecondsIncrement);
 
         // Expect the claim to be successful because some tokens should have vested after time travel
-        await localExpect(VestingVaultInstance.claimVestedTokensForRecipient(account1, { from: owner })).to.eventually.be.fulfilled;
+        await localExpect(vestingVaultInstance.claimVestedTokensForRecipient(account1, { from: account4 })).to.eventually.be.fulfilled;
 
         // Expect the claim to be rejected since nothing has vested yet after the previous claim
-        await localExpect(VestingVaultInstance.claimVestedTokensForRecipient(account1, { from: owner })).to.eventually.be.rejected;
+        await localExpect(vestingVaultInstance.claimVestedTokensForRecipient(account1, { from: account4 })).to.eventually.be.rejected;
     });
 
     it("vests nothing for three separate seed recipients, 4 months after the TGE because the cliff is still in the future", async () => {
@@ -126,9 +188,23 @@ contract.skip("VestingVault.sol", ([owner, account1, account2, account3, account
         const totalAmountToGrantToRecipient2 = bigInt(totalAmountToGrantToSeed).multiply(3).divide(10).toString(); // 30%
         const totalAmountToGrantToRecipient3 = bigInt(totalAmountToGrantToSeed).multiply(2).divide(10).toString(); // 20%
 
-        await VestingVaultInstance.addTokenGrant(account1, totalAmountToGrantToRecipient1, vestingDurationInMonths, cliffInMonths);
-        await VestingVaultInstance.addTokenGrant(account2, totalAmountToGrantToRecipient2, vestingDurationInMonths, cliffInMonths);
-        await VestingVaultInstance.addTokenGrant(account3, totalAmountToGrantToRecipient3, vestingDurationInMonths, cliffInMonths);
+        // Add token grant for recipient 1
+        let data = vestingVaultContract.methods.addTokenGrant(account1, totalAmountToGrantToRecipient1, vestingDurationInMonths, cliffInMonths).encodeABI();
+        await multiSigWalletInstance.submitTransaction(vestingVaultInstance.address, 0, data, { from: owner });
+        let txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
+
+        // Add token grant for recipient 2
+        data = vestingVaultContract.methods.addTokenGrant(account2, totalAmountToGrantToRecipient2, vestingDurationInMonths, cliffInMonths).encodeABI();
+        await multiSigWalletInstance.submitTransaction(vestingVaultInstance.address, 0, data, { from: owner });
+        txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
+
+        // Add token grant for recipient 3
+        data = vestingVaultContract.methods.addTokenGrant(account3, totalAmountToGrantToRecipient3, vestingDurationInMonths, cliffInMonths).encodeABI();
+        await multiSigWalletInstance.submitTransaction(vestingVaultInstance.address, 0, data, { from: owner });
+        txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
         // Time travel
         const timeInMonthsIncrement = 4;
@@ -136,11 +212,11 @@ contract.skip("VestingVault.sol", ([owner, account1, account2, account3, account
         await advanceTimeAndBlock(timeInSecondsIncrement);
 
         // Expect all claims to fail because cliff not reached yet, so no tokens vested
-        await localExpect(VestingVaultInstance.claimVestedTokensForRecipient(account1, { from: owner })).to.eventually.be.rejected;
-        await localExpect(VestingVaultInstance.claimVestedTokensForRecipient(account2, { from: owner })).to.eventually.be.rejected;
-        await localExpect(VestingVaultInstance.claimVestedTokensForRecipient(account3, { from: owner })).to.eventually.be.rejected;
+        await localExpect(vestingVaultInstance.claimVestedTokensForRecipient(account1, { from: account4 })).to.eventually.be.rejected;
+        await localExpect(vestingVaultInstance.claimVestedTokensForRecipient(account2, { from: account4 })).to.eventually.be.rejected;
+        await localExpect(vestingVaultInstance.claimVestedTokensForRecipient(account3, { from: account4 })).to.eventually.be.rejected;
 
-        const tokensClaimedByAll = (await VestingVaultInstance.totalClaimedByAll()).toString();
+        const tokensClaimedByAll = (await vestingVaultInstance.totalClaimedByAll()).toString();
 
         expect(tokensClaimedByAll).to.equal("0");
     });
@@ -155,9 +231,23 @@ contract.skip("VestingVault.sol", ([owner, account1, account2, account3, account
         const totalAmountToGrantToRecipient2 = bigInt(totalAmountToGrantToSeed).multiply(3).divide(10).toString(); // 30%
         const totalAmountToGrantToRecipient3 = bigInt(totalAmountToGrantToSeed).multiply(2).divide(10).toString(); // 20%
 
-        await VestingVaultInstance.addTokenGrant(account1, totalAmountToGrantToRecipient1, vestingDurationInMonths, cliffInMonths);
-        await VestingVaultInstance.addTokenGrant(account2, totalAmountToGrantToRecipient2, vestingDurationInMonths, cliffInMonths);
-        await VestingVaultInstance.addTokenGrant(account3, totalAmountToGrantToRecipient3, vestingDurationInMonths, cliffInMonths);
+        // Add token grant for recipient 1
+        let data = vestingVaultContract.methods.addTokenGrant(account1, totalAmountToGrantToRecipient1, vestingDurationInMonths, cliffInMonths).encodeABI();
+        await multiSigWalletInstance.submitTransaction(vestingVaultInstance.address, 0, data, { from: owner });
+        let txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
+
+        // Add token grant for recipient 2
+        data = vestingVaultContract.methods.addTokenGrant(account2, totalAmountToGrantToRecipient2, vestingDurationInMonths, cliffInMonths).encodeABI();
+        await multiSigWalletInstance.submitTransaction(vestingVaultInstance.address, 0, data, { from: owner });
+        txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
+
+        // Add token grant for recipient 3
+        data = vestingVaultContract.methods.addTokenGrant(account3, totalAmountToGrantToRecipient3, vestingDurationInMonths, cliffInMonths).encodeABI();
+        await multiSigWalletInstance.submitTransaction(vestingVaultInstance.address, 0, data, { from: owner });
+        txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
         // Time travel
         const timeInMonthsIncrement = cliffInMonths;
@@ -165,11 +255,11 @@ contract.skip("VestingVault.sol", ([owner, account1, account2, account3, account
         await advanceTimeAndBlock(timeInSecondsIncrement);
 
         // Expect all claims to be rejected because we expect the first vesting to be 1 month after the cliff
-        await localExpect(VestingVaultInstance.claimVestedTokensForRecipient(account1, { from: owner })).to.eventually.be.rejected;
-        await localExpect(VestingVaultInstance.claimVestedTokensForRecipient(account2, { from: owner })).to.eventually.be.rejected;
-        await localExpect(VestingVaultInstance.claimVestedTokensForRecipient(account3, { from: owner })).to.eventually.be.rejected;
+        await localExpect(vestingVaultInstance.claimVestedTokensForRecipient(account1, { from: account4 })).to.eventually.be.rejected;
+        await localExpect(vestingVaultInstance.claimVestedTokensForRecipient(account2, { from: account4 })).to.eventually.be.rejected;
+        await localExpect(vestingVaultInstance.claimVestedTokensForRecipient(account3, { from: account4 })).to.eventually.be.rejected;
 
-        const tokensClaimedByAll = (await VestingVaultInstance.totalClaimedByAll()).toString();
+        const tokensClaimedByAll = (await vestingVaultInstance.totalClaimedByAll()).toString();
 
         expect(tokensClaimedByAll).to.equal("0");
     });
@@ -184,9 +274,23 @@ contract.skip("VestingVault.sol", ([owner, account1, account2, account3, account
         const totalAmountToGrantToRecipient2 = bigInt(totalAmountToGrantToSeed).multiply(3).divide(10).toString(); // 30%
         const totalAmountToGrantToRecipient3 = bigInt(totalAmountToGrantToSeed).multiply(2).divide(10).toString(); // 20%
 
-        await VestingVaultInstance.addTokenGrant(account1, totalAmountToGrantToRecipient1, vestingDurationInMonths, cliffInMonths);
-        await VestingVaultInstance.addTokenGrant(account2, totalAmountToGrantToRecipient2, vestingDurationInMonths, cliffInMonths);
-        await VestingVaultInstance.addTokenGrant(account3, totalAmountToGrantToRecipient3, vestingDurationInMonths, cliffInMonths);
+        // Add token grant for recipient 1
+        let data = vestingVaultContract.methods.addTokenGrant(account1, totalAmountToGrantToRecipient1, vestingDurationInMonths, cliffInMonths).encodeABI();
+        await multiSigWalletInstance.submitTransaction(vestingVaultInstance.address, 0, data, { from: owner });
+        let txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
+
+        // Add token grant for recipient 2
+        data = vestingVaultContract.methods.addTokenGrant(account2, totalAmountToGrantToRecipient2, vestingDurationInMonths, cliffInMonths).encodeABI();
+        await multiSigWalletInstance.submitTransaction(vestingVaultInstance.address, 0, data, { from: owner });
+        txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
+
+        // Add token grant for recipient 3
+        data = vestingVaultContract.methods.addTokenGrant(account3, totalAmountToGrantToRecipient3, vestingDurationInMonths, cliffInMonths).encodeABI();
+        await multiSigWalletInstance.submitTransaction(vestingVaultInstance.address, 0, data, { from: owner });
+        txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
         // Time travel
         const timeInMonthsIncrement = 8;
@@ -194,9 +298,9 @@ contract.skip("VestingVault.sol", ([owner, account1, account2, account3, account
         await advanceTimeAndBlock(timeInSecondsIncrement);
 
         // Expect all claims to be fulfilled because we've already entered the linear vesting phase
-        await localExpect(VestingVaultInstance.claimVestedTokensForRecipient(account1, { from: owner })).to.eventually.be.fulfilled;
-        await localExpect(VestingVaultInstance.claimVestedTokensForRecipient(account2, { from: owner })).to.eventually.be.fulfilled;
-        await localExpect(VestingVaultInstance.claimVestedTokensForRecipient(account3, { from: owner })).to.eventually.be.fulfilled;
+        await localExpect(vestingVaultInstance.claimVestedTokensForRecipient(account1, { from: account4 })).to.eventually.be.fulfilled;
+        await localExpect(vestingVaultInstance.claimVestedTokensForRecipient(account2, { from: account4 })).to.eventually.be.fulfilled;
+        await localExpect(vestingVaultInstance.claimVestedTokensForRecipient(account3, { from: account4 })).to.eventually.be.fulfilled;
 
         const balanceOfRecipient1 = (await PFTInstance.balanceOf(account1)).toString();
         const tokensVestedPerMonthForRecipient1 = bigInt(totalAmountToGrantToRecipient1).divide(vestingDurationInMonths);
@@ -222,7 +326,7 @@ contract.skip("VestingVault.sol", ([owner, account1, account2, account3, account
 
         expect(balanceOfRecipient3).to.equal(expectedTokensClaimedForRecipient3);
 
-        const tokensClaimedByAll = (await VestingVaultInstance.totalClaimedByAll()).toString();
+        const tokensClaimedByAll = (await vestingVaultInstance.totalClaimedByAll()).toString();
         const expectedTotalClaimedByAll = bigInt(expectedTokensClaimedForRecipient1).add(expectedTokensClaimedForRecipient2).add(expectedTokensClaimedForRecipient3).toString();
 
         expect(tokensClaimedByAll).to.equal(expectedTotalClaimedByAll);
@@ -238,9 +342,23 @@ contract.skip("VestingVault.sol", ([owner, account1, account2, account3, account
         const totalAmountToGrantToRecipient2 = bigInt(totalAmountToGrantToSeed).multiply(3).divide(10).toString(); // 30%
         const totalAmountToGrantToRecipient3 = bigInt(totalAmountToGrantToSeed).multiply(2).divide(10).toString(); // 20%
 
-        await VestingVaultInstance.addTokenGrant(account1, totalAmountToGrantToRecipient1, vestingDurationInMonths, cliffInMonths);
-        await VestingVaultInstance.addTokenGrant(account2, totalAmountToGrantToRecipient2, vestingDurationInMonths, cliffInMonths);
-        await VestingVaultInstance.addTokenGrant(account3, totalAmountToGrantToRecipient3, vestingDurationInMonths, cliffInMonths);
+        // Add token grant for recipient 1
+        let data = vestingVaultContract.methods.addTokenGrant(account1, totalAmountToGrantToRecipient1, vestingDurationInMonths, cliffInMonths).encodeABI();
+        await multiSigWalletInstance.submitTransaction(vestingVaultInstance.address, 0, data, { from: owner });
+        let txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
+
+        // Add token grant for recipient 2
+        data = vestingVaultContract.methods.addTokenGrant(account2, totalAmountToGrantToRecipient2, vestingDurationInMonths, cliffInMonths).encodeABI();
+        await multiSigWalletInstance.submitTransaction(vestingVaultInstance.address, 0, data, { from: owner });
+        txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
+
+        // Add token grant for recipient 3
+        data = vestingVaultContract.methods.addTokenGrant(account3, totalAmountToGrantToRecipient3, vestingDurationInMonths, cliffInMonths).encodeABI();
+        await multiSigWalletInstance.submitTransaction(vestingVaultInstance.address, 0, data, { from: owner });
+        txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
         // Time travel
         const timeInMonthsIncrement = vestingDurationInMonths;
@@ -248,9 +366,9 @@ contract.skip("VestingVault.sol", ([owner, account1, account2, account3, account
         await advanceTimeAndBlock(timeInSecondsIncrement);
 
         // Expect all claims to be fulfilled because we've already entered the linear vesting phase
-        await localExpect(VestingVaultInstance.claimVestedTokensForRecipient(account1, { from: owner })).to.eventually.be.fulfilled;
-        await localExpect(VestingVaultInstance.claimVestedTokensForRecipient(account2, { from: owner })).to.eventually.be.fulfilled;
-        await localExpect(VestingVaultInstance.claimVestedTokensForRecipient(account3, { from: owner })).to.eventually.be.fulfilled;
+        await localExpect(vestingVaultInstance.claimVestedTokensForRecipient(account1, { from: account4 })).to.eventually.be.fulfilled;
+        await localExpect(vestingVaultInstance.claimVestedTokensForRecipient(account2, { from: account4 })).to.eventually.be.fulfilled;
+        await localExpect(vestingVaultInstance.claimVestedTokensForRecipient(account3, { from: account4 })).to.eventually.be.fulfilled;
 
         const balanceOfRecipient1 = (await PFTInstance.balanceOf(account1)).toString();
         const tokensVestedPerMonthForRecipient1 = bigInt(totalAmountToGrantToRecipient1).divide(vestingDurationInMonths);
@@ -276,7 +394,7 @@ contract.skip("VestingVault.sol", ([owner, account1, account2, account3, account
 
         expect(balanceOfRecipient3).to.equal(expectedTokensClaimedForRecipient3);
 
-        const tokensClaimedByAll = (await VestingVaultInstance.totalClaimedByAll()).toString();
+        const tokensClaimedByAll = (await vestingVaultInstance.totalClaimedByAll()).toString();
         const expectedTotalClaimedByAll = bigInt(expectedTokensClaimedForRecipient1).add(expectedTokensClaimedForRecipient2).add(expectedTokensClaimedForRecipient3).toString();
 
         expect(tokensClaimedByAll).to.equal(expectedTotalClaimedByAll);
@@ -292,9 +410,23 @@ contract.skip("VestingVault.sol", ([owner, account1, account2, account3, account
         const totalAmountToGrantToRecipient2 = bigInt(totalAmountToGrantToSeed).multiply(3).divide(10).toString(); // 30%
         const totalAmountToGrantToRecipient3 = bigInt(totalAmountToGrantToSeed).multiply(2).divide(10).toString(); // 20%
 
-        await VestingVaultInstance.addTokenGrant(account1, totalAmountToGrantToRecipient1, vestingDurationInMonths, cliffInMonths);
-        await VestingVaultInstance.addTokenGrant(account2, totalAmountToGrantToRecipient2, vestingDurationInMonths, cliffInMonths);
-        await VestingVaultInstance.addTokenGrant(account3, totalAmountToGrantToRecipient3, vestingDurationInMonths, cliffInMonths);
+        // Add token grant for recipient 1
+        let data = vestingVaultContract.methods.addTokenGrant(account1, totalAmountToGrantToRecipient1, vestingDurationInMonths, cliffInMonths).encodeABI();
+        await multiSigWalletInstance.submitTransaction(vestingVaultInstance.address, 0, data, { from: owner });
+        let txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
+
+        // Add token grant for recipient 2
+        data = vestingVaultContract.methods.addTokenGrant(account2, totalAmountToGrantToRecipient2, vestingDurationInMonths, cliffInMonths).encodeABI();
+        await multiSigWalletInstance.submitTransaction(vestingVaultInstance.address, 0, data, { from: owner });
+        txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
+
+        // Add token grant for recipient 3
+        data = vestingVaultContract.methods.addTokenGrant(account3, totalAmountToGrantToRecipient3, vestingDurationInMonths, cliffInMonths).encodeABI();
+        await multiSigWalletInstance.submitTransaction(vestingVaultInstance.address, 0, data, { from: owner });
+        txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
         // Time travel
         const timeInMonthsIncrement = 32;
@@ -302,9 +434,9 @@ contract.skip("VestingVault.sol", ([owner, account1, account2, account3, account
         await advanceTimeAndBlock(timeInSecondsIncrement);
 
         // Expect all claims to be fulfilled because we've already entered the linear vesting phase
-        await localExpect(VestingVaultInstance.claimVestedTokensForRecipient(account1, { from: owner })).to.eventually.be.fulfilled;
-        await localExpect(VestingVaultInstance.claimVestedTokensForRecipient(account2, { from: owner })).to.eventually.be.fulfilled;
-        await localExpect(VestingVaultInstance.claimVestedTokensForRecipient(account3, { from: owner })).to.eventually.be.fulfilled;
+        await localExpect(vestingVaultInstance.claimVestedTokensForRecipient(account1, { from: account4 })).to.eventually.be.fulfilled;
+        await localExpect(vestingVaultInstance.claimVestedTokensForRecipient(account2, { from: account4 })).to.eventually.be.fulfilled;
+        await localExpect(vestingVaultInstance.claimVestedTokensForRecipient(account3, { from: account4 })).to.eventually.be.fulfilled;
 
         const balanceOfRecipient1 = (await PFTInstance.balanceOf(account1)).toString();
         expect(balanceOfRecipient1).to.equal(totalAmountToGrantToRecipient1);
@@ -326,9 +458,23 @@ contract.skip("VestingVault.sol", ([owner, account1, account2, account3, account
         const totalAmountToGrantToRecipient2 = bigInt(totalAmountToGrantToSeed).multiply(3).divide(10).toString(); // 30%
         const totalAmountToGrantToRecipient3 = bigInt(totalAmountToGrantToSeed).multiply(2).divide(10).toString(); // 20%
 
-        await VestingVaultInstance.addTokenGrant(account1, totalAmountToGrantToRecipient1, vestingDurationInMonths, cliffInMonths);
-        await VestingVaultInstance.addTokenGrant(account2, totalAmountToGrantToRecipient2, vestingDurationInMonths, cliffInMonths);
-        await VestingVaultInstance.addTokenGrant(account3, totalAmountToGrantToRecipient3, vestingDurationInMonths, cliffInMonths);
+        // Add token grant for recipient 1
+        let data = vestingVaultContract.methods.addTokenGrant(account1, totalAmountToGrantToRecipient1, vestingDurationInMonths, cliffInMonths).encodeABI();
+        await multiSigWalletInstance.submitTransaction(vestingVaultInstance.address, 0, data, { from: owner });
+        let txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
+
+        // Add token grant for recipient 2
+        data = vestingVaultContract.methods.addTokenGrant(account2, totalAmountToGrantToRecipient2, vestingDurationInMonths, cliffInMonths).encodeABI();
+        await multiSigWalletInstance.submitTransaction(vestingVaultInstance.address, 0, data, { from: owner });
+        txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
+
+        // Add token grant for recipient 3
+        data = vestingVaultContract.methods.addTokenGrant(account3, totalAmountToGrantToRecipient3, vestingDurationInMonths, cliffInMonths).encodeABI();
+        await multiSigWalletInstance.submitTransaction(vestingVaultInstance.address, 0, data, { from: owner });
+        txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
         // Time travel #1 (9 months)
         const timeInMonthsIncrement1 = 9;
@@ -336,9 +482,9 @@ contract.skip("VestingVault.sol", ([owner, account1, account2, account3, account
         await advanceTimeAndBlock(timeInSecondsIncrement1);
 
         // Expect all claims to be fulfilled because we've already entered the linear vesting phase
-        await localExpect(VestingVaultInstance.claimVestedTokensForRecipient(account1, { from: owner })).to.eventually.be.fulfilled;
-        await localExpect(VestingVaultInstance.claimVestedTokensForRecipient(account2, { from: owner })).to.eventually.be.fulfilled;
-        await localExpect(VestingVaultInstance.claimVestedTokensForRecipient(account3, { from: owner })).to.eventually.be.fulfilled;
+        await localExpect(vestingVaultInstance.claimVestedTokensForRecipient(account1, { from: account4 })).to.eventually.be.fulfilled;
+        await localExpect(vestingVaultInstance.claimVestedTokensForRecipient(account2, { from: account4 })).to.eventually.be.fulfilled;
+        await localExpect(vestingVaultInstance.claimVestedTokensForRecipient(account3, { from: account4 })).to.eventually.be.fulfilled;
 
         let balanceOfRecipient1 = (await PFTInstance.balanceOf(account1)).toString();
         const tokensVestedPerMonthForRecipient1 = bigInt(totalAmountToGrantToRecipient1).divide(vestingDurationInMonths);
@@ -370,9 +516,9 @@ contract.skip("VestingVault.sol", ([owner, account1, account2, account3, account
         await advanceTimeAndBlock(timeInSecondsIncrement2);
 
         // Expect all claims to be fulfilled because we've already entered the linear vesting phase
-        await localExpect(VestingVaultInstance.claimVestedTokensForRecipient(account1, { from: owner })).to.eventually.be.fulfilled;
-        await localExpect(VestingVaultInstance.claimVestedTokensForRecipient(account2, { from: owner })).to.eventually.be.fulfilled;
-        await localExpect(VestingVaultInstance.claimVestedTokensForRecipient(account3, { from: owner })).to.eventually.be.fulfilled;
+        await localExpect(vestingVaultInstance.claimVestedTokensForRecipient(account1, { from: account4 })).to.eventually.be.fulfilled;
+        await localExpect(vestingVaultInstance.claimVestedTokensForRecipient(account2, { from: account4 })).to.eventually.be.fulfilled;
+        await localExpect(vestingVaultInstance.claimVestedTokensForRecipient(account3, { from: account4 })).to.eventually.be.fulfilled;
 
         balanceOfRecipient1 = (await PFTInstance.balanceOf(account1)).toString();
         expectedTokensClaimedForRecipient1 = bigInt(tokensVestedPerMonthForRecipient1)
@@ -401,9 +547,9 @@ contract.skip("VestingVault.sol", ([owner, account1, account2, account3, account
         await advanceTimeAndBlock(timeInSecondsIncrement3);
 
         // Expect all claims to be fulfilled because we've already entered the linear vesting phase
-        await localExpect(VestingVaultInstance.claimVestedTokensForRecipient(account1, { from: owner })).to.eventually.be.fulfilled;
-        await localExpect(VestingVaultInstance.claimVestedTokensForRecipient(account2, { from: owner })).to.eventually.be.fulfilled;
-        await localExpect(VestingVaultInstance.claimVestedTokensForRecipient(account3, { from: owner })).to.eventually.be.fulfilled;
+        await localExpect(vestingVaultInstance.claimVestedTokensForRecipient(account1, { from: account4 })).to.eventually.be.fulfilled;
+        await localExpect(vestingVaultInstance.claimVestedTokensForRecipient(account2, { from: account4 })).to.eventually.be.fulfilled;
+        await localExpect(vestingVaultInstance.claimVestedTokensForRecipient(account3, { from: account4 })).to.eventually.be.fulfilled;
 
         balanceOfRecipient1 = (await PFTInstance.balanceOf(account1)).toString();
         expectedTokensClaimedForRecipient1 = bigInt(tokensVestedPerMonthForRecipient1)
@@ -431,9 +577,9 @@ contract.skip("VestingVault.sol", ([owner, account1, account2, account3, account
         const timeInSecondsIncrement4 = differenceInSeconds(addMonths(Date.now(), timeInMonthsIncrement4), Date.now());
         await advanceTimeAndBlock(timeInSecondsIncrement4);
 
-        await localExpect(VestingVaultInstance.claimVestedTokensForRecipient(account1, { from: owner })).to.eventually.be.fulfilled;
-        await localExpect(VestingVaultInstance.claimVestedTokensForRecipient(account2, { from: owner })).to.eventually.be.fulfilled;
-        await localExpect(VestingVaultInstance.claimVestedTokensForRecipient(account3, { from: owner })).to.eventually.be.fulfilled;
+        await localExpect(vestingVaultInstance.claimVestedTokensForRecipient(account1, { from: account4 })).to.eventually.be.fulfilled;
+        await localExpect(vestingVaultInstance.claimVestedTokensForRecipient(account2, { from: account4 })).to.eventually.be.fulfilled;
+        await localExpect(vestingVaultInstance.claimVestedTokensForRecipient(account3, { from: account4 })).to.eventually.be.fulfilled;
 
         balanceOfRecipient1 = (await PFTInstance.balanceOf(account1)).toString();
         expect(balanceOfRecipient1).to.equal(totalAmountToGrantToRecipient1);
@@ -450,23 +596,26 @@ contract.skip("VestingVault.sol", ([owner, account1, account2, account3, account
         const vestingDurationInMonths = 12;
         const totalAmountToGrant = web3.utils.toWei("30000000", "ether");
 
-        await VestingVaultInstance.addTokenGrant(account1, totalAmountToGrant, vestingDurationInMonths, cliffInMonths);
+        const data = vestingVaultContract.methods.addTokenGrant(account1, totalAmountToGrant, vestingDurationInMonths, cliffInMonths).encodeABI();
+        await multiSigWalletInstance.submitTransaction(vestingVaultInstance.address, 0, data, { from: owner });
+        const txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
         // Time travel #1 (10 months)
         const timeInMonthsIncrement1 = 10;
         const timeInSecondsIncrement1 = differenceInSeconds(addMonths(Date.now(), timeInMonthsIncrement1), Date.now());
         await advanceTimeAndBlock(timeInSecondsIncrement1);
 
-        await localExpect(VestingVaultInstance.claimVestedTokensForRecipient(account1, { from: owner })).to.eventually.be.fulfilled;
+        await localExpect(vestingVaultInstance.claimVestedTokensForRecipient(account1, { from: account4 })).to.eventually.be.fulfilled;
 
         // Time travel #2 (25 months)
         const timeInMonthsIncrement2 = 15;
         const timeInSecondsIncrement2 = differenceInSeconds(addMonths(Date.now(), timeInMonthsIncrement2), Date.now());
         await advanceTimeAndBlock(timeInSecondsIncrement2);
 
-        await localExpect(VestingVaultInstance.claimVestedTokensForRecipient(account1, { from: owner })).to.eventually.be.fulfilled;
+        await localExpect(vestingVaultInstance.claimVestedTokensForRecipient(account1, { from: account4 })).to.eventually.be.fulfilled;
 
-        const monthsClaimed = (await VestingVaultInstance.getGrantMonthsClaimed(account1)).toString();
+        const monthsClaimed = (await vestingVaultInstance.getGrantMonthsClaimed(account1)).toString();
 
         expect(monthsClaimed).to.equal(vestingDurationInMonths.toString());
     });
@@ -476,21 +625,24 @@ contract.skip("VestingVault.sol", ([owner, account1, account2, account3, account
         const vestingDurationInMonths = 12;
         const totalAmountToGrant = web3.utils.toWei("30000000", "ether");
 
-        await VestingVaultInstance.addTokenGrant(account1, totalAmountToGrant, vestingDurationInMonths, cliffInMonths);
+        const data = vestingVaultContract.methods.addTokenGrant(account1, totalAmountToGrant, vestingDurationInMonths, cliffInMonths).encodeABI();
+        await multiSigWalletInstance.submitTransaction(vestingVaultInstance.address, 0, data, { from: owner });
+        const txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
         // Time travel #1 (25 months)
         const timeInMonthsIncrement1 = 25;
         const timeInSecondsIncrement1 = differenceInSeconds(addMonths(Date.now(), timeInMonthsIncrement1), Date.now());
         await advanceTimeAndBlock(timeInSecondsIncrement1);
 
-        await localExpect(VestingVaultInstance.claimVestedTokensForRecipient(account1, { from: owner })).to.eventually.be.fulfilled;
+        await localExpect(vestingVaultInstance.claimVestedTokensForRecipient(account1, { from: account4 })).to.eventually.be.fulfilled;
 
         // Time travel #2 (2 months)
         const timeInMonthsIncrement2 = 2;
         const timeInSecondsIncrement2 = differenceInSeconds(addMonths(Date.now(), timeInMonthsIncrement2), Date.now());
         await advanceTimeAndBlock(timeInSecondsIncrement2);
 
-        await localExpect(VestingVaultInstance.claimVestedTokensForRecipient(account1, { from: owner })).to.eventually.be.rejected;
+        await localExpect(vestingVaultInstance.claimVestedTokensForRecipient(account1, { from: account4 })).to.eventually.be.rejected;
     });
 
     it("allows the owner to revoke all granted tokens if the recipient hasn't claimed any yet", async () => {
@@ -498,17 +650,23 @@ contract.skip("VestingVault.sol", ([owner, account1, account2, account3, account
         const vestingDurationInMonths = 18;
         const totalAmountToGrantToTeamMember = web3.utils.toWei("17000000", "ether");
 
-        await VestingVaultInstance.addTokenGrant(account1, totalAmountToGrantToTeamMember, vestingDurationInMonths, cliffInMonths);
+        let data = vestingVaultContract.methods.addTokenGrant(account1, totalAmountToGrantToTeamMember, vestingDurationInMonths, cliffInMonths).encodeABI();
+        await multiSigWalletInstance.submitTransaction(vestingVaultInstance.address, 0, data, { from: owner });
+        let txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
         // Time travel (25 months)
         const timeInMonthsIncrement = 25;
         const timeInSecondsIncrement = differenceInSeconds(addMonths(Date.now(), timeInMonthsIncrement), Date.now());
         await advanceTimeAndBlock(timeInSecondsIncrement);
 
-        await VestingVaultInstance.revokeTokenGrant(account1, { from: owner });
+        data = vestingVaultContract.methods.revokeTokenGrant(account1).encodeABI();
+        await multiSigWalletInstance.submitTransaction(vestingVaultInstance.address, 0, data, { from: owner });
+        txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
         // Expect claim to fail because the grant has already been revoked
-        await localExpect(VestingVaultInstance.claimVestedTokensForRecipient(account1, { from: owner })).to.eventually.be.rejected;
+        await localExpect(vestingVaultInstance.claimVestedTokensForRecipient(account1, { from: account4 })).to.eventually.be.rejected;
     });
 
     it("allows the owner to revoke part of all granted tokens if the recipient has already claimed some", async () => {
@@ -516,7 +674,10 @@ contract.skip("VestingVault.sol", ([owner, account1, account2, account3, account
         const vestingDurationInMonths = 18;
         const totalAmountToGrantToTeamMember = web3.utils.toWei("17000000", "ether");
 
-        await VestingVaultInstance.addTokenGrant(account1, totalAmountToGrantToTeamMember, vestingDurationInMonths, cliffInMonths);
+        let data = vestingVaultContract.methods.addTokenGrant(account1, totalAmountToGrantToTeamMember, vestingDurationInMonths, cliffInMonths).encodeABI();
+        await multiSigWalletInstance.submitTransaction(vestingVaultInstance.address, 0, data, { from: owner });
+        let txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
         // Time travel #1 (10 months)
         const timeInMonthsIncrement1 = 10;
@@ -524,7 +685,7 @@ contract.skip("VestingVault.sol", ([owner, account1, account2, account3, account
         await advanceTimeAndBlock(timeInSecondsIncrement1);
 
         // Can claim because the owner hasn't revoked the grant yet
-        await localExpect(VestingVaultInstance.claimVestedTokensForRecipient(account1, { from: owner })).to.eventually.be.fulfilled;
+        await localExpect(vestingVaultInstance.claimVestedTokensForRecipient(account1, { from: account4 })).to.eventually.be.fulfilled;
 
         let balanceOfTeamMember = (await PFTInstance.balanceOf(account1)).toString();
         const tokensVestedPerMonthForTeamMember = bigInt(totalAmountToGrantToTeamMember).divide(vestingDurationInMonths);
@@ -534,7 +695,7 @@ contract.skip("VestingVault.sol", ([owner, account1, account2, account3, account
 
         expect(balanceOfTeamMember).to.equal(expectedTokensClaimedForTeamMember);
 
-        const balanceOfOwnerBefore = (await PFTInstance.balanceOf(owner)).toString();
+        const balanceOfOwnerBefore = (await PFTInstance.balanceOf(multiSigWalletInstance.address)).toString();
 
         // Time travel #2 (20 months)
         const timeInMonthsIncrement2 = 10;
@@ -542,7 +703,10 @@ contract.skip("VestingVault.sol", ([owner, account1, account2, account3, account
         await advanceTimeAndBlock(timeInSecondsIncrement2);
 
         // Revoking, so no futher tokens can be claimed for the team member
-        await VestingVaultInstance.revokeTokenGrant(account1, { from: owner });
+        data = vestingVaultContract.methods.revokeTokenGrant(account1).encodeABI();
+        await multiSigWalletInstance.submitTransaction(vestingVaultInstance.address, 0, data, { from: owner });
+        txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
         balanceOfTeamMember = (await PFTInstance.balanceOf(account1)).toString();
 
@@ -552,7 +716,7 @@ contract.skip("VestingVault.sol", ([owner, account1, account2, account3, account
 
         expect(balanceOfTeamMember).to.equal(expectedTokensClaimedForTeamMember);
 
-        const balanceOfOwnerAfter = (await PFTInstance.balanceOf(owner)).toString();
+        const balanceOfOwnerAfter = (await PFTInstance.balanceOf(multiSigWalletInstance.address)).toString();
 
         const tokensGainedByOwner = bigInt(balanceOfOwnerAfter).subtract(balanceOfOwnerBefore).toString();
         const expectedTokensGainedByOwner = bigInt(totalAmountToGrantToTeamMember).subtract(balanceOfTeamMember).toString();
@@ -560,9 +724,22 @@ contract.skip("VestingVault.sol", ([owner, account1, account2, account3, account
         expect(tokensGainedByOwner).to.equal(expectedTokensGainedByOwner);
 
         // Expect claim to fail because the grant has already been revoked
-        await localExpect(VestingVaultInstance.claimVestedTokensForRecipient(account1, { from: owner })).to.eventually.be.rejected;
+        await localExpect(vestingVaultInstance.claimVestedTokensForRecipient(account1, { from: account4 })).to.eventually.be.rejected;
 
         // Expect token balance of team member to remain unchanged
         expect(balanceOfTeamMember).to.equal(expectedTokensClaimedForTeamMember);
+    });
+
+    it("only allows the owner (multiSigWallet) to change the claimer address", async () => {
+        // Should fail since caller is not the owner
+        await localExpect(vestingVaultInstance.setClaimer(account5, { from: account1 })).to.eventually.be.rejected;
+
+        const data = vestingVaultContract.methods.setClaimer(account5).encodeABI();
+        await multiSigWalletInstance.submitTransaction(vestingVaultInstance.address, 0, data, { from: owner });
+        const txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await localExpect(multiSigWalletInstance.confirmTransaction(txId, { from: account1 })).to.eventually.be.fulfilled;
+
+        const claimerAddress = await vestingVaultInstance.claimer();
+        expect(claimerAddress).to.equal(account5);
     });
 });

@@ -20,8 +20,6 @@ contract PORB is ERC20, EIP712, Ownable {
         ERC20("Portal Fantasy Orb", "PORB")
         EIP712("PortalFantasy", "1")
     {
-        controllers[owner()] = true;
-
         // Only allowed to set during construction to protect balances of all owners
         PORBVault = vault;
 

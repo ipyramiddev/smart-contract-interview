@@ -49,7 +49,7 @@ module.exports = {
     },
     compilers: {
         solc: {
-            version: "0.8.1",
+            version: "pragma", // Will use the relevant compiler version for each contract (experimental feature in truffle v5.2.0)
             settings: {
                 optimizer: {
                     enabled: true,
