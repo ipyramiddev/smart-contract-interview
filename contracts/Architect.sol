@@ -27,16 +27,16 @@ contract Architect is ERC721Enumerable, Ownable, Pausable {
     // The address of the PORB contract
     IERC20 public PORB;
 
-    // The vault contract to deposit earned PORB
-    address public PORBVault;
+    // The vault contract to deposit earned PORB/AVAX
+    address public vault;
 
-    constructor(address _PORB, address _PORBVault)
+    constructor(address _PORB, address _vault)
         ERC721("Portal Fantasy Architect", "PHAR")
     {
         // @TODO: Have added a placeholder baseURIString. Need to replace with actual when it's implemented.
         baseURIString = "https://www.portalfantasy.io/";
         PORB = IERC20(_PORB);
-        PORBVault = _PORBVault;
+        vault = _vault;
     }
 
     // @TODO: Have added a placeholder baseURI. Need to replace with actual when it's implemented.
@@ -52,6 +52,7 @@ contract Architect is ERC721Enumerable, Ownable, Pausable {
      */
     function mintWithAVAX() external payable whenNotPaused {
         require(msg.value == mintPriceInAVAX, "Invalid payment amount");
+        payable(vault).transfer(msg.value);
         _safeMint(_msgSender(), _tokenIdCounter.current());
         _tokenIdCounter.increment();
     }
@@ -60,7 +61,7 @@ contract Architect is ERC721Enumerable, Ownable, Pausable {
      * Allows the caller to mint a token with a payment in PORB
      */
     function mintWithPORB() external whenNotPaused {
-        PORB.transferFrom(_msgSender(), PORBVault, mintPriceInPORB);
+        PORB.transferFrom(_msgSender(), vault, mintPriceInPORB);
         _safeMint(_msgSender(), _tokenIdCounter.current());
         _tokenIdCounter.increment();
     }
@@ -110,10 +111,10 @@ contract Architect is ERC721Enumerable, Ownable, Pausable {
     }
 
     /**
-     * Allows the owner to set a new PORB vault to deposit earned PORB
-     * @param _PORBVault the new address for the PORB vault
+     * Allows the owner to set a new vault to deposit earned PORB/AVAX
+     * @param _vault the new address for the vault
      */
-    function setPORBVault(address _PORBVault) external onlyOwner {
-        PORBVault = _PORBVault;
+    function setVault(address _vault) external onlyOwner {
+        vault = _vault;
     }
 }

@@ -28,6 +28,8 @@ contract VestingVault is Ownable {
         uint256 amountNotVested
     );
 
+    address public claimer;
+
     IERC20 public PFT;
 
     // Recipient to Grant mapping
@@ -37,6 +39,7 @@ contract VestingVault is Ownable {
 
     constructor(IERC20 _PFT) {
         require(address(_PFT) != address(0));
+        claimer = owner();
         PFT = _PFT;
     }
 
@@ -89,10 +92,9 @@ contract VestingVault is Ownable {
     }
 
     // Allows a grant recipient to claim their vested tokens
-    function claimVestedTokensForRecipient(address _recipient)
-        external
-        onlyOwner
-    {
+    function claimVestedTokensForRecipient(address _recipient) external {
+        require(_msgSender() == claimer, "You are not the claimer!");
+
         uint16 monthsVested;
         uint256 amountVested;
         (monthsVested, amountVested) = calculateGrantClaim(_recipient);
@@ -209,5 +211,9 @@ contract VestingVault is Ownable {
             );
             return (monthsVested, amountVested);
         }
+    }
+
+    function setClaimer(address _claimer) external onlyOwner {
+        claimer = _claimer;
     }
 }

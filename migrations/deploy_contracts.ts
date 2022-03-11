@@ -5,25 +5,40 @@ type Network = "development" | "mainnet";
 
 module.exports = (artifacts: Truffle.Artifacts, web3: Web3) => {
     return async (deployer: Truffle.Deployer, network: Network, accounts: string[]) => {
+        const multiSigWallet = artifacts.require("MultiSigWallet");
+        const owners = [accounts[0], accounts[1], accounts[2]];
+        const requiredThreshold = 2;
+        await deployer.deploy(multiSigWallet, owners, requiredThreshold);
+        const multiSigWalletInstance = await multiSigWallet.deployed();
+
         const PFT = artifacts.require("PFT");
         await deployer.deploy(PFT);
         const PFTInstance = await PFT.deployed();
+        await PFTInstance.transferOwnership(multiSigWalletInstance.address);
 
         const PORB = artifacts.require("PORB");
-        await deployer.deploy<any[]>(PORB, accounts[1], accounts[0]);
+        await deployer.deploy<any[]>(PORB, accounts[1], multiSigWalletInstance.address);
+        const PORBInstance = await PORB.deployed();
+        await PORBInstance.transferOwnership(multiSigWalletInstance.address);
 
-        // Use accounts[9] as a vault because it's less likely to interfere in testing
         const hero = artifacts.require("Hero");
-        await deployer.deploy<any[]>(hero, PORB.address, accounts[9]);
+        await deployer.deploy<any[]>(hero, PORB.address, multiSigWalletInstance.address);
+        const heroInstance = await hero.deployed();
+        await heroInstance.transferOwnership(multiSigWalletInstance.address);
 
-        // Use accounts[9] as a vault because it's less likely to interfere in testing
         const architect = artifacts.require("Architect");
-        await deployer.deploy<any[]>(architect, PORB.address, accounts[9]);
+        await deployer.deploy<any[]>(architect, PORB.address, multiSigWalletInstance.address);
+        const architectInstance = await architect.deployed();
+        await architectInstance.transferOwnership(multiSigWalletInstance.address);
 
         const porble = artifacts.require("Porble");
         await deployer.deploy<any[]>(porble, accounts[1]);
+        const porbleInstance = await porble.deployed();
+        await porbleInstance.transferOwnership(multiSigWalletInstance.address);
 
         const VestingVault = artifacts.require("VestingVault");
         await deployer.deploy(VestingVault, PFTInstance.address);
+        const vestingVaultInstance = await VestingVault.deployed();
+        await vestingVaultInstance.transferOwnership(multiSigWalletInstance.address);
     };
 };

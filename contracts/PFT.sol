@@ -6,9 +6,7 @@ import "./lib/ERC20.sol";
 import "./lib/Ownable.sol";
 
 contract PFT is ERC20, Ownable {
-    constructor() ERC20("Portal Fantasy Token", "PFT") {
-        controllers[owner()] = true;
-    }
+    constructor() ERC20("Portal Fantasy Token", "PFT") {}
 
     // Mapping from an address to whether or not it can mint / burn
     mapping(address => bool) public controllers;
