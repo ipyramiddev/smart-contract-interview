@@ -15,8 +15,6 @@ import { globalTokenGrants } from "../data/token-grants";
 import { differenceInMilliseconds, addMonths } from "date-fns";
 import { runAtDate } from "../../utils/run-at-date";
 
-const ADMIN_ADDRESS = masterKeys.admin.address;
-
 // Contract info
 const VESTING_VAULT_ABI = VESTING_VAULT_JSON.abi as AbiItem[];
 
@@ -24,7 +22,7 @@ const VESTING_VAULT_ABI = VESTING_VAULT_JSON.abi as AbiItem[];
 const VESTING_VAULT_ADDRESS = "0x8Cd0eB872d0CE547013F0e02203CF92De0624b90";
 
 const web3 = new Web3(new Web3.providers.HttpProvider(config.AVAX.localHTTP));
-const VestingVaultInstance = new web3.eth.Contract(VESTING_VAULT_ABI, VESTING_VAULT_ADDRESS);
+const vestingVaultInstance = new web3.eth.Contract(VESTING_VAULT_ABI, VESTING_VAULT_ADDRESS);
 
 web3.eth.handleRevert = true;
 
@@ -43,20 +41,20 @@ const claimForAllRecipients = async () => {
         try {
             // vestingInfo object is of the form { monthsVested: string; amountVested: string; }
             // but web3 returns it as { 0: string; 1: string; }
-            const vestingInfo = await VestingVaultInstance.methods.calculateGrantClaim(address).call();
+            const vestingInfo = await vestingVaultInstance.methods.calculateGrantClaim(address).call();
 
             // Only try to claim if there are some vested tokens
             // This also acts as a safeguard against accidentally draining our AVAX due to infinite loop of claim calls
             if (vestingInfo["0"] !== "0") {
-                const data = VestingVaultInstance.methods.claimVestedTokensForRecipient(address).encodeABI();
+                const data = vestingVaultInstance.methods.claimVestedTokensForRecipient(address).encodeABI();
                 const txData: TransactionConfig = {
-                    from: ADMIN_ADDRESS,
+                    from: masterKeys.claimer.address,
                     to: VESTING_VAULT_ADDRESS,
                     gas: "1000000",
                     gasPrice: web3.utils.toWei("80", "gwei"),
                     data,
                 };
-                const signedTxData = await web3.eth.accounts.signTransaction(txData, masterKeys.admin.privateKey);
+                const signedTxData = await web3.eth.accounts.signTransaction(txData, masterKeys.claimer.privateKey);
                 const result = await web3.eth.sendSignedTransaction(signedTxData.rawTransaction!);
                 console.log(`${JSON.stringify(result)}\n`);
                 console.log(`Vested tokens claimed for: ${address}\n`);
