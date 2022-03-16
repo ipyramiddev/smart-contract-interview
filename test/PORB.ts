@@ -163,12 +163,13 @@ contract.skip("PORB.sol", ([owner, account1, account2, account3, account4, accou
             PORBVaultTransferConditions: [
                 { name: "recipient", type: "address" },
                 { name: "amount", type: "uint256" },
+                { name: "claimId", type: "uint256" },
             ],
         };
 
         const amountToTransfer = web3.utils.toWei("1", "ether");
 
-        const PORBVaultTransferConditions = { recipient: testAccountsData[1].address, amount: amountToTransfer };
+        const PORBVaultTransferConditions = { recipient: testAccountsData[1].address, amount: amountToTransfer, claimId: "0" };
 
         const domain = {
             name: "PortalFantasy",
@@ -332,12 +333,13 @@ contract.skip("PORB.sol", ([owner, account1, account2, account3, account4, accou
             PORBVaultTransferConditionsWrong: [
                 { name: "recipient", type: "address" },
                 { name: "amount", type: "uint256" },
+                { name: "claimId", type: "uint256" },
             ],
         };
 
         const amountToTransfer = web3.utils.toWei("1", "ether");
 
-        const PORBVaultTransferConditions = { recipient: testAccountsData[1].address, amount: amountToTransfer };
+        const PORBVaultTransferConditions = { recipient: testAccountsData[1].address, amount: amountToTransfer, claimId: "0" };
 
         const domain = {
             name: "PortalFantasy",
@@ -365,12 +367,13 @@ contract.skip("PORB.sol", ([owner, account1, account2, account3, account4, accou
             PORBVaultTransferConditions: [
                 { name: "recipient", type: "address" },
                 { name: "amount", type: "uint256" },
+                { name: "claimId", type: "uint256" },
             ],
         };
 
         const amountToTransfer = web3.utils.toWei("1", "ether");
 
-        const PORBVaultTransferConditions = { recipient: testAccountsData[1].address, amount: amountToTransfer };
+        const PORBVaultTransferConditions = { recipient: testAccountsData[1].address, amount: amountToTransfer, claimId: "0" };
 
         const domain = {
             name: "PortalFantasyWrong",
@@ -398,12 +401,13 @@ contract.skip("PORB.sol", ([owner, account1, account2, account3, account4, accou
             PORBVaultTransferConditions: [
                 { name: "recipient", type: "address" },
                 { name: "amount", type: "uint256" },
+                { name: "claimId", type: "uint256" },
             ],
         };
 
         const amountToTransfer = web3.utils.toWei("1", "ether");
 
-        const PORBVaultTransferConditions = { recipient: testAccountsData[1].address, amount: amountToTransfer };
+        const PORBVaultTransferConditions = { recipient: testAccountsData[1].address, amount: amountToTransfer, claimId: "0" };
 
         const domain = {
             name: "PortalFantasy",
@@ -431,12 +435,13 @@ contract.skip("PORB.sol", ([owner, account1, account2, account3, account4, accou
             PORBVaultTransferConditions: [
                 { name: "recipient", type: "address" },
                 { name: "amount", type: "uint256" },
+                { name: "claimId", type: "uint256" },
             ],
         };
 
         const amountToTransfer = web3.utils.toWei("1", "ether");
 
-        const PORBVaultTransferConditions = { recipient: testAccountsData[1].address, amount: amountToTransfer };
+        const PORBVaultTransferConditions = { recipient: testAccountsData[1].address, amount: amountToTransfer, claimId: "0" };
 
         const domain = {
             name: "PortalFantasy",
@@ -464,12 +469,13 @@ contract.skip("PORB.sol", ([owner, account1, account2, account3, account4, accou
             PORBVaultTransferConditions: [
                 { name: "recipient", type: "address" },
                 { name: "amount", type: "uint256" },
+                { name: "claimId", type: "uint256" },
             ],
         };
 
         const amountToTransfer = web3.utils.toWei("1", "ether");
 
-        const PORBVaultTransferConditions = { recipient: testAccountsData[1].address, amount: amountToTransfer };
+        const PORBVaultTransferConditions = { recipient: testAccountsData[1].address, amount: amountToTransfer, claimId: "0" };
 
         const domain = {
             name: "PortalFantasy",
@@ -497,12 +503,13 @@ contract.skip("PORB.sol", ([owner, account1, account2, account3, account4, accou
             PORBVaultTransferConditions: [
                 { name: "recipient", type: "address" },
                 { name: "amount", type: "uint256" },
+                { name: "claimId", type: "uint256" },
             ],
         };
 
         const amountToTransfer = web3.utils.toWei("1", "ether");
 
-        const PORBVaultTransferConditions = { recipient: testAccountsData[1].address, amount: amountToTransfer };
+        const PORBVaultTransferConditions = { recipient: testAccountsData[1].address, amount: amountToTransfer, claimId: "0" };
 
         const domain = {
             name: "PortalFantasy",
@@ -530,12 +537,13 @@ contract.skip("PORB.sol", ([owner, account1, account2, account3, account4, accou
             PORBVaultTransferConditions: [
                 { name: "recipient", type: "address" },
                 { name: "amount", type: "uint256" },
+                { name: "claimId", type: "uint256" },
             ],
         };
 
         const amountToTransfer = web3.utils.toWei("1", "ether");
 
-        const PORBVaultTransferConditions = { recipient: testAccountsData[1].address, amount: amountToTransfer };
+        const PORBVaultTransferConditions = { recipient: testAccountsData[1].address, amount: amountToTransfer, claimId: "0" };
 
         const domain = {
             name: "PortalFantasy",
@@ -563,12 +571,13 @@ contract.skip("PORB.sol", ([owner, account1, account2, account3, account4, accou
             PORBVaultTransferConditions: [
                 { name: "recipient", type: "address" },
                 { name: "amount", type: "uint256" },
+                { name: "claimId", type: "uint256" },
             ],
         };
 
         const amountToTransfer = web3.utils.toWei("1", "ether");
 
-        const PORBVaultTransferConditions = { recipient: testAccountsData[1].address, amount: amountToTransfer };
+        const PORBVaultTransferConditions = { recipient: testAccountsData[1].address, amount: amountToTransfer, claimId: "0" };
 
         const domain = {
             name: "PortalFantasy",
@@ -619,12 +628,13 @@ contract.skip("PORB.sol", ([owner, account1, account2, account3, account4, accou
             PORBVaultTransferConditions: [
                 { name: "recipient", type: "address" },
                 { name: "amount", type: "uint256" },
+                { name: "claimId", type: "uint256" },
             ],
         };
 
         const amountToTransfer = web3.utils.toWei("1", "ether");
 
-        const PORBVaultTransferConditions = { recipient: testAccountsData[1].address, amount: amountToTransfer };
+        const PORBVaultTransferConditions = { recipient: testAccountsData[1].address, amount: amountToTransfer, claimId: "0" };
 
         const domain = {
             name: "PortalFantasy",

@@ -10,6 +10,7 @@ contract PORB is ERC20, EIP712, Ownable {
     // Mapping from an address to whether or not it can mint / burn
     mapping(address => bool) public controllers;
 
+    // Mapping used to keep track of the number of claim calls an address has made
     mapping(address => uint256) public callerToClaimId;
 
     // The address of the PORB vault contract
