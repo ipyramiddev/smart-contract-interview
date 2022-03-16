@@ -98,6 +98,32 @@ contract.skip("Porble.sol", ([owner, account1, account2, account3, account4, acc
         await localExpect(porbleInstance.safeMint(signature, 1, { from: testAccountsData[1].address })).to.eventually.be.fulfilled;
     });
 
+    it("reverts if the same signature is used multiple times", async () => {
+        const types = {
+            PorbleMintConditions: [
+                { name: "minter", type: "address" },
+                { name: "tokenId", type: "uint256" },
+            ],
+        };
+
+        const porbleMintConditions = { minter: testAccountsData[1].address, tokenId: 1 };
+
+        const domain = {
+            name: "PortalFantasy",
+            version: "1",
+            chainId: 43214,
+            verifyingContract: porbleInstance.address,
+        };
+
+        // Sign according to the EIP-712 standard
+        const signature = await signer._signTypedData(domain, types, porbleMintConditions);
+
+        // The tokenId and tx sender must match those that have been signed for
+        await localExpect(porbleInstance.safeMint(signature, 1, { from: testAccountsData[1].address })).to.eventually.be.fulfilled;
+
+        await localExpect(porbleInstance.safeMint(signature, 1, { from: testAccountsData[1].address })).to.eventually.be.rejected;
+    });
+
     it("prevents a porble token from being minted if the 'PorbleMintConditions' key doesn't match the name of the object hard-coded in the contract", async () => {
         const types = {
             PorbleMintConditionsWrong: [

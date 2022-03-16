@@ -10,6 +10,9 @@ contract PORB is ERC20, EIP712, Ownable {
     // Mapping from an address to whether or not it can mint / burn
     mapping(address => bool) public controllers;
 
+    // Mapping used to keep track of the number of claim calls an address has made
+    mapping(address => uint256) public callerToClaimId;
+
     // The address of the PORB vault contract
     address public PORBVault;
 
@@ -84,10 +87,11 @@ contract PORB is ERC20, EIP712, Ownable {
             keccak256(
                 abi.encode(
                     keccak256(
-                        "PORBVaultTransferConditions(address recipient,uint256 amount)"
+                        "PORBVaultTransferConditions(address recipient,uint256 amount,uint256 claimId)"
                     ),
                     _msgSender(),
-                    amount
+                    amount,
+                    callerToClaimId[_msgSender()]
                 )
             )
         );
@@ -102,5 +106,7 @@ contract PORB is ERC20, EIP712, Ownable {
 
         _approve(PORBVault, _msgSender(), amount);
         transferFrom(PORBVault, _msgSender(), amount);
+
+        callerToClaimId[_msgSender()]++;
     }
 }
