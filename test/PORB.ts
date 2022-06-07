@@ -1,16 +1,16 @@
-import { localExpect, bigInt } from "./lib/test-libraries";
-import { MultiSigWalletInstance, PORBInstance } from "../types/truffle-contracts";
-import PORB_JSON from "../build/contracts/PORB.json";
-import Web3 from "web3";
-import { AbiItem } from "web3-utils";
-import { getTxIdFromMultiSigWallet } from "./lib/test-helpers";
+import { localExpect, bigInt } from './lib/test-libraries';
+import { MultiSigWalletInstance, PORBInstance } from '../types/truffle-contracts';
+import PORB_JSON from '../build/contracts/PORB.json';
+import Web3 from 'web3';
+import { AbiItem } from 'web3-utils';
+import { getTxIdFromMultiSigWallet } from './lib/test-helpers';
 
-const ethers = require("ethers");
-const testAccountsData = require("../test/data/test-accounts-data").testAccountsData;
-const config = require("../config").config;
+const ethers = require('ethers');
+const testAccountsData = require('../test/data/test-accounts-data').testAccountsData;
+const config = require('../config').config;
 
-const PORB = artifacts.require("PORB");
-const multiSigWallet = artifacts.require("MultiSigWallet");
+const PORB = artifacts.require('PORB');
+const multiSigWallet = artifacts.require('MultiSigWallet');
 
 const rpcEndpoint = config.AVAX.localHTTP;
 const provider = new ethers.providers.JsonRpcProvider(rpcEndpoint);
@@ -18,7 +18,7 @@ const signer = new ethers.Wallet(testAccountsData[1].privateKey, provider);
 const PORB_ABI = PORB_JSON.abi as AbiItem[];
 const web3 = new Web3(new Web3.providers.HttpProvider(config.AVAX.localHTTP));
 
-contract.skip("PORB.sol", ([owner, account1, account2, account3, account4, account5, account6, account7, account8, account9]) => {
+contract('PORB.sol', ([owner, account1, account2, account3, account4, account5, account6, account7, account8, account9]) => {
     let PORBInstance: PORBInstance;
     let multiSigWalletInstance: MultiSigWalletInstance;
     let PORBContract: any;
@@ -39,25 +39,25 @@ contract.skip("PORB.sol", ([owner, account1, account2, account3, account4, accou
 
     it("has token name set to 'Portal Fantasy Orb'", async () => {
         const tokenName = await PORBInstance.name();
-        expect(tokenName).to.equal("Portal Fantasy Orb");
+        expect(tokenName).to.equal('Portal Fantasy Orb');
     });
 
     it("has token symbol set to 'PORB'", async () => {
         const tokenSymbol = await PORBInstance.symbol();
-        expect(tokenSymbol).to.equal("PORB");
+        expect(tokenSymbol).to.equal('PORB');
     });
 
-    it("has 18 token decimals", async () => {
+    it('has 18 token decimals', async () => {
         const decimals = (await PORBInstance.decimals()).toString();
-        expect(decimals).to.equal("18");
+        expect(decimals).to.equal('18');
     });
 
-    it("has the contract owner set to the multiSigWallet address", async () => {
+    it('has the contract owner set to the multiSigWallet address', async () => {
         const contractOwner = await PORBInstance.owner();
         expect(contractOwner).to.equal(multiSigWalletInstance.address);
     });
 
-    it("allows the contract owner (multiSigWallet) to add another controller", async () => {
+    it('allows the contract owner (multiSigWallet) to add another controller', async () => {
         const data = PORBContract.methods.addController(account3).encodeABI();
         await multiSigWalletInstance.submitTransaction(PORBInstance.address, 0, data, { from: owner });
         const txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
@@ -67,7 +67,7 @@ contract.skip("PORB.sol", ([owner, account1, account2, account3, account4, accou
         expect(isController).to.be.true;
     });
 
-    it("allows the contract owner (multiSigWallet) to remove a controller", async () => {
+    it('allows the contract owner (multiSigWallet) to remove a controller', async () => {
         const data = PORBContract.methods.removeController(account2).encodeABI();
         await multiSigWalletInstance.submitTransaction(PORBInstance.address, 0, data, { from: owner });
         const txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
@@ -85,8 +85,8 @@ contract.skip("PORB.sol", ([owner, account1, account2, account3, account4, accou
         await localExpect(PORBInstance.removeController(account2, { from: account1 })).to.eventually.be.rejected;
     });
 
-    it("allows a controller account (multiSigWallet) to mint tokens after sufficient multiSig confirmations", async () => {
-        const amountToMint = web3.utils.toWei("1", "ether");
+    it('allows a controller account (multiSigWallet) to mint tokens after sufficient multiSig confirmations', async () => {
+        const amountToMint = web3.utils.toWei('1', 'ether');
         const totalSupplyBefore = (await PORBInstance.totalSupply()).toString();
         const expectedTotalSupplyAfter = bigInt(amountToMint).add(bigInt(totalSupplyBefore)).toString();
         const balanceOfAccountBefore = (await PORBInstance.balanceOf(account2)).toString();
@@ -105,9 +105,9 @@ contract.skip("PORB.sol", ([owner, account1, account2, account3, account4, accou
         expect(balanceOfAccountAfter).to.equal(bigInt(amountToMint).plus(balanceOfAccountBefore).toString());
     });
 
-    it("allows a controller account (multiSigWallet) to burn tokens", async () => {
-        const amountToMint = web3.utils.toWei("1", "ether");
-        const amountToBurn = web3.utils.toWei("0.1", "ether");
+    it('allows a controller account (multiSigWallet) to burn tokens', async () => {
+        const amountToMint = web3.utils.toWei('1', 'ether');
+        const amountToBurn = web3.utils.toWei('0.1', 'ether');
         const expectedChangeInTotalSupply = bigInt(amountToMint).subtract(amountToBurn).toString();
         const totalSupplyBefore = await (await PORBInstance.totalSupply()).toString();
         const expectedTotalSupplyAfter = bigInt(totalSupplyBefore).add(bigInt(expectedChangeInTotalSupply)).toString();
@@ -133,18 +133,18 @@ contract.skip("PORB.sol", ([owner, account1, account2, account3, account4, accou
     });
 
     it("doesn't allow a non-PORB-contract-controller account to mint tokens", async () => {
-        const amountToMint = web3.utils.toWei("1", "ether");
+        const amountToMint = web3.utils.toWei('1', 'ether');
 
         await localExpect(PORBInstance.mint(account4, amountToMint, { from: account4 })).to.eventually.be.rejected;
 
         const balanceOfAccount = (await PORBInstance.balanceOf(account4)).toString();
 
-        expect(balanceOfAccount).to.equal("0");
+        expect(balanceOfAccount).to.equal('0');
     });
 
     it("doesn't allow a non-PORB-contract-controller account to burn tokens", async () => {
-        const amountToMint = web3.utils.toWei("1", "ether");
-        const amountToBurn = web3.utils.toWei("0.1", "ether");
+        const amountToMint = web3.utils.toWei('1', 'ether');
+        const amountToBurn = web3.utils.toWei('0.1', 'ether');
 
         let data = PORBContract.methods.mint(account5, amountToMint).encodeABI();
         await multiSigWalletInstance.submitTransaction(PORBInstance.address, 0, data, { from: owner });
@@ -158,27 +158,27 @@ contract.skip("PORB.sol", ([owner, account1, account2, account3, account4, accou
         expect(balanceOfAccount).to.equal(amountToMint);
     });
 
-    it("allows PORB to be transferred from the vault if the signature is successfully verified", async () => {
+    it('allows PORB to be transferred from the vault if the signature is successfully verified', async () => {
         const types = {
             PORBVaultTransferConditions: [
-                { name: "recipient", type: "address" },
-                { name: "amount", type: "uint256" },
-                { name: "claimId", type: "uint256" },
+                { name: 'recipient', type: 'address' },
+                { name: 'amount', type: 'uint256' },
+                { name: 'claimId', type: 'uint256' },
             ],
         };
 
-        const amountToTransfer = web3.utils.toWei("1", "ether");
+        const amountToTransfer = web3.utils.toWei('1', 'ether');
 
-        const PORBVaultTransferConditions = { recipient: testAccountsData[1].address, amount: amountToTransfer, claimId: "0" };
+        const PORBVaultTransferConditions = { recipient: testAccountsData[1].address, amount: amountToTransfer, claimId: '0' };
 
         const domain = {
-            name: "PortalFantasy",
-            version: "1",
+            name: 'PortalFantasy',
+            version: '1',
             chainId: 43214,
             verifyingContract: PORBInstance.address,
         };
 
-        const amountToMintToVault = web3.utils.toWei("100", "ether");
+        const amountToMintToVault = web3.utils.toWei('100', 'ether');
 
         const data = PORBContract.methods.mint(multiSigWalletInstance.address, amountToMintToVault).encodeABI();
         await multiSigWalletInstance.submitTransaction(PORBInstance.address, 0, data, { from: owner });
@@ -198,31 +198,31 @@ contract.skip("PORB.sol", ([owner, account1, account2, account3, account4, accou
         const vaultBalanceAfter = (await PORBInstance.balanceOf(multiSigWalletInstance.address)).toString();
         const recipientBalanceAfter = (await PORBInstance.balanceOf(account1)).toString();
 
-        expect(bigInt(vaultBalanceAfter).subtract(vaultBalanceBefore).toString()).to.equal(bigInt(amountToTransfer).multiply(bigInt("-1")).toString());
+        expect(bigInt(vaultBalanceAfter).subtract(vaultBalanceBefore).toString()).to.equal(bigInt(amountToTransfer).multiply(bigInt('-1')).toString());
         expect(bigInt(recipientBalanceAfter).subtract(recipientBalanceBefore).toString()).to.equal(amountToTransfer);
     });
 
-    it("reverts if the same signature is used multiple times", async () => {
+    it('reverts if the same signature is used multiple times', async () => {
         const types = {
             PORBVaultTransferConditions: [
-                { name: "recipient", type: "address" },
-                { name: "amount", type: "uint256" },
-                { name: "claimId", type: "uint256" },
+                { name: 'recipient', type: 'address' },
+                { name: 'amount', type: 'uint256' },
+                { name: 'claimId', type: 'uint256' },
             ],
         };
 
-        const amountToTransfer = web3.utils.toWei("1", "ether");
+        const amountToTransfer = web3.utils.toWei('1', 'ether');
 
-        const PORBVaultTransferConditions = { recipient: testAccountsData[1].address, amount: amountToTransfer, claimId: "0" };
+        const PORBVaultTransferConditions = { recipient: testAccountsData[1].address, amount: amountToTransfer, claimId: '0' };
 
         const domain = {
-            name: "PortalFantasy",
-            version: "1",
+            name: 'PortalFantasy',
+            version: '1',
             chainId: 43214,
             verifyingContract: PORBInstance.address,
         };
 
-        const amountToMintToVault = web3.utils.toWei("100", "ether");
+        const amountToMintToVault = web3.utils.toWei('100', 'ether');
 
         const data = PORBContract.methods.mint(multiSigWalletInstance.address, amountToMintToVault).encodeABI();
         await multiSigWalletInstance.submitTransaction(PORBInstance.address, 0, data, { from: owner });
@@ -238,27 +238,27 @@ contract.skip("PORB.sol", ([owner, account1, account2, account3, account4, accou
         await localExpect(PORBInstance.transferFromVault(signature, amountToTransfer, { from: testAccountsData[1].address })).to.eventually.be.rejected;
     });
 
-    it("allows tokens to be claimed multiple times when the claimId is incremented correctly", async () => {
+    it('allows tokens to be claimed multiple times when the claimId is incremented correctly', async () => {
         const types = {
             PORBVaultTransferConditions: [
-                { name: "recipient", type: "address" },
-                { name: "amount", type: "uint256" },
-                { name: "claimId", type: "uint256" },
+                { name: 'recipient', type: 'address' },
+                { name: 'amount', type: 'uint256' },
+                { name: 'claimId', type: 'uint256' },
             ],
         };
 
-        const amountToTransfer = web3.utils.toWei("1", "ether");
+        const amountToTransfer = web3.utils.toWei('1', 'ether');
 
-        let PORBVaultTransferConditions = { recipient: testAccountsData[1].address, amount: amountToTransfer, claimId: "0" };
+        let PORBVaultTransferConditions = { recipient: testAccountsData[1].address, amount: amountToTransfer, claimId: '0' };
 
         const domain = {
-            name: "PortalFantasy",
-            version: "1",
+            name: 'PortalFantasy',
+            version: '1',
             chainId: 43214,
             verifyingContract: PORBInstance.address,
         };
 
-        const amountToMintToVault = web3.utils.toWei("100", "ether");
+        const amountToMintToVault = web3.utils.toWei('100', 'ether');
 
         const data = PORBContract.methods.mint(multiSigWalletInstance.address, amountToMintToVault).encodeABI();
         await multiSigWalletInstance.submitTransaction(PORBInstance.address, 0, data, { from: owner });
@@ -276,7 +276,7 @@ contract.skip("PORB.sol", ([owner, account1, account2, account3, account4, accou
         await localExpect(PORBInstance.transferFromVault(signature, amountToTransfer, { from: testAccountsData[1].address })).to.eventually.be.fulfilled;
 
         // Increment the claimId
-        PORBVaultTransferConditions = { recipient: testAccountsData[1].address, amount: amountToTransfer, claimId: "1" };
+        PORBVaultTransferConditions = { recipient: testAccountsData[1].address, amount: amountToTransfer, claimId: '1' };
         signature = await signer._signTypedData(domain, types, PORBVaultTransferConditions);
 
         await localExpect(PORBInstance.transferFromVault(signature, amountToTransfer, { from: testAccountsData[1].address })).to.eventually.be.fulfilled;
@@ -284,31 +284,31 @@ contract.skip("PORB.sol", ([owner, account1, account2, account3, account4, accou
         const vaultBalanceAfter = (await PORBInstance.balanceOf(multiSigWalletInstance.address)).toString();
         const recipientBalanceAfter = (await PORBInstance.balanceOf(account1)).toString();
 
-        expect(bigInt(vaultBalanceAfter).subtract(vaultBalanceBefore).toString()).to.equal(bigInt(amountToTransfer).multiply(bigInt("-1").multiply("2")).toString());
-        expect(bigInt(recipientBalanceAfter).subtract(recipientBalanceBefore).toString()).to.equal(bigInt(amountToTransfer).multiply("2").toString());
+        expect(bigInt(vaultBalanceAfter).subtract(vaultBalanceBefore).toString()).to.equal(bigInt(amountToTransfer).multiply(bigInt('-1').multiply('2')).toString());
+        expect(bigInt(recipientBalanceAfter).subtract(recipientBalanceBefore).toString()).to.equal(bigInt(amountToTransfer).multiply('2').toString());
     });
 
-    it("reverts when the claimId is incremented incorrectly", async () => {
+    it('reverts when the claimId is incremented incorrectly', async () => {
         const types = {
             PORBVaultTransferConditions: [
-                { name: "recipient", type: "address" },
-                { name: "amount", type: "uint256" },
-                { name: "claimId", type: "uint256" },
+                { name: 'recipient', type: 'address' },
+                { name: 'amount', type: 'uint256' },
+                { name: 'claimId', type: 'uint256' },
             ],
         };
 
-        const amountToTransfer = web3.utils.toWei("1", "ether");
+        const amountToTransfer = web3.utils.toWei('1', 'ether');
 
-        let PORBVaultTransferConditions = { recipient: testAccountsData[1].address, amount: amountToTransfer, claimId: "0" };
+        let PORBVaultTransferConditions = { recipient: testAccountsData[1].address, amount: amountToTransfer, claimId: '0' };
 
         const domain = {
-            name: "PortalFantasy",
-            version: "1",
+            name: 'PortalFantasy',
+            version: '1',
             chainId: 43214,
             verifyingContract: PORBInstance.address,
         };
 
-        const amountToMintToVault = web3.utils.toWei("100", "ether");
+        const amountToMintToVault = web3.utils.toWei('100', 'ether');
 
         const data = PORBContract.methods.mint(multiSigWalletInstance.address, amountToMintToVault).encodeABI();
         await multiSigWalletInstance.submitTransaction(PORBInstance.address, 0, data, { from: owner });
@@ -322,7 +322,7 @@ contract.skip("PORB.sol", ([owner, account1, account2, account3, account4, accou
         await localExpect(PORBInstance.transferFromVault(signature, amountToTransfer, { from: testAccountsData[1].address })).to.eventually.be.fulfilled;
 
         // Increment the claimId
-        PORBVaultTransferConditions = { recipient: testAccountsData[1].address, amount: amountToTransfer, claimId: "100" };
+        PORBVaultTransferConditions = { recipient: testAccountsData[1].address, amount: amountToTransfer, claimId: '100' };
         signature = await signer._signTypedData(domain, types, PORBVaultTransferConditions);
 
         await localExpect(PORBInstance.transferFromVault(signature, amountToTransfer, { from: testAccountsData[1].address })).to.eventually.be.rejected;
@@ -331,24 +331,24 @@ contract.skip("PORB.sol", ([owner, account1, account2, account3, account4, accou
     it("prevents PORB from being transferred if the 'PORBVaultTransferConditions' key doesn't match the name of the object hard-coded in the contract", async () => {
         const types = {
             PORBVaultTransferConditionsWrong: [
-                { name: "recipient", type: "address" },
-                { name: "amount", type: "uint256" },
-                { name: "claimId", type: "uint256" },
+                { name: 'recipient', type: 'address' },
+                { name: 'amount', type: 'uint256' },
+                { name: 'claimId', type: 'uint256' },
             ],
         };
 
-        const amountToTransfer = web3.utils.toWei("1", "ether");
+        const amountToTransfer = web3.utils.toWei('1', 'ether');
 
-        const PORBVaultTransferConditions = { recipient: testAccountsData[1].address, amount: amountToTransfer, claimId: "0" };
+        const PORBVaultTransferConditions = { recipient: testAccountsData[1].address, amount: amountToTransfer, claimId: '0' };
 
         const domain = {
-            name: "PortalFantasy",
-            version: "1",
+            name: 'PortalFantasy',
+            version: '1',
             chainId: 43214,
             verifyingContract: PORBInstance.address,
         };
 
-        const amountToMintToVault = web3.utils.toWei("100", "ether");
+        const amountToMintToVault = web3.utils.toWei('100', 'ether');
 
         const data = PORBContract.methods.mint(multiSigWalletInstance.address, amountToMintToVault).encodeABI();
         await multiSigWalletInstance.submitTransaction(PORBInstance.address, 0, data, { from: owner });
@@ -365,24 +365,24 @@ contract.skip("PORB.sol", ([owner, account1, account2, account3, account4, accou
     it("prevents PORB from being transferred if the domain name doesn't match the string passed into the contract's constructor", async () => {
         const types = {
             PORBVaultTransferConditions: [
-                { name: "recipient", type: "address" },
-                { name: "amount", type: "uint256" },
-                { name: "claimId", type: "uint256" },
+                { name: 'recipient', type: 'address' },
+                { name: 'amount', type: 'uint256' },
+                { name: 'claimId', type: 'uint256' },
             ],
         };
 
-        const amountToTransfer = web3.utils.toWei("1", "ether");
+        const amountToTransfer = web3.utils.toWei('1', 'ether');
 
-        const PORBVaultTransferConditions = { recipient: testAccountsData[1].address, amount: amountToTransfer, claimId: "0" };
+        const PORBVaultTransferConditions = { recipient: testAccountsData[1].address, amount: amountToTransfer, claimId: '0' };
 
         const domain = {
-            name: "PortalFantasyWrong",
-            version: "1",
+            name: 'PortalFantasyWrong',
+            version: '1',
             chainId: 43214,
             verifyingContract: PORBInstance.address,
         };
 
-        const amountToMintToVault = web3.utils.toWei("100", "ether");
+        const amountToMintToVault = web3.utils.toWei('100', 'ether');
 
         const data = PORBContract.methods.mint(multiSigWalletInstance.address, amountToMintToVault).encodeABI();
         await multiSigWalletInstance.submitTransaction(PORBInstance.address, 0, data, { from: owner });
@@ -399,24 +399,24 @@ contract.skip("PORB.sol", ([owner, account1, account2, account3, account4, accou
     it("prevents PORB from being transferred if the domain version doesn't match the string passed into the contract's constructor", async () => {
         const types = {
             PORBVaultTransferConditions: [
-                { name: "recipient", type: "address" },
-                { name: "amount", type: "uint256" },
-                { name: "claimId", type: "uint256" },
+                { name: 'recipient', type: 'address' },
+                { name: 'amount', type: 'uint256' },
+                { name: 'claimId', type: 'uint256' },
             ],
         };
 
-        const amountToTransfer = web3.utils.toWei("1", "ether");
+        const amountToTransfer = web3.utils.toWei('1', 'ether');
 
-        const PORBVaultTransferConditions = { recipient: testAccountsData[1].address, amount: amountToTransfer, claimId: "0" };
+        const PORBVaultTransferConditions = { recipient: testAccountsData[1].address, amount: amountToTransfer, claimId: '0' };
 
         const domain = {
-            name: "PortalFantasy",
-            version: "5",
+            name: 'PortalFantasy',
+            version: '5',
             chainId: 43214,
             verifyingContract: PORBInstance.address,
         };
 
-        const amountToMintToVault = web3.utils.toWei("100", "ether");
+        const amountToMintToVault = web3.utils.toWei('100', 'ether');
 
         const data = PORBContract.methods.mint(multiSigWalletInstance.address, amountToMintToVault).encodeABI();
         await multiSigWalletInstance.submitTransaction(PORBInstance.address, 0, data, { from: owner });
@@ -433,24 +433,24 @@ contract.skip("PORB.sol", ([owner, account1, account2, account3, account4, accou
     it("prevents PORB from being transferred if the domain chainId doesn't match the chainId of the chain the contract is deployed to", async () => {
         const types = {
             PORBVaultTransferConditions: [
-                { name: "recipient", type: "address" },
-                { name: "amount", type: "uint256" },
-                { name: "claimId", type: "uint256" },
+                { name: 'recipient', type: 'address' },
+                { name: 'amount', type: 'uint256' },
+                { name: 'claimId', type: 'uint256' },
             ],
         };
 
-        const amountToTransfer = web3.utils.toWei("1", "ether");
+        const amountToTransfer = web3.utils.toWei('1', 'ether');
 
-        const PORBVaultTransferConditions = { recipient: testAccountsData[1].address, amount: amountToTransfer, claimId: "0" };
+        const PORBVaultTransferConditions = { recipient: testAccountsData[1].address, amount: amountToTransfer, claimId: '0' };
 
         const domain = {
-            name: "PortalFantasy",
-            version: "1",
+            name: 'PortalFantasy',
+            version: '1',
             chainId: 99999,
             verifyingContract: PORBInstance.address,
         };
 
-        const amountToMintToVault = web3.utils.toWei("100", "ether");
+        const amountToMintToVault = web3.utils.toWei('100', 'ether');
 
         const data = PORBContract.methods.mint(multiSigWalletInstance.address, amountToMintToVault).encodeABI();
         await multiSigWalletInstance.submitTransaction(PORBInstance.address, 0, data, { from: owner });
@@ -467,24 +467,24 @@ contract.skip("PORB.sol", ([owner, account1, account2, account3, account4, accou
     it("prevents PORB from being transferred if the domain verifyingContract doesn't match the address the contract is deployed to", async () => {
         const types = {
             PORBVaultTransferConditions: [
-                { name: "recipient", type: "address" },
-                { name: "amount", type: "uint256" },
-                { name: "claimId", type: "uint256" },
+                { name: 'recipient', type: 'address' },
+                { name: 'amount', type: 'uint256' },
+                { name: 'claimId', type: 'uint256' },
             ],
         };
 
-        const amountToTransfer = web3.utils.toWei("1", "ether");
+        const amountToTransfer = web3.utils.toWei('1', 'ether');
 
-        const PORBVaultTransferConditions = { recipient: testAccountsData[1].address, amount: amountToTransfer, claimId: "0" };
+        const PORBVaultTransferConditions = { recipient: testAccountsData[1].address, amount: amountToTransfer, claimId: '0' };
 
         const domain = {
-            name: "PortalFantasy",
-            version: "1",
+            name: 'PortalFantasy',
+            version: '1',
             chainId: 43214,
-            verifyingContract: "0xcccccccccccccccccccccccccccccccccccccccc",
+            verifyingContract: '0xcccccccccccccccccccccccccccccccccccccccc',
         };
 
-        const amountToMintToVault = web3.utils.toWei("100", "ether");
+        const amountToMintToVault = web3.utils.toWei('100', 'ether');
 
         const data = PORBContract.methods.mint(multiSigWalletInstance.address, amountToMintToVault).encodeABI();
         await multiSigWalletInstance.submitTransaction(PORBInstance.address, 0, data, { from: owner });
@@ -501,24 +501,24 @@ contract.skip("PORB.sol", ([owner, account1, account2, account3, account4, accou
     it("prevents PORB from being transferred if the signed 'recipient' address doesn't match the sender address of the tx", async () => {
         const types = {
             PORBVaultTransferConditions: [
-                { name: "recipient", type: "address" },
-                { name: "amount", type: "uint256" },
-                { name: "claimId", type: "uint256" },
+                { name: 'recipient', type: 'address' },
+                { name: 'amount', type: 'uint256' },
+                { name: 'claimId', type: 'uint256' },
             ],
         };
 
-        const amountToTransfer = web3.utils.toWei("1", "ether");
+        const amountToTransfer = web3.utils.toWei('1', 'ether');
 
-        const PORBVaultTransferConditions = { recipient: testAccountsData[1].address, amount: amountToTransfer, claimId: "0" };
+        const PORBVaultTransferConditions = { recipient: testAccountsData[1].address, amount: amountToTransfer, claimId: '0' };
 
         const domain = {
-            name: "PortalFantasy",
-            version: "1",
+            name: 'PortalFantasy',
+            version: '1',
             chainId: 43214,
             verifyingContract: PORBInstance.address,
         };
 
-        const amountToMintToVault = web3.utils.toWei("100", "ether");
+        const amountToMintToVault = web3.utils.toWei('100', 'ether');
 
         const data = PORBContract.methods.mint(multiSigWalletInstance.address, amountToMintToVault).encodeABI();
         await multiSigWalletInstance.submitTransaction(PORBInstance.address, 0, data, { from: owner });
@@ -535,24 +535,24 @@ contract.skip("PORB.sol", ([owner, account1, account2, account3, account4, accou
     it("prevents PORB from being transferred if the signed `amount` doesn't match the tokenId specified by the caller", async () => {
         const types = {
             PORBVaultTransferConditions: [
-                { name: "recipient", type: "address" },
-                { name: "amount", type: "uint256" },
-                { name: "claimId", type: "uint256" },
+                { name: 'recipient', type: 'address' },
+                { name: 'amount', type: 'uint256' },
+                { name: 'claimId', type: 'uint256' },
             ],
         };
 
-        const amountToTransfer = web3.utils.toWei("1", "ether");
+        const amountToTransfer = web3.utils.toWei('1', 'ether');
 
-        const PORBVaultTransferConditions = { recipient: testAccountsData[1].address, amount: amountToTransfer, claimId: "0" };
+        const PORBVaultTransferConditions = { recipient: testAccountsData[1].address, amount: amountToTransfer, claimId: '0' };
 
         const domain = {
-            name: "PortalFantasy",
-            version: "1",
+            name: 'PortalFantasy',
+            version: '1',
             chainId: 43214,
             verifyingContract: PORBInstance.address,
         };
 
-        const amountToMintToVault = web3.utils.toWei("100", "ether");
+        const amountToMintToVault = web3.utils.toWei('100', 'ether');
 
         const data = PORBContract.methods.mint(multiSigWalletInstance.address, amountToMintToVault).encodeABI();
         await multiSigWalletInstance.submitTransaction(PORBInstance.address, 0, data, { from: owner });
@@ -563,30 +563,30 @@ contract.skip("PORB.sol", ([owner, account1, account2, account3, account4, accou
         const signature = await signer._signTypedData(domain, types, PORBVaultTransferConditions);
 
         // The amount and tx sender must match those that have been signed for
-        await localExpect(PORBInstance.transferFromVault(signature, web3.utils.toWei("101", "ether"), { from: testAccountsData[1].address })).to.eventually.be.rejected;
+        await localExpect(PORBInstance.transferFromVault(signature, web3.utils.toWei('101', 'ether'), { from: testAccountsData[1].address })).to.eventually.be.rejected;
     });
 
-    it("prevents PORB from being transferred if the signature is tampered with", async () => {
+    it('prevents PORB from being transferred if the signature is tampered with', async () => {
         const types = {
             PORBVaultTransferConditions: [
-                { name: "recipient", type: "address" },
-                { name: "amount", type: "uint256" },
-                { name: "claimId", type: "uint256" },
+                { name: 'recipient', type: 'address' },
+                { name: 'amount', type: 'uint256' },
+                { name: 'claimId', type: 'uint256' },
             ],
         };
 
-        const amountToTransfer = web3.utils.toWei("1", "ether");
+        const amountToTransfer = web3.utils.toWei('1', 'ether');
 
-        const PORBVaultTransferConditions = { recipient: testAccountsData[1].address, amount: amountToTransfer, claimId: "0" };
+        const PORBVaultTransferConditions = { recipient: testAccountsData[1].address, amount: amountToTransfer, claimId: '0' };
 
         const domain = {
-            name: "PortalFantasy",
-            version: "1",
+            name: 'PortalFantasy',
+            version: '1',
             chainId: 43214,
             verifyingContract: PORBInstance.address,
         };
 
-        const amountToMintToVault = web3.utils.toWei("100", "ether");
+        const amountToMintToVault = web3.utils.toWei('100', 'ether');
 
         const data = PORBContract.methods.mint(multiSigWalletInstance.address, amountToMintToVault).encodeABI();
         await multiSigWalletInstance.submitTransaction(PORBInstance.address, 0, data, { from: owner });
@@ -596,15 +596,15 @@ contract.skip("PORB.sol", ([owner, account1, account2, account3, account4, accou
         // Sign according to the EIP-712 standard
         const signature = await signer._signTypedData(domain, types, PORBVaultTransferConditions);
 
-        const signatureArr = signature.split("");
-        signatureArr[10] = "7";
-        const tamperedSignature = signatureArr.join("");
+        const signatureArr = signature.split('');
+        signatureArr[10] = '7';
+        const tamperedSignature = signatureArr.join('');
 
         // The amount and tx sender must match those that have been signed for
         await localExpect(PORBInstance.transferFromVault(tamperedSignature, amountToTransfer, { from: testAccountsData[1].address })).to.eventually.be.rejected;
     });
 
-    it("only allows the owner to change the PORBVaultTransferSigner", async () => {
+    it('only allows the owner to change the PORBVaultTransferSigner', async () => {
         // Should fail since caller is not the owner
         await localExpect(PORBInstance.setPORBVaultTransferSigner(account3, { from: account1 })).to.eventually.be.rejected;
 
@@ -626,24 +626,24 @@ contract.skip("PORB.sol", ([owner, account1, account2, account3, account4, accou
 
         const types = {
             PORBVaultTransferConditions: [
-                { name: "recipient", type: "address" },
-                { name: "amount", type: "uint256" },
-                { name: "claimId", type: "uint256" },
+                { name: 'recipient', type: 'address' },
+                { name: 'amount', type: 'uint256' },
+                { name: 'claimId', type: 'uint256' },
             ],
         };
 
-        const amountToTransfer = web3.utils.toWei("1", "ether");
+        const amountToTransfer = web3.utils.toWei('1', 'ether');
 
-        const PORBVaultTransferConditions = { recipient: testAccountsData[1].address, amount: amountToTransfer, claimId: "0" };
+        const PORBVaultTransferConditions = { recipient: testAccountsData[1].address, amount: amountToTransfer, claimId: '0' };
 
         const domain = {
-            name: "PortalFantasy",
-            version: "1",
+            name: 'PortalFantasy',
+            version: '1',
             chainId: 43214,
             verifyingContract: PORBInstance.address,
         };
 
-        const amountToMintToVault = web3.utils.toWei("100", "ether");
+        const amountToMintToVault = web3.utils.toWei('100', 'ether');
 
         data = PORBContract.methods.mint(multiSigWalletInstance.address, amountToMintToVault).encodeABI();
         await multiSigWalletInstance.submitTransaction(PORBInstance.address, 0, data, { from: owner });
@@ -669,7 +669,7 @@ contract.skip("PORB.sol", ([owner, account1, account2, account3, account4, accou
         const vaultBalanceAfter = (await PORBInstance.balanceOf(multiSigWalletInstance.address)).toString();
         const recipientBalanceAfter = (await PORBInstance.balanceOf(account1)).toString();
 
-        expect(bigInt(vaultBalanceAfter).subtract(vaultBalanceBefore).toString()).to.equal(bigInt(amountToTransfer).multiply(bigInt("-1")).toString());
+        expect(bigInt(vaultBalanceAfter).subtract(vaultBalanceBefore).toString()).to.equal(bigInt(amountToTransfer).multiply(bigInt('-1')).toString());
         expect(bigInt(recipientBalanceAfter).subtract(recipientBalanceBefore).toString()).to.equal(amountToTransfer);
     });
 });

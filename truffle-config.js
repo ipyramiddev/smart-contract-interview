@@ -1,17 +1,17 @@
-require("ts-node").register({
+require('ts-node').register({
     files: true,
 });
 
-const HDWalletProvider = require("@truffle/hdwallet-provider");
-const testAccountsData = require("./test/data/test-accounts-data").testAccountsData;
-const config = require("./config").config;
+const HDWalletProvider = require('@truffle/hdwallet-provider');
+const testAccountsData = require('./test/data/test-accounts-data').testAccountsData;
+const config = require('./config').config;
 
 // @NOTE: We use a subnet and private chain for the local development environment because ava-sim doesn't let us create 10 accounts with balances
 // if we run the standard network. ava-sim only allows this via the "alloc" key in the genesis configuration, and there is only a genesis
 // configuration available to edit for the subnet-evm script
 
 module.exports = {
-    plugins: ["truffle-plugin-verify"],
+    plugins: ['truffle-plugin-verify'],
 
     api_keys: {
         etherscan: process.env.SNOWTRACE_API_KEY,
@@ -21,22 +21,28 @@ module.exports = {
             provider: () =>
                 new HDWalletProvider(
                     testAccountsData.map(({ privateKey }) => privateKey),
-                    config.AVAX.localHTTP
+                    config.AVAX.localSubnetHTTP
                 ),
-            network_id: "*",
+            network_id: '*',
             gas: 6721975,
             skipDryRun: true,
         },
         developmentGanache: {
-            host: "127.0.0.1",
+            host: '127.0.0.1',
             port: 8545,
-            network_id: "*",
+            network_id: '*',
             gas: 6721975,
             skipDryRun: true,
         },
         testnet: {
-            provider: () => new HDWalletProvider(testAccountsData[1].privateKey, config.AVAX.testnetHTTP),
-            network_id: "*",
+            provider: () => new HDWalletProvider([testAccountsData[0].privateKey, testAccountsData[1].privateKey, testAccountsData[2].privateKey], config.AVAX.testnetHTTP),
+            network_id: '*',
+            gas: 6721975,
+            skipDryRun: true,
+        },
+        testnetSubnet: {
+            provider: () => new HDWalletProvider([testAccountsData[0].privateKey, testAccountsData[1].privateKey, testAccountsData[2].privateKey], config.AVAX.testnetSubnetHTTP),
+            network_id: '*',
             gas: 6721975,
             skipDryRun: true,
         },
@@ -49,7 +55,7 @@ module.exports = {
     },
     compilers: {
         solc: {
-            version: "pragma", // Will use the relevant compiler version for each contract (experimental feature in truffle v5.2.0)
+            version: 'pragma', // Will use the relevant compiler version for each contract (experimental feature in truffle v5.2.0)
             settings: {
                 optimizer: {
                     enabled: true,

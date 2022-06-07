@@ -1,16 +1,16 @@
-import { localExpect } from "./lib/test-libraries";
-import { PorbleInstance, MultiSigWalletInstance } from "../types/truffle-contracts";
-import PORBLE_JSON from "../build/contracts/Porble.json";
-import Web3 from "web3";
-import { AbiItem } from "web3-utils";
-import { getTxIdFromMultiSigWallet } from "./lib/test-helpers";
+import { localExpect } from './lib/test-libraries';
+import { PorbleInstance, MultiSigWalletInstance } from '../types/truffle-contracts';
+import PORBLE_JSON from '../build/contracts/Porble.json';
+import Web3 from 'web3';
+import { AbiItem } from 'web3-utils';
+import { getTxIdFromMultiSigWallet } from './lib/test-helpers';
 
-const ethers = require("ethers");
-const testAccountsData = require("../test/data/test-accounts-data").testAccountsData;
-const config = require("../config").config;
+const ethers = require('ethers');
+const testAccountsData = require('../test/data/test-accounts-data').testAccountsData;
+const config = require('../config').config;
 
-const porble = artifacts.require("Porble");
-const multiSigWallet = artifacts.require("MultiSigWallet");
+const porble = artifacts.require('Porble');
+const multiSigWallet = artifacts.require('MultiSigWallet');
 
 const rpcEndpoint = config.AVAX.localHTTP;
 const provider = new ethers.providers.JsonRpcProvider(rpcEndpoint);
@@ -18,7 +18,7 @@ const signer = new ethers.Wallet(testAccountsData[1].privateKey, provider);
 const PORBLE_ABI = PORBLE_JSON.abi as AbiItem[];
 const web3 = new Web3(new Web3.providers.HttpProvider(config.AVAX.localHTTP));
 
-contract.skip("Porble.sol", ([owner, account1, account2, account3, account4, account5, account6, account7, account8, account9]) => {
+contract('Porble.sol', ([owner, account1, account2, account3, account4, account5, account6, account7, account8, account9]) => {
     let porbleInstance: PorbleInstance;
     let multiSigWalletInstance: MultiSigWalletInstance;
     let porbleContract: any;
@@ -34,20 +34,20 @@ contract.skip("Porble.sol", ([owner, account1, account2, account3, account4, acc
 
     it("has token name set to 'Portal Fantasy Porble'", async () => {
         const tokenName = await porbleInstance.name();
-        expect(tokenName).to.equal("Portal Fantasy Porble");
+        expect(tokenName).to.equal('Portal Fantasy Porble');
     });
 
     it("has token symbol set to 'PRBL'", async () => {
         const tokenSymbol = await porbleInstance.symbol();
-        expect(tokenSymbol).to.equal("PRBL");
+        expect(tokenSymbol).to.equal('PRBL');
     });
 
-    it("has the contract owner set to the multiSigWallet address", async () => {
+    it('has the contract owner set to the multiSigWallet address', async () => {
         const contractOwner = await porbleInstance.owner();
         expect(contractOwner).to.equal(multiSigWalletInstance.address);
     });
 
-    it("can only be paused/unpaused by the owner (multiSigWallet)", async () => {
+    it('can only be paused/unpaused by the owner (multiSigWallet)', async () => {
         let isPaused = await porbleInstance.paused();
         expect(isPaused).to.be.false;
 
@@ -74,19 +74,19 @@ contract.skip("Porble.sol", ([owner, account1, account2, account3, account4, acc
         expect(isPaused).to.be.false;
     });
 
-    it("allows a porble token to be minted if the signature is successfully verified", async () => {
+    it('allows a porble token to be minted if the signature is successfully verified', async () => {
         const types = {
             PorbleMintConditions: [
-                { name: "minter", type: "address" },
-                { name: "tokenId", type: "uint256" },
+                { name: 'minter', type: 'address' },
+                { name: 'tokenId', type: 'uint256' },
             ],
         };
 
         const porbleMintConditions = { minter: testAccountsData[1].address, tokenId: 1 };
 
         const domain = {
-            name: "PortalFantasy",
-            version: "1",
+            name: 'PortalFantasy',
+            version: '1',
             chainId: 43214,
             verifyingContract: porbleInstance.address,
         };
@@ -98,19 +98,19 @@ contract.skip("Porble.sol", ([owner, account1, account2, account3, account4, acc
         await localExpect(porbleInstance.safeMint(signature, 1, { from: testAccountsData[1].address })).to.eventually.be.fulfilled;
     });
 
-    it("reverts if the same signature is used multiple times", async () => {
+    it('reverts if the same signature is used multiple times', async () => {
         const types = {
             PorbleMintConditions: [
-                { name: "minter", type: "address" },
-                { name: "tokenId", type: "uint256" },
+                { name: 'minter', type: 'address' },
+                { name: 'tokenId', type: 'uint256' },
             ],
         };
 
         const porbleMintConditions = { minter: testAccountsData[1].address, tokenId: 1 };
 
         const domain = {
-            name: "PortalFantasy",
-            version: "1",
+            name: 'PortalFantasy',
+            version: '1',
             chainId: 43214,
             verifyingContract: porbleInstance.address,
         };
@@ -127,16 +127,16 @@ contract.skip("Porble.sol", ([owner, account1, account2, account3, account4, acc
     it("prevents a porble token from being minted if the 'PorbleMintConditions' key doesn't match the name of the object hard-coded in the contract", async () => {
         const types = {
             PorbleMintConditionsWrong: [
-                { name: "minter", type: "address" },
-                { name: "tokenId", type: "uint256" },
+                { name: 'minter', type: 'address' },
+                { name: 'tokenId', type: 'uint256' },
             ],
         };
 
         const porbleMintConditions = { minter: testAccountsData[1].address, tokenId: 2 };
 
         const domain = {
-            name: "PortalFantasy",
-            version: "1",
+            name: 'PortalFantasy',
+            version: '1',
             chainId: 43214,
             verifyingContract: porbleInstance.address,
         };
@@ -151,16 +151,16 @@ contract.skip("Porble.sol", ([owner, account1, account2, account3, account4, acc
     it("prevents a porble token from being minted if the domain name doesn't match the string passed into the contract's constructor", async () => {
         const types = {
             PorbleMintConditions: [
-                { name: "minter", type: "address" },
-                { name: "tokenId", type: "uint256" },
+                { name: 'minter', type: 'address' },
+                { name: 'tokenId', type: 'uint256' },
             ],
         };
 
         const porbleMintConditions = { minter: testAccountsData[1].address, tokenId: 2 };
 
         const domain = {
-            name: "PortalFantasyWrong",
-            version: "1",
+            name: 'PortalFantasyWrong',
+            version: '1',
             chainId: 43214,
             verifyingContract: porbleInstance.address,
         };
@@ -175,16 +175,16 @@ contract.skip("Porble.sol", ([owner, account1, account2, account3, account4, acc
     it("prevents a porble token from being minted if the domain version doesn't match the string passed into the contract's constructor", async () => {
         const types = {
             PorbleMintConditions: [
-                { name: "minter", type: "address" },
-                { name: "tokenId", type: "uint256" },
+                { name: 'minter', type: 'address' },
+                { name: 'tokenId', type: 'uint256' },
             ],
         };
 
         const porbleMintConditions = { minter: testAccountsData[1].address, tokenId: 2 };
 
         const domain = {
-            name: "PortalFantasy",
-            version: "9",
+            name: 'PortalFantasy',
+            version: '9',
             chainId: 43214,
             verifyingContract: porbleInstance.address,
         };
@@ -199,16 +199,16 @@ contract.skip("Porble.sol", ([owner, account1, account2, account3, account4, acc
     it("prevents a porble token from being minted if the domain chainId doesn't match the chainId of the chain the contract is deployed to", async () => {
         const types = {
             PorbleMintConditions: [
-                { name: "minter", type: "address" },
-                { name: "tokenId", type: "uint256" },
+                { name: 'minter', type: 'address' },
+                { name: 'tokenId', type: 'uint256' },
             ],
         };
 
         const porbleMintConditions = { minter: testAccountsData[1].address, tokenId: 2 };
 
         const domain = {
-            name: "PortalFantasy",
-            version: "1",
+            name: 'PortalFantasy',
+            version: '1',
             chainId: 99999,
             verifyingContract: porbleInstance.address,
         };
@@ -223,18 +223,18 @@ contract.skip("Porble.sol", ([owner, account1, account2, account3, account4, acc
     it("prevents a porble token from being minted if the domain verifyingContract doesn't match the address the contract is deployed to", async () => {
         const types = {
             PorbleMintConditions: [
-                { name: "minter", type: "address" },
-                { name: "tokenId", type: "uint256" },
+                { name: 'minter', type: 'address' },
+                { name: 'tokenId', type: 'uint256' },
             ],
         };
 
         const porbleMintConditions = { minter: testAccountsData[1].address, tokenId: 2 };
 
         const domain = {
-            name: "PortalFantasy",
-            version: "1",
+            name: 'PortalFantasy',
+            version: '1',
             chainId: 43214,
-            verifyingContract: "0xcccccccccccccccccccccccccccccccccccccccc",
+            verifyingContract: '0xcccccccccccccccccccccccccccccccccccccccc',
         };
 
         // Sign according to the EIP-712 standard
@@ -247,16 +247,16 @@ contract.skip("Porble.sol", ([owner, account1, account2, account3, account4, acc
     it("prevents a porble token from being minted if the signed 'minter' address doesn't match the sender address of the tx", async () => {
         const types = {
             PorbleMintConditions: [
-                { name: "minter", type: "address" },
-                { name: "tokenId", type: "uint256" },
+                { name: 'minter', type: 'address' },
+                { name: 'tokenId', type: 'uint256' },
             ],
         };
 
         const porbleMintConditions = { minter: testAccountsData[1].address, tokenId: 2 };
 
         const domain = {
-            name: "PortalFantasy",
-            version: "1",
+            name: 'PortalFantasy',
+            version: '1',
             chainId: 43214,
             verifyingContract: porbleInstance.address,
         };
@@ -271,16 +271,16 @@ contract.skip("Porble.sol", ([owner, account1, account2, account3, account4, acc
     it("prevents a porble token from being minted if the signed tokenId doesn't match the tokenId specified by the caller", async () => {
         const types = {
             PorbleMintConditions: [
-                { name: "minter", type: "address" },
-                { name: "tokenId", type: "uint256" },
+                { name: 'minter', type: 'address' },
+                { name: 'tokenId', type: 'uint256' },
             ],
         };
 
         const porbleMintConditions = { minter: testAccountsData[1].address, tokenId: 2 };
 
         const domain = {
-            name: "PortalFantasy",
-            version: "1",
+            name: 'PortalFantasy',
+            version: '1',
             chainId: 43214,
             verifyingContract: porbleInstance.address,
         };
@@ -292,19 +292,19 @@ contract.skip("Porble.sol", ([owner, account1, account2, account3, account4, acc
         await localExpect(porbleInstance.safeMint(signature, 99999, { from: testAccountsData[1].address })).to.eventually.be.rejected;
     });
 
-    it("prevents a porble token from being minted if the signature is tampered with", async () => {
+    it('prevents a porble token from being minted if the signature is tampered with', async () => {
         const types = {
             PorbleMintConditions: [
-                { name: "minter", type: "address" },
-                { name: "tokenId", type: "uint256" },
+                { name: 'minter', type: 'address' },
+                { name: 'tokenId', type: 'uint256' },
             ],
         };
 
         const porbleMintConditions = { minter: testAccountsData[1].address, tokenId: 2 };
 
         const domain = {
-            name: "PortalFantasy",
-            version: "1",
+            name: 'PortalFantasy',
+            version: '1',
             chainId: 43214,
             verifyingContract: porbleInstance.address,
         };
@@ -312,15 +312,15 @@ contract.skip("Porble.sol", ([owner, account1, account2, account3, account4, acc
         // Sign according to the EIP-712 standard
         const signature: string = await signer._signTypedData(domain, types, porbleMintConditions);
 
-        const signatureArr = signature.split("");
-        signatureArr[10] = "7";
-        const tamperedSignature = signatureArr.join("");
+        const signatureArr = signature.split('');
+        signatureArr[10] = '7';
+        const tamperedSignature = signatureArr.join('');
 
         // The tokenId and tx sender must match those that have been signed for
         await localExpect(porbleInstance.safeMint(tamperedSignature, 2, { from: testAccountsData[1].address })).to.eventually.be.rejected;
     });
 
-    it("only allows the owner to change the _mintSigner", async () => {
+    it('only allows the owner to change the _mintSigner', async () => {
         // Should fail since caller is not the owner
         await localExpect(porbleInstance.setMintSigner(account3, { from: account1 })).to.eventually.be.rejected;
 
@@ -339,16 +339,16 @@ contract.skip("Porble.sol", ([owner, account1, account2, account3, account4, acc
 
         const types = {
             PorbleMintConditions: [
-                { name: "minter", type: "address" },
-                { name: "tokenId", type: "uint256" },
+                { name: 'minter', type: 'address' },
+                { name: 'tokenId', type: 'uint256' },
             ],
         };
 
         const porbleMintConditions = { minter: testAccountsData[1].address, tokenId: 2 };
 
         const domain = {
-            name: "PortalFantasy",
-            version: "1",
+            name: 'PortalFantasy',
+            version: '1',
             chainId: 43214,
             verifyingContract: porbleInstance.address,
         };
@@ -366,19 +366,19 @@ contract.skip("Porble.sol", ([owner, account1, account2, account3, account4, acc
     });
 
     // @TODO: Update this test when we have the final base URI implemented in the contract
-    it("generates a valid token URI", async () => {
+    it('generates a valid token URI', async () => {
         const types = {
             PorbleMintConditions: [
-                { name: "minter", type: "address" },
-                { name: "tokenId", type: "uint256" },
+                { name: 'minter', type: 'address' },
+                { name: 'tokenId', type: 'uint256' },
             ],
         };
 
         const porbleMintConditions = { minter: testAccountsData[1].address, tokenId: 1 };
 
         const domain = {
-            name: "PortalFantasy",
-            version: "1",
+            name: 'PortalFantasy',
+            version: '1',
             chainId: 43214,
             verifyingContract: porbleInstance.address,
         };
@@ -388,23 +388,23 @@ contract.skip("Porble.sol", ([owner, account1, account2, account3, account4, acc
 
         await porbleInstance.safeMint(signature, 1, { from: testAccountsData[1].address });
 
-        const tokenURI = await porbleInstance.tokenURI("1");
-        expect(tokenURI).to.equal("https://www.portalfantasy.io/1");
+        const tokenURI = await porbleInstance.tokenURI('1');
+        expect(tokenURI).to.equal('https://www.portalfantasy.io/1');
     });
 
-    it("allows only the owner to change the base URI", async () => {
+    it('allows only the owner to change the base URI', async () => {
         const types = {
             PorbleMintConditions: [
-                { name: "minter", type: "address" },
-                { name: "tokenId", type: "uint256" },
+                { name: 'minter', type: 'address' },
+                { name: 'tokenId', type: 'uint256' },
             ],
         };
 
         const porbleMintConditions = { minter: testAccountsData[1].address, tokenId: 1 };
 
         const domain = {
-            name: "PortalFantasy",
-            version: "1",
+            name: 'PortalFantasy',
+            version: '1',
             chainId: 43214,
             verifyingContract: porbleInstance.address,
         };
@@ -414,18 +414,18 @@ contract.skip("Porble.sol", ([owner, account1, account2, account3, account4, acc
 
         await porbleInstance.safeMint(signature, 1, { from: testAccountsData[1].address });
 
-        let tokenURI = await porbleInstance.tokenURI("1");
-        expect(tokenURI).to.equal("https://www.portalfantasy.io/1");
+        let tokenURI = await porbleInstance.tokenURI('1');
+        expect(tokenURI).to.equal('https://www.portalfantasy.io/1');
 
         // Expect this to fail, as only the owner can change the base URI
-        await localExpect(porbleInstance.setBaseURIString("https://www.foo.com/", { from: account1 })).to.eventually.be.rejected;
+        await localExpect(porbleInstance.setBaseURIString('https://www.foo.com/', { from: account1 })).to.eventually.be.rejected;
 
-        const data = porbleContract.methods.setBaseURIString("https://www.bar.com/").encodeABI();
+        const data = porbleContract.methods.setBaseURIString('https://www.bar.com/').encodeABI();
         await multiSigWalletInstance.submitTransaction(porbleInstance.address, 0, data, { from: owner });
         const txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
         await localExpect(multiSigWalletInstance.confirmTransaction(txId, { from: account1 })).to.eventually.be.fulfilled;
 
-        tokenURI = await porbleInstance.tokenURI("1");
-        expect(tokenURI).to.equal("https://www.bar.com/1");
+        tokenURI = await porbleInstance.tokenURI('1');
+        expect(tokenURI).to.equal('https://www.bar.com/1');
     });
 });

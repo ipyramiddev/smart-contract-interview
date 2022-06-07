@@ -1,22 +1,22 @@
-import { localExpect } from "./lib/test-libraries";
-import { ArchitectInstance, PORBInstance, MultiSigWalletInstance } from "../types/truffle-contracts";
-import ARCHITECT_JSON from "../build/contracts/Architect.json";
-import PORB_JSON from "../build/contracts/PORB.json";
-import Web3 from "web3";
-import { AbiItem } from "web3-utils";
-import { getTxIdFromMultiSigWallet } from "./lib/test-helpers";
+import { localExpect } from './lib/test-libraries';
+import { ArchitectInstance, PORBInstance, MultiSigWalletInstance } from '../types/truffle-contracts';
+import ARCHITECT_JSON from '../build/contracts/Architect.json';
+import PORB_JSON from '../build/contracts/PORB.json';
+import Web3 from 'web3';
+import { AbiItem } from 'web3-utils';
+import { getTxIdFromMultiSigWallet } from './lib/test-helpers';
 
-const config = require("../config").config;
+const config = require('../config').config;
 
-const architect = artifacts.require("Architect");
-const PORB = artifacts.require("PORB");
-const multiSigWallet = artifacts.require("MultiSigWallet");
+const architect = artifacts.require('Architect');
+const PORB = artifacts.require('PORB');
+const multiSigWallet = artifacts.require('MultiSigWallet');
 
 const web3 = new Web3(new Web3.providers.HttpProvider(config.AVAX.localHTTP));
 const ARCHITECT_ABI = ARCHITECT_JSON.abi as AbiItem[];
 const PORB_ABI = PORB_JSON.abi as AbiItem[];
 
-contract.skip("Architect.sol", ([owner, account1, account2, account3, account4, account5, account6, account7, account8, account9]) => {
+contract('Architect.sol', ([owner, account1, account2, account3, account4, account5, account6, account7, account8, account9]) => {
     let architectInstance: ArchitectInstance;
     let PORBInstance: PORBInstance;
     let multiSigWalletInstance: MultiSigWalletInstance;
@@ -37,15 +37,15 @@ contract.skip("Architect.sol", ([owner, account1, account2, account3, account4, 
 
     it("has token name set to 'Portal Fantasy Architect'", async () => {
         const tokenName = await architectInstance.name();
-        expect(tokenName).to.equal("Portal Fantasy Architect");
+        expect(tokenName).to.equal('Portal Fantasy Architect');
     });
 
     it("has token symbol set to 'PHAR'", async () => {
         const tokenSymbol = await architectInstance.symbol();
-        expect(tokenSymbol).to.equal("PHAR");
+        expect(tokenSymbol).to.equal('PHAR');
     });
 
-    it("can only be paused/unpaused by the owner (multiSigWallet)", async () => {
+    it('can only be paused/unpaused by the owner (multiSigWallet)', async () => {
         let isPaused = await architectInstance.paused();
         expect(isPaused).to.be.false;
 
@@ -72,9 +72,9 @@ contract.skip("Architect.sol", ([owner, account1, account2, account3, account4, 
         expect(isPaused).to.be.false;
     });
 
-    it("allows an Architect NFT to be minted with payment in PORB", async () => {
-        const initialPORBAmountMintedToOwner = web3.utils.toWei("1000000000", "ether");
-        const priceOfArchitectInPORB = web3.utils.toWei("2", "ether");
+    it('allows an Architect NFT to be minted with payment in PORB', async () => {
+        const initialPORBAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
+        const priceOfArchitectInPORB = web3.utils.toWei('2', 'ether');
 
         // Add controller for PORB
         let data = PORBContract.methods.addController(multiSigWalletInstance.address).encodeABI();
@@ -91,15 +91,15 @@ contract.skip("Architect.sol", ([owner, account1, account2, account3, account4, 
         await PORBInstance.approve(architectInstance.address, priceOfArchitectInPORB, { from: account1 });
         await architectInstance.mintWithPORB({ from: account1 });
 
-        const ownerOfMintedArchitect = await architectInstance.ownerOf("0");
+        const ownerOfMintedArchitect = await architectInstance.ownerOf('0');
         const balanceOfPORBVault = (await PORBInstance.balanceOf(account9)).toString();
 
         expect(ownerOfMintedArchitect).to.equal(account1);
         expect(balanceOfPORBVault).to.equal(priceOfArchitectInPORB);
     });
 
-    it("only allows the owner (multiSigWallet) to change mintPriceInPORB", async () => {
-        const newMintPriceInPORB = web3.utils.toWei("5", "ether");
+    it('only allows the owner (multiSigWallet) to change mintPriceInPORB', async () => {
+        const newMintPriceInPORB = web3.utils.toWei('5', 'ether');
 
         // Should fail since caller is not the owner
         await localExpect(architectInstance.setMintPriceInPORB(newMintPriceInPORB, { from: account1 })).to.eventually.be.rejected;
@@ -113,7 +113,7 @@ contract.skip("Architect.sol", ([owner, account1, account2, account3, account4, 
         expect(contractMintPriceInPORB).to.equal(newMintPriceInPORB);
     });
 
-    it("only allows the owner (multiSigWallet) to change the PORB contract address", async () => {
+    it('only allows the owner (multiSigWallet) to change the PORB contract address', async () => {
         const newPORBInstance = await PORB.new(account1, owner);
 
         // Should fail since caller is not the owner
@@ -128,7 +128,7 @@ contract.skip("Architect.sol", ([owner, account1, account2, account3, account4, 
         expect(contractPORBAddress).to.equal(newPORBInstance.address);
     });
 
-    it("only allows the owner (multiSigWallet) to change the PORB vault", async () => {
+    it('only allows the owner (multiSigWallet) to change the PORB vault', async () => {
         // Should fail since caller is not the owner
         await localExpect(architectInstance.setVault(account2, { from: account1 })).to.eventually.be.rejected;
 
@@ -142,9 +142,9 @@ contract.skip("Architect.sol", ([owner, account1, account2, account3, account4, 
     });
 
     // @TODO: Update this test when we have the final base URI implemented in the contract
-    it("generates a valid token URI", async () => {
-        const initialPORBAmountMintedToOwner = web3.utils.toWei("1000000000", "ether");
-        const priceOfArchitectInPORB = web3.utils.toWei("2", "ether");
+    it('generates a valid token URI', async () => {
+        const initialPORBAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
+        const priceOfArchitectInPORB = web3.utils.toWei('2', 'ether');
 
         // Add controller for PORB
         let data = PORBContract.methods.addController(multiSigWalletInstance.address).encodeABI();
@@ -161,13 +161,13 @@ contract.skip("Architect.sol", ([owner, account1, account2, account3, account4, 
         await PORBInstance.approve(architectInstance.address, priceOfArchitectInPORB, { from: account1 });
         await architectInstance.mintWithPORB({ from: account1 });
 
-        const tokenURI = await architectInstance.tokenURI("0");
-        expect(tokenURI).to.equal("https://www.portalfantasy.io/0");
+        const tokenURI = await architectInstance.tokenURI('0');
+        expect(tokenURI).to.equal('https://www.portalfantasy.io/0');
     });
 
-    it("allows only the owner (multiSigWallet) to change the base URI", async () => {
-        const initialPORBAmountMintedToOwner = web3.utils.toWei("1000000000", "ether");
-        const priceOfArchitectInPORB = web3.utils.toWei("2", "ether");
+    it('allows only the owner (multiSigWallet) to change the base URI', async () => {
+        const initialPORBAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
+        const priceOfArchitectInPORB = web3.utils.toWei('2', 'ether');
 
         // Add controller for PORB
         let data = PORBContract.methods.addController(multiSigWalletInstance.address).encodeABI();
@@ -184,18 +184,18 @@ contract.skip("Architect.sol", ([owner, account1, account2, account3, account4, 
         await PORBInstance.approve(architectInstance.address, priceOfArchitectInPORB, { from: account1 });
         await architectInstance.mintWithPORB({ from: account1 });
 
-        let tokenURI = await architectInstance.tokenURI("0");
-        expect(tokenURI).to.equal("https://www.portalfantasy.io/0");
+        let tokenURI = await architectInstance.tokenURI('0');
+        expect(tokenURI).to.equal('https://www.portalfantasy.io/0');
 
         // Expect this to fail, as only the owner can change the base URI
-        await localExpect(architectInstance.setBaseURIString("https://www.foo.com/", { from: account1 })).to.eventually.be.rejected;
+        await localExpect(architectInstance.setBaseURIString('https://www.foo.com/', { from: account1 })).to.eventually.be.rejected;
 
-        data = architectContract.methods.setBaseURIString("https://www.bar.com/").encodeABI();
+        data = architectContract.methods.setBaseURIString('https://www.bar.com/').encodeABI();
         await multiSigWalletInstance.submitTransaction(architectInstance.address, 0, data, { from: owner });
         txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
         await localExpect(multiSigWalletInstance.confirmTransaction(txId, { from: account1 })).to.eventually.be.fulfilled;
 
-        tokenURI = await architectInstance.tokenURI("0");
-        expect(tokenURI).to.equal("https://www.bar.com/0");
+        tokenURI = await architectInstance.tokenURI('0');
+        expect(tokenURI).to.equal('https://www.bar.com/0');
     });
 });
