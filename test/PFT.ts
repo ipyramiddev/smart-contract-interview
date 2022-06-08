@@ -13,7 +13,7 @@ const multiSigWallet = artifacts.require('MultiSigWallet');
 const web3 = new Web3(new Web3.providers.HttpProvider(config.AVAX.localHTTP));
 const PFT_ABI = PFT_JSON.abi as AbiItem[];
 
-contract('PFT.sol', ([owner, account1, account2, account3, account4, account5, account6, account7, account8, account9]) => {
+contract.skip('PFT.sol', ([owner, account1, account2, account3, account4, account5, account6, account7, account8, account9]) => {
     let PFTInstance: PFTInstance;
     let multiSigWalletInstance: MultiSigWalletInstance;
     let PFTContract: any;

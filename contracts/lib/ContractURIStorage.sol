@@ -8,6 +8,10 @@ pragma solidity ^0.8.0;
 abstract contract ContractURIStorage {
     string private contractURIString;
 
+    constructor(string memory _contractURIString) {
+        contractURIString = _contractURIString;
+    }
+
     /**
      * @dev Marketplaces like OpenSea enforce royalties via the following metadata structure
      *
