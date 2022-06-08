@@ -17,20 +17,16 @@ contract Porble is
 {
     string public baseURIString;
 
-    // Some marketplaces use this for collection metadata and royalties
-    string public contractURIString;
-
     // The expected signer of the signature required for minting
     address public mintSigner;
 
     constructor(address signer)
         ERC721("Portal Fantasy Porble", "PRBL")
         EIP712("PortalFantasy", "1")
+        ContractURIStorage("https://www.portalfantasy.io/porble/")
     {
         // @TODO: Have added a placeholder baseURIString. Need to replace with actual when it's implemented.
         baseURIString = "https://www.portalfantasy.io/";
-        // @TODO: Have added a placeholder contractURIString. Need to replace with actual when it's implemented.
-        contractURIString = "https://www.portalfantasy.io/porble/";
         mintSigner = signer;
     }
 

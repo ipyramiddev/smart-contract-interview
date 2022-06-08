@@ -428,4 +428,20 @@ contract('Porble.sol', ([owner, account1, account2, account3, account4, account5
         tokenURI = await porbleInstance.tokenURI('1');
         expect(tokenURI).to.equal('https://www.bar.com/1');
     });
+
+    it('allows only the owner (multiSigWallet) to change the contract URI', async () => {
+        let contractURI = await porbleInstance.contractURI();
+        expect(contractURI).to.equal('https://www.portalfantasy.io/porble/');
+
+        // Expect this to fail, as only the owner can change the base URI
+        await localExpect(porbleInstance.setContractURIString('https://www.foo.com/porble/', { from: account1 })).to.eventually.be.rejected;
+
+        const data = porbleContract.methods.setContractURIString('https://www.bar.com/porble/').encodeABI();
+        await multiSigWalletInstance.submitTransaction(porbleInstance.address, 0, data, { from: owner });
+        const txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await localExpect(multiSigWalletInstance.confirmTransaction(txId, { from: account1 })).to.eventually.be.fulfilled;
+
+        contractURI = await porbleInstance.contractURI();
+        expect(contractURI).to.equal('https://www.bar.com/porble/');
+    });
 });

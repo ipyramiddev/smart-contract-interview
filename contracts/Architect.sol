@@ -16,9 +16,6 @@ contract Architect is ERC721Royalty, ContractURIStorage, Ownable, Pausable {
 
     string public baseURIString;
 
-    // Some marketplaces use this for collection metadata and royalties
-    string public contractURIString;
-
     // @TODO: Set the actual initial price in AVAX to mint an Architect
     // @TODO: We likely don't need to allow minting via AVAX. Find out and remove if necessary
     // 2 AVAX initial price
@@ -36,11 +33,10 @@ contract Architect is ERC721Royalty, ContractURIStorage, Ownable, Pausable {
 
     constructor(address _PORB, address _vault)
         ERC721("Portal Fantasy Architect", "PHAR")
+        ContractURIStorage("https://www.portalfantasy.io/architect/")
     {
         // @TODO: Have added a placeholder baseURIString. Need to replace with actual when it's implemented.
         baseURIString = "https://www.portalfantasy.io/";
-        // @TODO: Have added a placeholder contractURIString. Need to replace with actual when it's implemented.
-        contractURIString = "https://www.portalfantasy.io/architect/";
         PORB = IERC20(_PORB);
         vault = _vault;
     }

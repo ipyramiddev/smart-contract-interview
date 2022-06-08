@@ -198,4 +198,20 @@ contract('Architect.sol', ([owner, account1, account2, account3, account4, accou
         tokenURI = await architectInstance.tokenURI('0');
         expect(tokenURI).to.equal('https://www.bar.com/0');
     });
+
+    it('allows only the owner (multiSigWallet) to change the contract URI', async () => {
+        let contractURI = await architectInstance.contractURI();
+        expect(contractURI).to.equal('https://www.portalfantasy.io/architect/');
+
+        // Expect this to fail, as only the owner can change the base URI
+        await localExpect(architectInstance.setContractURIString('https://www.foo.com/architect/', { from: account1 })).to.eventually.be.rejected;
+
+        const data = architectContract.methods.setContractURIString('https://www.bar.com/architect/').encodeABI();
+        await multiSigWalletInstance.submitTransaction(architectInstance.address, 0, data, { from: owner });
+        const txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await localExpect(multiSigWalletInstance.confirmTransaction(txId, { from: account1 })).to.eventually.be.fulfilled;
+
+        contractURI = await architectInstance.contractURI();
+        expect(contractURI).to.equal('https://www.bar.com/architect/');
+    });
 });
