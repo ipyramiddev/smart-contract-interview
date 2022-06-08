@@ -3,12 +3,22 @@
 pragma solidity ^0.8.0;
 
 import "./lib/draft-EIP712.sol";
-import "./lib/ERC721Enumerable.sol";
+import "./lib/ERC721Royalty.sol";
+import "./lib/ContractURIStorage.sol";
 import "./lib/Ownable.sol";
 import "./lib/Pausable.sol";
 
-contract Porble is ERC721Enumerable, EIP712, Ownable, Pausable {
+contract Porble is
+    ERC721Royalty,
+    ContractURIStorage,
+    EIP712,
+    Ownable,
+    Pausable
+{
     string public baseURIString;
+
+    // Some marketplaces use this for collection metadata and royalties
+    string public contractURIString;
 
     // The expected signer of the signature required for minting
     address public mintSigner;
@@ -19,6 +29,8 @@ contract Porble is ERC721Enumerable, EIP712, Ownable, Pausable {
     {
         // @TODO: Have added a placeholder baseURIString. Need to replace with actual when it's implemented.
         baseURIString = "https://www.portalfantasy.io/";
+        // @TODO: Have added a placeholder contractURIString. Need to replace with actual when it's implemented.
+        contractURIString = "https://www.portalfantasy.io/porble/";
         mintSigner = signer;
     }
 
@@ -69,6 +81,17 @@ contract Porble is ERC721Enumerable, EIP712, Ownable, Pausable {
         onlyOwner
     {
         baseURIString = _baseURIString;
+    }
+
+    /**
+     * Allows the owner to set a new contract URI
+     * @param _contractURIString the new contract URI to point to
+     */
+    function setContractURIString(string calldata _contractURIString)
+        external
+        onlyOwner
+    {
+        _setContractURIString(_contractURIString);
     }
 
     /**
