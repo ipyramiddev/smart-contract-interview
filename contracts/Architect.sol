@@ -3,17 +3,21 @@
 pragma solidity ^0.8.0;
 
 import "./lib/Counters.sol";
-import "./lib/ERC721Enumerable.sol";
+import "./lib/ERC721Royalty.sol";
+import "./lib/ContractURIStorage.sol";
 import "./lib/IERC20.sol";
 import "./lib/Ownable.sol";
 import "./lib/Pausable.sol";
 
-contract Architect is ERC721Enumerable, Ownable, Pausable {
+contract Architect is ERC721Royalty, ContractURIStorage, Ownable, Pausable {
     using Counters for Counters.Counter;
 
     Counters.Counter private _tokenIdCounter;
 
     string public baseURIString;
+
+    // Some marketplaces use this for collection metadata and royalties
+    string public contractURIString;
 
     // @TODO: Set the actual initial price in AVAX to mint an Architect
     // @TODO: We likely don't need to allow minting via AVAX. Find out and remove if necessary
@@ -35,6 +39,8 @@ contract Architect is ERC721Enumerable, Ownable, Pausable {
     {
         // @TODO: Have added a placeholder baseURIString. Need to replace with actual when it's implemented.
         baseURIString = "https://www.portalfantasy.io/";
+        // @TODO: Have added a placeholder contractURIString. Need to replace with actual when it's implemented.
+        contractURIString = "https://www.portalfantasy.io/architect/";
         PORB = IERC20(_PORB);
         vault = _vault;
     }
@@ -75,6 +81,17 @@ contract Architect is ERC721Enumerable, Ownable, Pausable {
         onlyOwner
     {
         baseURIString = _baseURIString;
+    }
+
+    /**
+     * Allows the owner to set a new contract URI
+     * @param _contractURIString the new contract URI to point to
+     */
+    function setContractURIString(string calldata _contractURIString)
+        external
+        onlyOwner
+    {
+        _setContractURIString(_contractURIString);
     }
 
     /**

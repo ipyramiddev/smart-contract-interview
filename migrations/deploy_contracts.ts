@@ -19,9 +19,6 @@ module.exports = (artifacts: Truffle.Artifacts, web3: Web3) => {
         const PORB = artifacts.require('PORB');
         await deployer.deploy<any[]>(PORB, accounts[1], multiSigWalletInstance.address);
         const PORBInstance = await PORB.deployed();
-        await PORBInstance.addController(accounts[0]); // @TODO: Remove when testing complete
-        await PORBInstance.mint(accounts[0], web3.utils.toWei('1', 'ether')); // @TODO: Remove when testing complete
-        await PORBInstance.mint(multiSigWalletInstance.address, web3.utils.toWei('1000000000', 'ether')); // @TODO: Remove when testing complete
         await PORBInstance.transferOwnership(multiSigWalletInstance.address);
 
         const hero = artifacts.require('Hero');
