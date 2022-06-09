@@ -1,3 +1,4 @@
+import bigInt from 'big-integer';
 import { localExpect } from './lib/test-libraries';
 import { HeroInstance, PORBInstance, MultiSigWalletInstance } from '../types/truffle-contracts';
 import HERO_JSON from '../build/contracts/Hero.json';
@@ -213,5 +214,147 @@ contract('Hero.sol', ([owner, account1, account2, account3, account4, account5, 
 
         contractURI = await heroInstance.contractURI();
         expect(contractURI).to.equal('https://www.bar.com/hero/');
+    });
+
+    it('applies the default royalty correctly', async () => {
+        const initialPORBAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
+        const priceOfHeroInPORB = web3.utils.toWei('2', 'ether');
+
+        // Add controller for PORB
+        let data = PORBContract.methods.addController(multiSigWalletInstance.address).encodeABI();
+        await multiSigWalletInstance.submitTransaction(PORBInstance.address, 0, data, { from: owner });
+        let txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
+
+        // Mint PORB
+        data = PORBContract.methods.mint(account1, initialPORBAmountMintedToOwner).encodeABI();
+        await multiSigWalletInstance.submitTransaction(PORBInstance.address, 0, data, { from: owner });
+        txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
+
+        await PORBInstance.approve(heroInstance.address, priceOfHeroInPORB, { from: account1 });
+        await heroInstance.mintWithPORB({ from: account1 });
+
+        // Assert expected royalty parameters
+        let defaultRoyaltyInfo = await heroInstance.royaltyInfo('0', priceOfHeroInPORB);
+        const royaltyRecipient = defaultRoyaltyInfo[0];
+        const royaltyFee = defaultRoyaltyInfo[1];
+        const expectedRoyalFeeNumeratorBips = 400;
+        expect(royaltyRecipient).to.equal(account9);
+        expect(royaltyFee.toString()).to.equal(bigInt(priceOfHeroInPORB).multiply(expectedRoyalFeeNumeratorBips).divide(10000).toString());
+    });
+
+    it('allows only the owner to change the default royalty fee', async () => {
+        const initialPORBAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
+        const priceOfHeroInPORB = web3.utils.toWei('2', 'ether');
+
+        // Add controller for PORB
+        let data = PORBContract.methods.addController(multiSigWalletInstance.address).encodeABI();
+        await multiSigWalletInstance.submitTransaction(PORBInstance.address, 0, data, { from: owner });
+        let txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
+
+        // Mint PORB
+        data = PORBContract.methods.mint(account1, initialPORBAmountMintedToOwner).encodeABI();
+        await multiSigWalletInstance.submitTransaction(PORBInstance.address, 0, data, { from: owner });
+        txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
+
+        await PORBInstance.approve(heroInstance.address, priceOfHeroInPORB, { from: account1 });
+        await heroInstance.mintWithPORB({ from: account1 });
+
+        // Expect this to fail, as only the owner can change the base URI
+        await localExpect(heroInstance.setDefaultRoyalty(300, { from: account1 })).to.eventually.be.rejected;
+
+        const updatedRoyaltyFeeBips = 100;
+        data = heroContract.methods.setDefaultRoyalty(updatedRoyaltyFeeBips).encodeABI();
+        await multiSigWalletInstance.submitTransaction(heroInstance.address, 0, data, { from: owner });
+        txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await localExpect(multiSigWalletInstance.confirmTransaction(txId, { from: account1 })).to.eventually.be.fulfilled;
+
+        // Assert expected royalty parameters
+        let defaultRoyaltyInfo = await heroInstance.royaltyInfo('0', priceOfHeroInPORB);
+        const royaltyRecipient = defaultRoyaltyInfo[0];
+        const royaltyFee = defaultRoyaltyInfo[1];
+        expect(royaltyRecipient).to.equal(account9);
+        expect(royaltyFee.toString()).to.equal(bigInt(priceOfHeroInPORB).multiply(updatedRoyaltyFeeBips).divide(10000).toString());
+    });
+
+    it('allows only the owner to change the token custom royalty fee', async () => {
+        const initialPORBAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
+        const priceOfHeroInPORB = web3.utils.toWei('2', 'ether');
+
+        // Add controller for PORB
+        let data = PORBContract.methods.addController(multiSigWalletInstance.address).encodeABI();
+        await multiSigWalletInstance.submitTransaction(PORBInstance.address, 0, data, { from: owner });
+        let txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
+
+        // Mint PORB
+        data = PORBContract.methods.mint(account1, initialPORBAmountMintedToOwner).encodeABI();
+        await multiSigWalletInstance.submitTransaction(PORBInstance.address, 0, data, { from: owner });
+        txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
+
+        await PORBInstance.approve(heroInstance.address, priceOfHeroInPORB, { from: account1 });
+        await heroInstance.mintWithPORB({ from: account1 });
+
+        // Expect this to fail, as only the owner can change the base URI
+        await localExpect(heroInstance.setTokenRoyalty('0', 300, { from: account1 })).to.eventually.be.rejected;
+
+        const updatedRoyaltyFeeBips = 100;
+        data = heroContract.methods.setTokenRoyalty('0', updatedRoyaltyFeeBips).encodeABI();
+        await multiSigWalletInstance.submitTransaction(heroInstance.address, 0, data, { from: owner });
+        txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await localExpect(multiSigWalletInstance.confirmTransaction(txId, { from: account1 })).to.eventually.be.fulfilled;
+
+        // Assert expected royalty parameters
+        let defaultRoyaltyInfo = await heroInstance.royaltyInfo('0', priceOfHeroInPORB);
+        const royaltyRecipient = defaultRoyaltyInfo[0];
+        const royaltyFee = defaultRoyaltyInfo[1];
+        expect(royaltyRecipient).to.equal(account9);
+        expect(royaltyFee.toString()).to.equal(bigInt(priceOfHeroInPORB).multiply(updatedRoyaltyFeeBips).divide(10000).toString());
+    });
+
+    it('allows only the owner to reset the custom royalty fee', async () => {
+        const initialPORBAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
+        const priceOfHeroInPORB = web3.utils.toWei('2', 'ether');
+
+        // Add controller for PORB
+        let data = PORBContract.methods.addController(multiSigWalletInstance.address).encodeABI();
+        await multiSigWalletInstance.submitTransaction(PORBInstance.address, 0, data, { from: owner });
+        let txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
+
+        // Mint PORB
+        data = PORBContract.methods.mint(account1, initialPORBAmountMintedToOwner).encodeABI();
+        await multiSigWalletInstance.submitTransaction(PORBInstance.address, 0, data, { from: owner });
+        txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
+
+        await PORBInstance.approve(heroInstance.address, priceOfHeroInPORB, { from: account1 });
+        await heroInstance.mintWithPORB({ from: account1 });
+
+        const updatedRoyaltyFeeBips = 100;
+        data = heroContract.methods.setTokenRoyalty('0', updatedRoyaltyFeeBips).encodeABI();
+        await multiSigWalletInstance.submitTransaction(heroInstance.address, 0, data, { from: owner });
+        txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await localExpect(multiSigWalletInstance.confirmTransaction(txId, { from: account1 })).to.eventually.be.fulfilled;
+
+        // Expect this to fail, as only the owner can change the base URI
+        await localExpect(heroInstance.resetTokenRoyalty('0', { from: account1 })).to.eventually.be.rejected;
+
+        data = heroContract.methods.resetTokenRoyalty('0').encodeABI();
+        await multiSigWalletInstance.submitTransaction(heroInstance.address, 0, data, { from: owner });
+        txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await localExpect(multiSigWalletInstance.confirmTransaction(txId, { from: account1 })).to.eventually.be.fulfilled;
+
+        // Assert expected royalty parameters
+        let defaultRoyaltyInfo = await heroInstance.royaltyInfo('0', priceOfHeroInPORB);
+        const royaltyRecipient = defaultRoyaltyInfo[0];
+        const royaltyFee = defaultRoyaltyInfo[1];
+        const expectedRoyalFeeNumeratorBips = 400;
+        expect(royaltyRecipient).to.equal(account9);
+        expect(royaltyFee.toString()).to.equal(bigInt(priceOfHeroInPORB).multiply(expectedRoyalFeeNumeratorBips).divide(10000).toString());
     });
 });
