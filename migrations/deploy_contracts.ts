@@ -32,7 +32,7 @@ module.exports = (artifacts: Truffle.Artifacts, web3: Web3) => {
         await architectInstance.transferOwnership(multiSigWalletInstance.address);
 
         const porble = artifacts.require('Porble');
-        await deployer.deploy<any[]>(porble, accounts[1]);
+        await deployer.deploy<any[]>(porble, accounts[1], multiSigWalletInstance.address);
         const porbleInstance = await porble.deployed();
         await porbleInstance.transferOwnership(multiSigWalletInstance.address);
 

@@ -1,3 +1,4 @@
+import bigInt from 'big-integer';
 import { localExpect } from './lib/test-libraries';
 import { PorbleInstance, MultiSigWalletInstance } from '../types/truffle-contracts';
 import PORBLE_JSON from '../build/contracts/Porble.json';
@@ -26,7 +27,7 @@ contract('Porble.sol', ([owner, account1, account2, account3, account4, account5
     beforeEach(async () => {
         // Require 2 signatures for multiSig
         multiSigWalletInstance = await multiSigWallet.new([owner, account1, account2], 2);
-        porbleInstance = await porble.new(account1);
+        porbleInstance = await porble.new(account1, multiSigWalletInstance.address);
         await porbleInstance.transferOwnership(multiSigWalletInstance.address);
 
         porbleContract = new web3.eth.Contract(PORBLE_ABI, porbleInstance.address);
@@ -443,5 +444,163 @@ contract('Porble.sol', ([owner, account1, account2, account3, account4, account5
 
         contractURI = await porbleInstance.contractURI();
         expect(contractURI).to.equal('https://www.bar.com/porble/');
+    });
+
+    it('applies the default royalty correctly', async () => {
+        const priceOfPorbleInPORB = web3.utils.toWei('2', 'ether');
+
+        const types = {
+            PorbleMintConditions: [
+                { name: 'minter', type: 'address' },
+                { name: 'tokenId', type: 'uint256' },
+            ],
+        };
+
+        const porbleMintConditions = { minter: testAccountsData[1].address, tokenId: 1 };
+
+        const domain = {
+            name: 'PortalFantasy',
+            version: '1',
+            chainId: 43214,
+            verifyingContract: porbleInstance.address,
+        };
+
+        // Sign according to the EIP-712 standard
+        const signature = await signer._signTypedData(domain, types, porbleMintConditions);
+
+        // The tokenId and tx sender must match those that have been signed for
+        await localExpect(porbleInstance.safeMint(signature, 1, { from: testAccountsData[1].address })).to.eventually.be.fulfilled;
+
+        // Assert expected royalty parameters
+        let defaultRoyaltyInfo = await porbleInstance.royaltyInfo('1', priceOfPorbleInPORB);
+        const royaltyRecipient = defaultRoyaltyInfo[0];
+        const royaltyFee = defaultRoyaltyInfo[1];
+        const expectedRoyalFeeNumeratorBips = 400;
+        expect(royaltyRecipient).to.equal(multiSigWalletInstance.address);
+        expect(royaltyFee.toString()).to.equal(bigInt(priceOfPorbleInPORB).multiply(expectedRoyalFeeNumeratorBips).divide(10000).toString());
+    });
+
+    it('allows only the owner to change the default royalty fee', async () => {
+        const priceOfPorbleInPORB = web3.utils.toWei('2', 'ether');
+
+        const types = {
+            PorbleMintConditions: [
+                { name: 'minter', type: 'address' },
+                { name: 'tokenId', type: 'uint256' },
+            ],
+        };
+
+        const porbleMintConditions = { minter: testAccountsData[1].address, tokenId: 1 };
+
+        const domain = {
+            name: 'PortalFantasy',
+            version: '1',
+            chainId: 43214,
+            verifyingContract: porbleInstance.address,
+        };
+
+        // Sign according to the EIP-712 standard
+        const signature = await signer._signTypedData(domain, types, porbleMintConditions);
+
+        // The tokenId and tx sender must match those that have been signed for
+        await localExpect(porbleInstance.safeMint(signature, 1, { from: testAccountsData[1].address })).to.eventually.be.fulfilled;
+
+        await localExpect(porbleInstance.setDefaultRoyalty(300, { from: account1 })).to.eventually.be.rejected;
+
+        const updatedRoyaltyFeeBips = 100;
+        const data = porbleContract.methods.setDefaultRoyalty(updatedRoyaltyFeeBips).encodeABI();
+        await multiSigWalletInstance.submitTransaction(porbleInstance.address, 0, data, { from: owner });
+        const txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await localExpect(multiSigWalletInstance.confirmTransaction(txId, { from: account1 })).to.eventually.be.fulfilled;
+
+        // Assert expected royalty parameters
+        let defaultRoyaltyInfo = await porbleInstance.royaltyInfo('0', priceOfPorbleInPORB);
+        const royaltyRecipient = defaultRoyaltyInfo[0];
+        const royaltyFee = defaultRoyaltyInfo[1];
+        expect(royaltyRecipient).to.equal(multiSigWalletInstance.address);
+        expect(royaltyFee.toString()).to.equal(bigInt(priceOfPorbleInPORB).multiply(updatedRoyaltyFeeBips).divide(10000).toString());
+    });
+
+    it('allows only the owner to change the token custom royalty fee', async () => {
+        const priceOfPorbleInPORB = web3.utils.toWei('2', 'ether');
+
+        const types = {
+            PorbleMintConditions: [
+                { name: 'minter', type: 'address' },
+                { name: 'tokenId', type: 'uint256' },
+            ],
+        };
+
+        const porbleMintConditions = { minter: testAccountsData[1].address, tokenId: 1 };
+
+        const domain = {
+            name: 'PortalFantasy',
+            version: '1',
+            chainId: 43214,
+            verifyingContract: porbleInstance.address,
+        };
+
+        // Sign according to the EIP-712 standard
+        const signature = await signer._signTypedData(domain, types, porbleMintConditions);
+
+        // The tokenId and tx sender must match those that have been signed for
+        await localExpect(porbleInstance.safeMint(signature, 1, { from: testAccountsData[1].address })).to.eventually.be.fulfilled;
+
+        // Expect this to fail, as only the owner can change the base URI
+        await localExpect(porbleInstance.setTokenRoyalty('0', 300, { from: account1 })).to.eventually.be.rejected;
+
+        const updatedRoyaltyFeeBips = 100;
+        const data = porbleContract.methods.setTokenRoyalty('0', updatedRoyaltyFeeBips).encodeABI();
+        await multiSigWalletInstance.submitTransaction(porbleInstance.address, 0, data, { from: owner });
+        const txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await localExpect(multiSigWalletInstance.confirmTransaction(txId, { from: account1 })).to.eventually.be.fulfilled;
+
+        // Assert expected royalty parameters
+        let defaultRoyaltyInfo = await porbleInstance.royaltyInfo('0', priceOfPorbleInPORB);
+        const royaltyRecipient = defaultRoyaltyInfo[0];
+        const royaltyFee = defaultRoyaltyInfo[1];
+        expect(royaltyRecipient).to.equal(multiSigWalletInstance.address);
+        expect(royaltyFee.toString()).to.equal(bigInt(priceOfPorbleInPORB).multiply(updatedRoyaltyFeeBips).divide(10000).toString());
+    });
+
+    it('allows only the owner to reset the custom royalty fee', async () => {
+        const priceOfPorbleInPORB = web3.utils.toWei('2', 'ether');
+
+        const types = {
+            PorbleMintConditions: [
+                { name: 'minter', type: 'address' },
+                { name: 'tokenId', type: 'uint256' },
+            ],
+        };
+
+        const porbleMintConditions = { minter: testAccountsData[1].address, tokenId: 1 };
+
+        const domain = {
+            name: 'PortalFantasy',
+            version: '1',
+            chainId: 43214,
+            verifyingContract: porbleInstance.address,
+        };
+
+        // Sign according to the EIP-712 standard
+        const signature = await signer._signTypedData(domain, types, porbleMintConditions);
+
+        // The tokenId and tx sender must match those that have been signed for
+        await localExpect(porbleInstance.safeMint(signature, 1, { from: testAccountsData[1].address })).to.eventually.be.fulfilled;
+        // Expect this to fail, as only the owner can change the base URI
+        await localExpect(porbleInstance.resetTokenRoyalty('0', { from: account1 })).to.eventually.be.rejected;
+
+        const data = porbleContract.methods.resetTokenRoyalty('0').encodeABI();
+        await multiSigWalletInstance.submitTransaction(porbleInstance.address, 0, data, { from: owner });
+        const txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await localExpect(multiSigWalletInstance.confirmTransaction(txId, { from: account1 })).to.eventually.be.fulfilled;
+
+        // Assert expected royalty parameters
+        let defaultRoyaltyInfo = await porbleInstance.royaltyInfo('0', priceOfPorbleInPORB);
+        const royaltyRecipient = defaultRoyaltyInfo[0];
+        const royaltyFee = defaultRoyaltyInfo[1];
+        const expectedRoyalFeeNumeratorBips = 400;
+        expect(royaltyRecipient).to.equal(multiSigWalletInstance.address);
+        expect(royaltyFee.toString()).to.equal(bigInt(priceOfPorbleInPORB).multiply(expectedRoyalFeeNumeratorBips).divide(10000).toString());
     });
 });

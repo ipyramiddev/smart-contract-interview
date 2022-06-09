@@ -20,14 +20,21 @@ contract Porble is
     // The expected signer of the signature required for minting
     address public mintSigner;
 
-    constructor(address signer)
+    // The vault contract to deposit earned royalties
+    address public vault;
+
+    constructor(address _signer, address _vault)
         ERC721("Portal Fantasy Porble", "PRBL")
         EIP712("PortalFantasy", "1")
         ContractURIStorage("https://www.portalfantasy.io/porble/")
     {
         // @TODO: Have added a placeholder baseURIString. Need to replace with actual when it's implemented.
         baseURIString = "https://www.portalfantasy.io/";
-        mintSigner = signer;
+        mintSigner = _signer;
+        vault = _vault;
+
+        // Set the default token royalty to 4%
+        _setDefaultRoyalty(vault, 400);
     }
 
     /**
@@ -105,5 +112,33 @@ contract Porble is
     function setPaused(bool _paused) external onlyOwner {
         if (_paused) _pause();
         else _unpause();
+    }
+
+    /**
+     * Allows the owner to set a new default royalty which applies to all tokens in absence of a specific token royalty
+     * @param _feeNumerator in bips. Cannot be greater than the fee denominator (10000)
+     */
+    function setDefaultRoyalty(uint96 _feeNumerator) external onlyOwner {
+        _setDefaultRoyalty(vault, _feeNumerator);
+    }
+
+    /**
+     * Allows the owner to set a custom royalty for a specific token
+     * @param _tokenId the token to set a custom royalty for
+     * @param _feeNumerator in bips. Cannot be greater than the fee denominator (10000)
+     */
+    function setTokenRoyalty(uint256 _tokenId, uint96 _feeNumerator)
+        external
+        onlyOwner
+    {
+        _setTokenRoyalty(_tokenId, vault, _feeNumerator);
+    }
+
+    /**
+     * Allows the owner to reset a specific token's royalty to the global default
+     * @param _tokenId the token to set a custom royalty for
+     */
+    function resetTokenRoyalty(uint256 _tokenId) external onlyOwner {
+        _resetTokenRoyalty(_tokenId);
     }
 }

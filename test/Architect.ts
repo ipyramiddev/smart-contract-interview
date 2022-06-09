@@ -1,3 +1,4 @@
+import bigInt from 'big-integer';
 import { localExpect } from './lib/test-libraries';
 import { ArchitectInstance, PORBInstance, MultiSigWalletInstance } from '../types/truffle-contracts';
 import ARCHITECT_JSON from '../build/contracts/Architect.json';
@@ -213,5 +214,163 @@ contract('Architect.sol', ([owner, account1, account2, account3, account4, accou
 
         contractURI = await architectInstance.contractURI();
         expect(contractURI).to.equal('https://www.bar.com/architect/');
+    });
+
+    it('allows only the owner (multiSigWallet) to change the contract URI', async () => {
+        let contractURI = await architectInstance.contractURI();
+        expect(contractURI).to.equal('https://www.portalfantasy.io/architect/');
+
+        // Expect this to fail, as only the owner can change the base URI
+        await localExpect(architectInstance.setContractURIString('https://www.foo.com/architect/', { from: account1 })).to.eventually.be.rejected;
+
+        const data = architectContract.methods.setContractURIString('https://www.bar.com/architect/').encodeABI();
+        await multiSigWalletInstance.submitTransaction(architectInstance.address, 0, data, { from: owner });
+        const txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await localExpect(multiSigWalletInstance.confirmTransaction(txId, { from: account1 })).to.eventually.be.fulfilled;
+
+        contractURI = await architectInstance.contractURI();
+        expect(contractURI).to.equal('https://www.bar.com/architect/');
+    });
+
+    it('applies the default royalty correctly', async () => {
+        const initialPORBAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
+        const priceOfArchitectInPORB = web3.utils.toWei('2', 'ether');
+
+        // Add controller for PORB
+        let data = PORBContract.methods.addController(multiSigWalletInstance.address).encodeABI();
+        await multiSigWalletInstance.submitTransaction(PORBInstance.address, 0, data, { from: owner });
+        let txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
+
+        // Mint PORB
+        data = PORBContract.methods.mint(account1, initialPORBAmountMintedToOwner).encodeABI();
+        await multiSigWalletInstance.submitTransaction(PORBInstance.address, 0, data, { from: owner });
+        txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
+
+        await PORBInstance.approve(architectInstance.address, priceOfArchitectInPORB, { from: account1 });
+        await architectInstance.mintWithPORB({ from: account1 });
+
+        // Assert expected royalty parameters
+        let defaultRoyaltyInfo = await architectInstance.royaltyInfo('0', priceOfArchitectInPORB);
+        const royaltyRecipient = defaultRoyaltyInfo[0];
+        const royaltyFee = defaultRoyaltyInfo[1];
+        const expectedRoyalFeeNumeratorBips = 400;
+        expect(royaltyRecipient).to.equal(account9);
+        expect(royaltyFee.toString()).to.equal(bigInt(priceOfArchitectInPORB).multiply(expectedRoyalFeeNumeratorBips).divide(10000).toString());
+    });
+
+    it('allows only the owner to change the default royalty fee', async () => {
+        const initialPORBAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
+        const priceOfArchitectInPORB = web3.utils.toWei('2', 'ether');
+
+        // Add controller for PORB
+        let data = PORBContract.methods.addController(multiSigWalletInstance.address).encodeABI();
+        await multiSigWalletInstance.submitTransaction(PORBInstance.address, 0, data, { from: owner });
+        let txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
+
+        // Mint PORB
+        data = PORBContract.methods.mint(account1, initialPORBAmountMintedToOwner).encodeABI();
+        await multiSigWalletInstance.submitTransaction(PORBInstance.address, 0, data, { from: owner });
+        txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
+
+        await PORBInstance.approve(architectInstance.address, priceOfArchitectInPORB, { from: account1 });
+        await architectInstance.mintWithPORB({ from: account1 });
+
+        // Expect this to fail, as only the owner can change the base URI
+        await localExpect(architectInstance.setDefaultRoyalty(300, { from: account1 })).to.eventually.be.rejected;
+
+        const updatedRoyaltyFeeBips = 100;
+        data = architectContract.methods.setDefaultRoyalty(updatedRoyaltyFeeBips).encodeABI();
+        await multiSigWalletInstance.submitTransaction(architectInstance.address, 0, data, { from: owner });
+        txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await localExpect(multiSigWalletInstance.confirmTransaction(txId, { from: account1 })).to.eventually.be.fulfilled;
+
+        // Assert expected royalty parameters
+        let defaultRoyaltyInfo = await architectInstance.royaltyInfo('0', priceOfArchitectInPORB);
+        const royaltyRecipient = defaultRoyaltyInfo[0];
+        const royaltyFee = defaultRoyaltyInfo[1];
+        expect(royaltyRecipient).to.equal(account9);
+        expect(royaltyFee.toString()).to.equal(bigInt(priceOfArchitectInPORB).multiply(updatedRoyaltyFeeBips).divide(10000).toString());
+    });
+
+    it('allows only the owner to change the token custom royalty fee', async () => {
+        const initialPORBAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
+        const priceOfArchitectInPORB = web3.utils.toWei('2', 'ether');
+
+        // Add controller for PORB
+        let data = PORBContract.methods.addController(multiSigWalletInstance.address).encodeABI();
+        await multiSigWalletInstance.submitTransaction(PORBInstance.address, 0, data, { from: owner });
+        let txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
+
+        // Mint PORB
+        data = PORBContract.methods.mint(account1, initialPORBAmountMintedToOwner).encodeABI();
+        await multiSigWalletInstance.submitTransaction(PORBInstance.address, 0, data, { from: owner });
+        txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
+
+        await PORBInstance.approve(architectInstance.address, priceOfArchitectInPORB, { from: account1 });
+        await architectInstance.mintWithPORB({ from: account1 });
+
+        // Expect this to fail, as only the owner can change the base URI
+        await localExpect(architectInstance.setTokenRoyalty('0', 300, { from: account1 })).to.eventually.be.rejected;
+
+        const updatedRoyaltyFeeBips = 100;
+        data = architectContract.methods.setTokenRoyalty('0', updatedRoyaltyFeeBips).encodeABI();
+        await multiSigWalletInstance.submitTransaction(architectInstance.address, 0, data, { from: owner });
+        txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await localExpect(multiSigWalletInstance.confirmTransaction(txId, { from: account1 })).to.eventually.be.fulfilled;
+
+        // Assert expected royalty parameters
+        let defaultRoyaltyInfo = await architectInstance.royaltyInfo('0', priceOfArchitectInPORB);
+        const royaltyRecipient = defaultRoyaltyInfo[0];
+        const royaltyFee = defaultRoyaltyInfo[1];
+        expect(royaltyRecipient).to.equal(account9);
+        expect(royaltyFee.toString()).to.equal(bigInt(priceOfArchitectInPORB).multiply(updatedRoyaltyFeeBips).divide(10000).toString());
+    });
+
+    it('allows only the owner to reset the custom royalty fee', async () => {
+        const initialPORBAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
+        const priceOfArchitectInPORB = web3.utils.toWei('2', 'ether');
+
+        // Add controller for PORB
+        let data = PORBContract.methods.addController(multiSigWalletInstance.address).encodeABI();
+        await multiSigWalletInstance.submitTransaction(PORBInstance.address, 0, data, { from: owner });
+        let txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
+
+        // Mint PORB
+        data = PORBContract.methods.mint(account1, initialPORBAmountMintedToOwner).encodeABI();
+        await multiSigWalletInstance.submitTransaction(PORBInstance.address, 0, data, { from: owner });
+        txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
+
+        await PORBInstance.approve(architectInstance.address, priceOfArchitectInPORB, { from: account1 });
+        await architectInstance.mintWithPORB({ from: account1 });
+
+        const updatedRoyaltyFeeBips = 100;
+        data = architectContract.methods.setTokenRoyalty('0', updatedRoyaltyFeeBips).encodeABI();
+        await multiSigWalletInstance.submitTransaction(architectInstance.address, 0, data, { from: owner });
+        txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await localExpect(multiSigWalletInstance.confirmTransaction(txId, { from: account1 })).to.eventually.be.fulfilled;
+
+        // Expect this to fail, as only the owner can change the base URI
+        await localExpect(architectInstance.resetTokenRoyalty('0', { from: account1 })).to.eventually.be.rejected;
+
+        data = architectContract.methods.resetTokenRoyalty('0').encodeABI();
+        await multiSigWalletInstance.submitTransaction(architectInstance.address, 0, data, { from: owner });
+        txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await localExpect(multiSigWalletInstance.confirmTransaction(txId, { from: account1 })).to.eventually.be.fulfilled;
+
+        // Assert expected royalty parameters
+        let defaultRoyaltyInfo = await architectInstance.royaltyInfo('0', priceOfArchitectInPORB);
+        const royaltyRecipient = defaultRoyaltyInfo[0];
+        const royaltyFee = defaultRoyaltyInfo[1];
+        const expectedRoyalFeeNumeratorBips = 400;
+        expect(royaltyRecipient).to.equal(account9);
+        expect(royaltyFee.toString()).to.equal(bigInt(priceOfArchitectInPORB).multiply(expectedRoyalFeeNumeratorBips).divide(10000).toString());
     });
 });

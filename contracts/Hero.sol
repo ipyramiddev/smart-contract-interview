@@ -29,7 +29,7 @@ contract Hero is ERC721Royalty, ContractURIStorage, Ownable, Pausable {
     // The address of the PORB contract
     IERC20 public PORB;
 
-    // The vault contract to deposit earned PORB/AVAX
+    // The vault contract to deposit earned PORB/AVAX and royalties
     address public vault;
 
     constructor(address _PORB, address _vault)
@@ -40,6 +40,9 @@ contract Hero is ERC721Royalty, ContractURIStorage, Ownable, Pausable {
         baseURIString = "https://www.portalfantasy.io/";
         PORB = IERC20(_PORB);
         vault = _vault;
+
+        // Set the default token royalty to 4%
+        _setDefaultRoyalty(vault, 400);
     }
 
     // @TODO: Have added a placeholder baseURI. Need to replace with actual when it's implemented.
@@ -130,5 +133,33 @@ contract Hero is ERC721Royalty, ContractURIStorage, Ownable, Pausable {
      */
     function setVault(address _vault) external onlyOwner {
         vault = _vault;
+    }
+
+    /**
+     * Allows the owner to set a new default royalty which applies to all tokens in absence of a specific token royalty
+     * @param _feeNumerator in bips. Cannot be greater than the fee denominator (10000)
+     */
+    function setDefaultRoyalty(uint96 _feeNumerator) external onlyOwner {
+        _setDefaultRoyalty(vault, _feeNumerator);
+    }
+
+    /**
+     * Allows the owner to set a custom royalty for a specific token
+     * @param _tokenId the token to set a custom royalty for
+     * @param _feeNumerator in bips. Cannot be greater than the fee denominator (10000)
+     */
+    function setTokenRoyalty(uint256 _tokenId, uint96 _feeNumerator)
+        external
+        onlyOwner
+    {
+        _setTokenRoyalty(_tokenId, vault, _feeNumerator);
+    }
+
+    /**
+     * Allows the owner to reset a specific token's royalty to the global default
+     * @param _tokenId the token to set a custom royalty for
+     */
+    function resetTokenRoyalty(uint256 _tokenId) external onlyOwner {
+        _resetTokenRoyalty(_tokenId);
     }
 }

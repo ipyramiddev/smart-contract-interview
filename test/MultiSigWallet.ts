@@ -21,7 +21,7 @@ const PORB_ABI = PORB_JSON.abi as AbiItem[];
 const PFT_ABI = PFT_JSON.abi as AbiItem[];
 const MULTI_SIG_WALLET_ABI = MULTI_SIG_WALLET_JSON.abi as AbiItem[];
 
-contract.skip('MultiSigWallet.sol', ([owner, account1, account2, account3, account4, account5, account6, account7, account8, account9]) => {
+contract('MultiSigWallet.sol', ([owner, account1, account2, account3, account4, account5, account6, account7, account8, account9]) => {
     let multiSigWalletInstance: MultiSigWalletInstance;
     let heroInstance: HeroInstance;
     let PORBInstance: PORBInstance;
