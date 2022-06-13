@@ -13,11 +13,11 @@ const config = require('../config').config;
 const porble = artifacts.require('Porble');
 const multiSigWallet = artifacts.require('MultiSigWallet');
 
-const rpcEndpoint = config.AVAX.localHTTP;
+const rpcEndpoint = config.AVAX.localSubnetHTTP;
 const provider = new ethers.providers.JsonRpcProvider(rpcEndpoint);
 const signer = new ethers.Wallet(testAccountsData[1].privateKey, provider);
 const PORBLE_ABI = PORBLE_JSON.abi as AbiItem[];
-const web3 = new Web3(new Web3.providers.HttpProvider(config.AVAX.localHTTP));
+const web3 = new Web3(new Web3.providers.HttpProvider(config.AVAX.localSubnetHTTP));
 
 contract('Porble.sol', ([owner, account1, account2, account3, account4, account5, account6, account7, account8, account9]) => {
     let porbleInstance: PorbleInstance;
