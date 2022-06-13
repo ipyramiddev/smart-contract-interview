@@ -15,7 +15,7 @@ const PORB = artifacts.require('PORB');
 const PFT = artifacts.require('PFT');
 const multiSigWallet = artifacts.require('MultiSigWallet');
 
-const web3 = new Web3(new Web3.providers.HttpProvider(config.AVAX.localHTTP));
+const web3 = new Web3(new Web3.providers.HttpProvider(config.AVAX.localSubnetHTTP));
 const HERO_ABI = HERO_JSON.abi as AbiItem[];
 const PORB_ABI = PORB_JSON.abi as AbiItem[];
 const PFT_ABI = PFT_JSON.abi as AbiItem[];
