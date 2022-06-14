@@ -3,6 +3,7 @@
 pragma solidity ^0.8.0;
 
 import "./lib/Ownable.sol";
+import "./lib/IERC20.sol";
 import "./lib/IERC721.sol";
 import "./lib/IERC2981.sol";
 import "./lib/ReentrancyGuard.sol";
@@ -71,14 +72,16 @@ contract NFTMarketplace is ReentrancyGuard, Ownable {
         _;
     }
 
-    mapping(address => mapping(uint256 => Listing)) private listings;
+    address WAVAXAddress;
 
-    // Proceeds are stored within the contract for later withdrawal by the seller
-    // This is safer than pushing the proceeds directly within the buyItem function
-    mapping(address => uint256) private earnedProceeds;
+    mapping(address => mapping(uint256 => Listing)) private listings;
 
     // NFT contracts must be whitelisted before its tokens can be listed
     mapping(address => bool) collectionsWhitelist;
+
+    constructor(address _WAVAXAddress) {
+        WAVAXAddress = _WAVAXAddress;
+    }
 
     function updateCollectionsWhitelist(address NFTAddress, bool allowed)
         external
@@ -117,19 +120,28 @@ contract NFTMarketplace is ReentrancyGuard, Ownable {
 
     function buyItem(address NFTAddress, uint256 tokenId)
         external
-        payable
         isListed(NFTAddress, tokenId)
         isCollectionWhitelisted(NFTAddress)
         nonReentrant
     {
-        uint256 amountPaid = msg.value;
         Listing memory listedItem = listings[NFTAddress][tokenId];
-        require(amountPaid == listedItem.price, "Price not met");
+
         (address royaltyReceiver, uint256 royaltyAmount) = IERC2981(NFTAddress)
-            .royaltyInfo(tokenId, amountPaid);
-        uint256 amountPaidToSeller = amountPaid - royaltyAmount;
-        earnedProceeds[royaltyReceiver] += royaltyAmount;
-        earnedProceeds[listedItem.seller] += amountPaidToSeller;
+            .royaltyInfo(tokenId, listedItem.price);
+
+        uint256 amountPaidToSeller = listedItem.price - royaltyAmount;
+
+        // Pay the royalty fee and the rest to the seller
+        IERC20(WAVAXAddress).transferFrom(
+            msg.sender,
+            royaltyReceiver,
+            royaltyAmount
+        );
+        IERC20(WAVAXAddress).transferFrom(
+            msg.sender,
+            listedItem.seller,
+            amountPaidToSeller
+        );
         delete (listings[NFTAddress][tokenId]);
         IERC721(NFTAddress).safeTransferFrom(
             listedItem.seller,
@@ -155,25 +167,12 @@ contract NFTMarketplace is ReentrancyGuard, Ownable {
         emit ItemListed(msg.sender, NFTAddress, tokenId, newPrice);
     }
 
-    function withdrawProceeds() external {
-        uint256 proceeds = earnedProceeds[msg.sender];
-        require(proceeds > 0, "No proceeds");
-        earnedProceeds[msg.sender] = 0;
-
-        (bool success, ) = payable(msg.sender).call{value: proceeds}("");
-        require(success, "Transfer failed");
-    }
-
     function getListing(address NFTAddress, uint256 tokenId)
         external
         view
         returns (Listing memory)
     {
         return listings[NFTAddress][tokenId];
-    }
-
-    function getProceeds(address seller) external view returns (uint256) {
-        return earnedProceeds[seller];
     }
 
     // Admin functions
