@@ -11,6 +11,10 @@ module.exports = (artifacts: Truffle.Artifacts, web3: Web3) => {
         await deployer.deploy(multiSigWallet, owners, requiredThreshold);
         const multiSigWalletInstance = await multiSigWallet.deployed();
 
+        const WAVAX = artifacts.require('WAVAX');
+        await deployer.deploy(WAVAX);
+        const WAVAXInstance = await WAVAX.deployed();
+
         const PFT = artifacts.require('PFT');
         await deployer.deploy(PFT);
         const PFTInstance = await PFT.deployed();
@@ -37,7 +41,7 @@ module.exports = (artifacts: Truffle.Artifacts, web3: Web3) => {
         await porbleInstance.transferOwnership(multiSigWalletInstance.address);
 
         const NFTMarketplace = artifacts.require('NFTMarketplace');
-        await deployer.deploy<any[]>(NFTMarketplace);
+        await deployer.deploy<any[]>(NFTMarketplace, WAVAXInstance.address);
         const NFTMarketplaceInstance = await NFTMarketplace.deployed();
         await NFTMarketplaceInstance.updateCollectionsWhitelist(heroInstance.address, true);
         await NFTMarketplaceInstance.updateCollectionsWhitelist(architectInstance.address, true);
