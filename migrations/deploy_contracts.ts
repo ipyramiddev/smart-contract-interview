@@ -35,6 +35,11 @@ module.exports = (artifacts: Truffle.Artifacts, web3: Web3) => {
         const architectInstance = await architect.deployed();
         await architectInstance.transferOwnership(multiSigWalletInstance.address);
 
+        const cosmetics = artifacts.require('Cosmetics');
+        await deployer.deploy<any[]>(cosmetics, PORB.address, multiSigWalletInstance.address);
+        const cosmeticsInstance = await cosmetics.deployed();
+        await cosmeticsInstance.transferOwnership(multiSigWalletInstance.address);
+
         const porble = artifacts.require('Porble');
         await deployer.deploy<any[]>(porble, accounts[1], multiSigWalletInstance.address);
         const porbleInstance = await porble.deployed();
@@ -46,7 +51,7 @@ module.exports = (artifacts: Truffle.Artifacts, web3: Web3) => {
         await NFTMarketplaceInstance.updateCollectionsWhitelist(heroInstance.address, true);
         await NFTMarketplaceInstance.updateCollectionsWhitelist(architectInstance.address, true);
         await NFTMarketplaceInstance.updateCollectionsWhitelist(porbleInstance.address, true);
-        // @TODO: Add cosmetics NFT to whitelist when available
+        await NFTMarketplaceInstance.updateCollectionsWhitelist(cosmeticsInstance.address, true);
         await NFTMarketplaceInstance.transferOwnership(multiSigWalletInstance.address);
 
         const VestingVault = artifacts.require('VestingVault');
