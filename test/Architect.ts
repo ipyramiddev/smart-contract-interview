@@ -17,7 +17,7 @@ const web3 = new Web3(new Web3.providers.HttpProvider(config.AVAX.localSubnetHTT
 const ARCHITECT_ABI = ARCHITECT_JSON.abi as AbiItem[];
 const PORB_ABI = PORB_JSON.abi as AbiItem[];
 
-contract('Architect.sol', ([owner, account1, account2, account3, account4, account5, account6, account7, account8, account9]) => {
+contract.skip('Architect.sol', ([owner, account1, account2, account3, account4, account5, account6, account7, account8, account9]) => {
     let architectInstance: ArchitectInstance;
     let PORBInstance: PORBInstance;
     let multiSigWalletInstance: MultiSigWalletInstance;

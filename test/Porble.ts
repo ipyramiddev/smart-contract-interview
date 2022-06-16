@@ -19,7 +19,7 @@ const signer = new ethers.Wallet(testAccountsData[1].privateKey, provider);
 const PORBLE_ABI = PORBLE_JSON.abi as AbiItem[];
 const web3 = new Web3(new Web3.providers.HttpProvider(config.AVAX.localSubnetHTTP));
 
-contract('Porble.sol', ([owner, account1, account2, account3, account4, account5, account6, account7, account8, account9]) => {
+contract.skip('Porble.sol', ([owner, account1, account2, account3, account4, account5, account6, account7, account8, account9]) => {
     let porbleInstance: PorbleInstance;
     let multiSigWalletInstance: MultiSigWalletInstance;
     let porbleContract: any;
