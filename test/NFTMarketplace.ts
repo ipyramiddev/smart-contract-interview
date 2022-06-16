@@ -21,7 +21,7 @@ const NFT_MARKETPLACE_ABI = NFT_MARKETPLACE_JSON.abi as AbiItem[];
 const HERO_ABI = HERO_JSON.abi as AbiItem[];
 const PORB_ABI = PORB_JSON.abi as AbiItem[];
 
-contract('NFTMarketplace.sol', ([owner, account1, account2, account3, account4, account5, account6, account7, account8, account9]) => {
+contract.skip('NFTMarketplace.sol', ([owner, account1, account2, account3, account4, account5, account6, account7, account8, account9]) => {
     let NFTMarketplaceInstance: NFTMarketplaceInstance;
     let heroInstance: HeroInstance;
     let PORBInstance: PORBInstance;
