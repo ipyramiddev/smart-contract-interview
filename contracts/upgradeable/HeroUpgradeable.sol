@@ -2,15 +2,15 @@
 
 pragma solidity ^0.8.0;
 
-import "./lib/Counters.sol";
-import "./lib/ERC721RoyaltyUpgradeable.sol";
-import "./lib/ContractURIStorageUpgradeable.sol";
-import "./lib/IERC20.sol";
-import "./lib/IERC2981.sol";
-import "./lib/OwnableUpgradeable.sol";
-import "./lib/PausableUpgradeable.sol";
+import "../lib/IERC20.sol";
+import "../lib/IERC2981.sol";
+import "../lib/Counters.sol";
+import "../lib/upgradeable/ERC721RoyaltyUpgradeable.sol";
+import "../lib/upgradeable/ContractURIStorageUpgradeable.sol";
+import "../lib/upgradeable/OwnableUpgradeable.sol";
+import "../lib/upgradeable/PausableUpgradeable.sol";
 
-contract ArchitectUpgradeable is
+contract HeroUpgradeable is
     ERC721RoyaltyUpgradeable,
     ContractURIStorageUpgradeable,
     OwnableUpgradeable,
@@ -22,10 +22,10 @@ contract ArchitectUpgradeable is
 
     string public baseURIString;
 
-    // The architect mint price in AVAX
+    // The hero mint price in AVAX
     uint256 public mintPriceInAVAX;
 
-    // The architect mint price in PORB
+    // The hero mint price in PORB
     uint256 public mintPriceInPORB;
 
     // The address of the PORB contract
@@ -35,8 +35,8 @@ contract ArchitectUpgradeable is
     address public vault;
 
     function initialize(address _PORB, address _vault) public initializer {
-        __ERC721_init("Portal Fantasy Architect", "PHAR");
-        __ContractURIStorage_init("https://www.portalfantasy.io/architect/");
+        __ERC721_init("Portal Fantasy Hero", "PHRO");
+        __ContractURIStorage_init("https://www.portalfantasy.io/hero/");
         __Ownable_init();
 
         // @TODO: Have added a placeholder baseURIString. Need to replace with actual when it's implemented.
@@ -44,11 +44,11 @@ contract ArchitectUpgradeable is
         PORB = IERC20(_PORB);
         vault = _vault;
 
-        // @TODO: Set the actual initial price in PORB to mint a Architect
+        // @TODO: Set the actual initial price in PORB to mint a Hero
         // 2 PORB initial price
         mintPriceInAVAX = 2000000000000000000;
 
-        // @TODO: Set the actual initial price in PORB to mint a Architect
+        // @TODO: Set the actual initial price in PORB to mint a Hero
         // 2 PORB initial price
         mintPriceInPORB = 2000000000000000000;
 

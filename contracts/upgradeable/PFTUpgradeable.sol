@@ -2,10 +2,10 @@
 
 pragma solidity ^0.8.0;
 
-import "./lib/ERC20Upgradeable.sol";
-import "./lib/IERC20Upgradeable.sol";
-import "./lib/OwnableUpgradeable.sol";
-import "./lib/Initializable.sol";
+import "../lib/upgradeable/ERC20Upgradeable.sol";
+import "../lib/upgradeable/IERC20Upgradeable.sol";
+import "../lib/upgradeable/OwnableUpgradeable.sol";
+import "../lib/upgradeable/Initializable.sol";
 
 contract PFTUpgradeable is ERC20Upgradeable, OwnableUpgradeable {
     // Mapping from an address to whether or not it can mint / burn

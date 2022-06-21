@@ -1,17 +1,18 @@
-import { deployProxy } from '@openzeppelin/truffle-upgrades';
-import { localExpect, bigInt } from './lib/test-libraries';
-import { MultiSigWalletInstance, PORBUpgradeableInstance } from '../types/truffle-contracts';
-import PORB_UPGRADEABLE_JSON from '../build/contracts/PORBUpgradeable.json';
+import { deployProxy, upgradeProxy } from '@openzeppelin/truffle-upgrades';
+import { localExpect, bigInt } from '../lib/test-libraries';
+import { MultiSigWalletInstance, PORBUpgradeableInstance, PORBUpgradeableTestInstance } from '../../types/truffle-contracts';
+import PORB_UPGRADEABLE_JSON from '../../build/contracts/PORBUpgradeable.json';
 import Web3 from 'web3';
 import { AbiItem } from 'web3-utils';
-import { getTxIdFromMultiSigWallet } from './lib/test-helpers';
+import { getTxIdFromMultiSigWallet } from '../lib/test-helpers';
 
 const ethers = require('ethers');
-const testAccountsData = require('../test/data/test-accounts-data').testAccountsData;
-const config = require('../config').config;
+const testAccountsData = require('../../test/data/test-accounts-data').testAccountsData;
+const config = require('../../config').config;
 
 const PORBUpgradeable = artifacts.require('PORBUpgradeable');
 const multiSigWallet = artifacts.require('MultiSigWallet');
+const PORBUpgradeableTest = artifacts.require('PORBUpgradeableTest');
 
 const rpcEndpoint = config.AVAX.localSubnetHTTP;
 const provider = new ethers.providers.JsonRpcProvider(rpcEndpoint);
@@ -22,6 +23,7 @@ const web3 = new Web3(new Web3.providers.HttpProvider(config.AVAX.localSubnetHTT
 contract.skip('PORBUpgradeable.sol', ([owner, account1, account2, account3, account4, account5, account6, account7, account8, account9]) => {
     let PORBUpgradeableInstance: PORBUpgradeableInstance;
     let multiSigWalletInstance: MultiSigWalletInstance;
+    let PORBUpgradeableTestInstance: PORBUpgradeableTestInstance;
     let PORBUpgradeableContract: any;
 
     beforeEach(async () => {
@@ -674,5 +676,84 @@ contract.skip('PORBUpgradeable.sol', ([owner, account1, account2, account3, acco
 
         expect(bigInt(vaultBalanceAfter).subtract(vaultBalanceBefore).toString()).to.equal(bigInt(amountToTransfer).multiply(bigInt('-1')).toString());
         expect(bigInt(recipientBalanceAfter).subtract(recipientBalanceBefore).toString()).to.equal(amountToTransfer);
+    });
+
+    it('can be upgraded and store new state variables from the new contract', async () => {
+        let tokenSymbol = await PORBUpgradeableInstance.symbol();
+        expect(tokenSymbol).to.equal('PORB');
+
+        const types = {
+            PORBVaultTransferConditions: [
+                { name: 'recipient', type: 'address' },
+                { name: 'amount', type: 'uint256' },
+                { name: 'claimId', type: 'uint256' },
+            ],
+        };
+
+        const amountToTransfer = web3.utils.toWei('1', 'ether');
+
+        let PORBVaultTransferConditions = { recipient: testAccountsData[1].address, amount: amountToTransfer, claimId: '0' };
+
+        const domain = {
+            name: 'PortalFantasy',
+            version: '1',
+            chainId: 43214,
+            verifyingContract: PORBUpgradeableInstance.address,
+        };
+
+        const amountToMintToVault = web3.utils.toWei('100', 'ether');
+
+        let data = PORBUpgradeableContract.methods.mint(multiSigWalletInstance.address, amountToMintToVault).encodeABI();
+        await multiSigWalletInstance.submitTransaction(PORBUpgradeableInstance.address, 0, data, { from: owner });
+        let txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
+
+        // Sign according to the EIP-712 standard
+        const signature = await signer._signTypedData(domain, types, PORBVaultTransferConditions);
+
+        // Keep track of balances before the transfer
+        let vaultBalanceBefore = (await PORBUpgradeableInstance.balanceOf(multiSigWalletInstance.address)).toString();
+        const recipientBalanceBefore = (await PORBUpgradeableInstance.balanceOf(account1)).toString();
+
+        // The amount and tx sender must match those that have been signed for
+        await localExpect(PORBUpgradeableInstance.transferFromVault(signature, amountToTransfer, { from: testAccountsData[1].address })).to.eventually.be.fulfilled;
+
+        let vaultBalanceAfter = (await PORBUpgradeableInstance.balanceOf(multiSigWalletInstance.address)).toString();
+        const recipientBalanceAfter = (await PORBUpgradeableInstance.balanceOf(account1)).toString();
+
+        expect(bigInt(vaultBalanceAfter).subtract(vaultBalanceBefore).toString()).to.equal(bigInt(amountToTransfer).multiply(bigInt('-1')).toString());
+        expect(bigInt(recipientBalanceAfter).subtract(recipientBalanceBefore).toString()).to.equal(amountToTransfer);
+
+        PORBUpgradeableTestInstance = (await upgradeProxy(PORBUpgradeableInstance.address, PORBUpgradeableTest as any)) as PORBUpgradeableTestInstance;
+
+        // State variables should be unchanged after upgrading contract
+        tokenSymbol = await PORBUpgradeableInstance.symbol();
+        expect(tokenSymbol).to.equal('PORB');
+
+        // Retest vault transfer after upgrading contract. Should work fine
+        const PORBVaultTransferConditions2 = { recipient: testAccountsData[2].address, amount: amountToTransfer, claimId: '0' };
+        const signature2 = await signer._signTypedData(domain, types, PORBVaultTransferConditions2);
+        vaultBalanceBefore = (await PORBUpgradeableInstance.balanceOf(multiSigWalletInstance.address)).toString();
+        const recipient2BalanceBefore = (await PORBUpgradeableInstance.balanceOf(account2)).toString();
+
+        // The amount and tx sender must match those that have been signed for
+        await localExpect(PORBUpgradeableInstance.transferFromVault(signature2, amountToTransfer, { from: testAccountsData[2].address })).to.eventually.be.fulfilled;
+
+        vaultBalanceAfter = (await PORBUpgradeableInstance.balanceOf(multiSigWalletInstance.address)).toString();
+        const recipient2BalanceAfter = (await PORBUpgradeableInstance.balanceOf(account2)).toString();
+
+        expect(bigInt(vaultBalanceAfter).subtract(vaultBalanceBefore).toString()).to.equal(bigInt(amountToTransfer).multiply(bigInt('-1')).toString());
+        expect(bigInt(recipient2BalanceAfter).subtract(recipient2BalanceBefore).toString()).to.equal(amountToTransfer);
+
+        // The mint function is missing in the test contract so shouldn't be able to mint any more tokens
+        data = PORBUpgradeableContract.methods.mint(account2, amountToMintToVault).encodeABI();
+        await multiSigWalletInstance.submitTransaction(PORBUpgradeableInstance.address, 0, data, { from: owner });
+        txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await localExpect(multiSigWalletInstance.confirmTransaction(txId, { from: account1 })).to.eventually.be.fulfilled;
+
+        const totalSupplyAfter = (await PORBUpgradeableInstance.totalSupply()).toString();
+
+        // No new tokens minted, even though we tried to mint amountToMintToVault a second time
+        expect(totalSupplyAfter).to.equal(amountToMintToVault);
     });
 });

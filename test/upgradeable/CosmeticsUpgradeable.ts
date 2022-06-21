@@ -1,18 +1,19 @@
-import { deployProxy } from '@openzeppelin/truffle-upgrades';
+import { deployProxy, upgradeProxy } from '@openzeppelin/truffle-upgrades';
 import bigInt from 'big-integer';
-import { localExpect } from './lib/test-libraries';
-import { CosmeticsUpgradeableInstance, PORBUpgradeableInstance, MultiSigWalletInstance } from '../types/truffle-contracts';
-import COSMETICS_UPGRADEABLE_JSON from '../build/contracts/CosmeticsUpgradeable.json';
-import PORB_UPGRADEABLE_JSON from '../build/contracts/PORBUpgradeable.json';
+import { localExpect } from '../lib/test-libraries';
+import { CosmeticsUpgradeableInstance, PORBUpgradeableInstance, MultiSigWalletInstance, CosmeticsUpgradeableTestInstance } from '../../types/truffle-contracts';
+import COSMETICS_UPGRADEABLE_JSON from '../../build/contracts/CosmeticsUpgradeable.json';
+import PORB_UPGRADEABLE_JSON from '../../build/contracts/PORBUpgradeable.json';
 import Web3 from 'web3';
 import { AbiItem } from 'web3-utils';
-import { getTxIdFromMultiSigWallet } from './lib/test-helpers';
+import { getTxIdFromMultiSigWallet } from '../lib/test-helpers';
 
-const config = require('../config').config;
+const config = require('../../config').config;
 
 const cosmeticsUpgradeable = artifacts.require('CosmeticsUpgradeable');
 const PORBUpgradeable = artifacts.require('PORBUpgradeable');
 const multiSigWallet = artifacts.require('MultiSigWallet');
+const cosmeticsUpgradeableTest = artifacts.require('CosmeticsUpgradeableTest');
 
 const web3 = new Web3(new Web3.providers.HttpProvider(config.AVAX.localSubnetHTTP));
 const COSMETICS_UPGRADEABLE_ABI = COSMETICS_UPGRADEABLE_JSON.abi as AbiItem[];
@@ -22,6 +23,7 @@ contract.skip('CosmeticsUpgradeable.sol', ([owner, account1, account2, account3,
     let cosmeticsUpgradeableInstance: CosmeticsUpgradeableInstance;
     let PORBUpgradeableInstance: PORBUpgradeableInstance;
     let multiSigWalletInstance: MultiSigWalletInstance;
+    let cosmeticsUpgradeableTestInstance: CosmeticsUpgradeableTestInstance;
     let cosmeticsUpgradeableContract: any;
     let PORBUpgradeableContract: any;
 
@@ -363,5 +365,63 @@ contract.skip('CosmeticsUpgradeable.sol', ([owner, account1, account2, account3,
         const expectedRoyalFeeNumeratorBips = 400;
         expect(royaltyRecipient).to.equal(account9);
         expect(royaltyFee.toString()).to.equal(bigInt(priceOfCosmeticInPORB).multiply(expectedRoyalFeeNumeratorBips).divide(10000).toString());
+    });
+
+    it.skip('can be upgraded and store new state variables from the new contract', async () => {
+        const tokenSymbol = await cosmeticsUpgradeableInstance.symbol();
+        expect(tokenSymbol).to.equal('PCOS');
+
+        const initialPORBAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
+        const priceOfCosmeticInPORB = web3.utils.toWei('2', 'ether');
+
+        // Add controller for PORB
+        let data = PORBUpgradeableContract.methods.addController(multiSigWalletInstance.address).encodeABI();
+        await multiSigWalletInstance.submitTransaction(PORBUpgradeableInstance.address, 0, data, { from: owner });
+        let txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
+
+        // Mint PORB
+        data = PORBUpgradeableContract.methods.mint(account1, initialPORBAmountMintedToOwner).encodeABI();
+        await multiSigWalletInstance.submitTransaction(PORBUpgradeableInstance.address, 0, data, { from: owner });
+        txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
+
+        await PORBUpgradeableInstance.approve(cosmeticsUpgradeableInstance.address, priceOfCosmeticInPORB, { from: account1 });
+        await cosmeticsUpgradeableInstance.mintWithPORB({ from: account1 });
+
+        cosmeticsUpgradeableTestInstance = (await upgradeProxy(cosmeticsUpgradeableInstance.address, cosmeticsUpgradeableTest as any)) as CosmeticsUpgradeableTestInstance;
+
+        // Original state variables remain unchanged
+        const newTokenSymbol = await cosmeticsUpgradeableTestInstance.symbol();
+        expect(newTokenSymbol).to.equal('PCOS');
+        const ownerOfMintedCosmetic1 = await cosmeticsUpgradeableTestInstance.ownerOf('0');
+        expect(ownerOfMintedCosmetic1).to.equal(account1);
+
+        // Mint PORB
+        data = PORBUpgradeableContract.methods.mint(account2, initialPORBAmountMintedToOwner).encodeABI();
+        await multiSigWalletInstance.submitTransaction(PORBUpgradeableInstance.address, 0, data, { from: owner });
+        txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
+
+        await PORBUpgradeableInstance.approve(cosmeticsUpgradeableTestInstance.address, priceOfCosmeticInPORB, { from: account2 });
+        await cosmeticsUpgradeableInstance.mintWithPORB({ from: account2 });
+
+        // Can still mint new tokens
+        const ownerOfMintedCosmetic2 = await cosmeticsUpgradeableTestInstance.ownerOf('1');
+        expect(ownerOfMintedCosmetic2).to.equal(account2);
+
+        // Can still only be paused/unpaused by the owner of the previous contract (multiSigWalleet)
+        data = cosmeticsUpgradeableContract.methods.setPaused(true).encodeABI();
+        await multiSigWalletInstance.submitTransaction(cosmeticsUpgradeableTestInstance.address, 0, data, { from: owner });
+        txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await localExpect(multiSigWalletInstance.confirmTransaction(txId, { from: account1 })).to.eventually.be.fulfilled;
+
+        // Non-existing method cannot be used to set state variable
+        data = cosmeticsUpgradeableContract.methods.setBaseURIString('https://www.foo.com/').encodeABI();
+        await multiSigWalletInstance.submitTransaction(cosmeticsUpgradeableTestInstance.address, 0, data, { from: owner });
+        txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await localExpect(multiSigWalletInstance.confirmTransaction(txId, { from: account1 })).to.eventually.be.fulfilled;
+        const baseURIString = await cosmeticsUpgradeableTestInstance.baseURIString();
+        expect(baseURIString).to.not.equal('https://www.foo.com/');
     });
 });

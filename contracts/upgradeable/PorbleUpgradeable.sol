@@ -2,11 +2,11 @@
 
 pragma solidity ^0.8.0;
 
-import "./lib/draft-EIP712Upgradeable.sol";
-import "./lib/ERC721RoyaltyUpgradeable.sol";
-import "./lib/ContractURIStorageUpgradeable.sol";
-import "./lib/OwnableUpgradeable.sol";
-import "./lib/PausableUpgradeable.sol";
+import "../lib/upgradeable/draft-EIP712Upgradeable.sol";
+import "../lib/upgradeable/ERC721RoyaltyUpgradeable.sol";
+import "../lib/upgradeable/ContractURIStorageUpgradeable.sol";
+import "../lib/upgradeable/OwnableUpgradeable.sol";
+import "../lib/upgradeable/PausableUpgradeable.sol";
 
 contract PorbleUpgradeable is
     ERC721RoyaltyUpgradeable,

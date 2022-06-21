@@ -2,11 +2,11 @@
 
 pragma solidity ^0.8.0;
 
-import "./lib/BokkyPooBahsDateTimeLibrary.sol";
-import "./lib/IERC20Upgradeable.sol";
-import "./lib/OwnableUpgradeable.sol";
-import "./lib/SafeMathUpgradeable.sol";
-import "./lib/Initializable.sol";
+import "../lib/BokkyPooBahsDateTimeLibrary.sol";
+import "../lib/upgradeable/IERC20Upgradeable.sol";
+import "../lib/upgradeable/OwnableUpgradeable.sol";
+import "../lib/upgradeable/SafeMathUpgradeable.sol";
+import "../lib/upgradeable/Initializable.sol";
 
 contract VestingVaultUpgradeable is OwnableUpgradeable {
     using BokkyPooBahsDateTimeLibrary for uint256;
