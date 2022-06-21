@@ -2,15 +2,17 @@
 
 pragma solidity ^0.8.0;
 
-import "./lib/Counters.sol";
-import "./lib/ERC721RoyaltyUpgradeable.sol";
-import "./lib/ContractURIStorageUpgradeable.sol";
-import "./lib/IERC20.sol";
-import "./lib/IERC2981.sol";
-import "./lib/OwnableUpgradeable.sol";
-import "./lib/PausableUpgradeable.sol";
+import "../lib/IERC20.sol";
+import "../lib/IERC2981.sol";
+import "../lib/Counters.sol";
+import "../lib/upgradeable/ERC721RoyaltyUpgradeable.sol";
+import "../lib/upgradeable/ContractURIStorageUpgradeable.sol";
+import "../lib/upgradeable/OwnableUpgradeable.sol";
+import "../lib/upgradeable/PausableUpgradeable.sol";
 
-contract HeroUpgradeable is
+// @NOTE: Remove setBaseURI function to test the contract upgrade
+
+contract ArchitectUpgradeableTest is
     ERC721RoyaltyUpgradeable,
     ContractURIStorageUpgradeable,
     OwnableUpgradeable,
@@ -22,10 +24,10 @@ contract HeroUpgradeable is
 
     string public baseURIString;
 
-    // The hero mint price in AVAX
+    // The architect mint price in AVAX
     uint256 public mintPriceInAVAX;
 
-    // The hero mint price in PORB
+    // The architect mint price in PORB
     uint256 public mintPriceInPORB;
 
     // The address of the PORB contract
@@ -35,8 +37,8 @@ contract HeroUpgradeable is
     address public vault;
 
     function initialize(address _PORB, address _vault) public initializer {
-        __ERC721_init("Portal Fantasy Hero", "PHRO");
-        __ContractURIStorage_init("https://www.portalfantasy.io/hero/");
+        __ERC721_init("Portal Fantasy Architect", "TEST");
+        __ContractURIStorage_init("https://www.portalfantasy.io/architect/");
         __Ownable_init();
 
         // @TODO: Have added a placeholder baseURIString. Need to replace with actual when it's implemented.
@@ -44,11 +46,11 @@ contract HeroUpgradeable is
         PORB = IERC20(_PORB);
         vault = _vault;
 
-        // @TODO: Set the actual initial price in PORB to mint a Hero
+        // @TODO: Set the actual initial price in PORB to mint a Architect
         // 2 PORB initial price
         mintPriceInAVAX = 2000000000000000000;
 
-        // @TODO: Set the actual initial price in PORB to mint a Hero
+        // @TODO: Set the actual initial price in PORB to mint a Architect
         // 2 PORB initial price
         mintPriceInPORB = 2000000000000000000;
 
@@ -81,17 +83,6 @@ contract HeroUpgradeable is
         PORB.transferFrom(_msgSender(), vault, mintPriceInPORB);
         _safeMint(_msgSender(), _tokenIdCounter.current());
         _tokenIdCounter.increment();
-    }
-
-    /**
-     * Allows the owner to set a new base URI
-     * @param _baseURIString the new base URI to point to
-     */
-    function setBaseURIString(string calldata _baseURIString)
-        external
-        onlyOwner
-    {
-        baseURIString = _baseURIString;
     }
 
     /**

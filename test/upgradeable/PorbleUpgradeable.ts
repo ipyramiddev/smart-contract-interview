@@ -1,18 +1,19 @@
-import { deployProxy } from '@openzeppelin/truffle-upgrades';
+import { deployProxy, upgradeProxy } from '@openzeppelin/truffle-upgrades';
 import bigInt from 'big-integer';
-import { localExpect } from './lib/test-libraries';
-import { PorbleUpgradeableInstance, MultiSigWalletInstance } from '../types/truffle-contracts';
-import PORBLE_UPGRADEABLE_JSON from '../build/contracts/PorbleUpgradeable.json';
+import { localExpect } from '../lib/test-libraries';
+import { PorbleUpgradeableInstance, MultiSigWalletInstance, PorbleUpgradeableTestInstance } from '../../types/truffle-contracts';
+import PORBLE_UPGRADEABLE_JSON from '../../build/contracts/PorbleUpgradeable.json';
 import Web3 from 'web3';
 import { AbiItem } from 'web3-utils';
-import { getTxIdFromMultiSigWallet } from './lib/test-helpers';
+import { getTxIdFromMultiSigWallet } from '../lib/test-helpers';
 
 const ethers = require('ethers');
-const testAccountsData = require('../test/data/test-accounts-data').testAccountsData;
-const config = require('../config').config;
+const testAccountsData = require('../../test/data/test-accounts-data').testAccountsData;
+const config = require('../../config').config;
 
 const porbleUpgradeable = artifacts.require('PorbleUpgradeable');
 const multiSigWallet = artifacts.require('MultiSigWallet');
+const porbleUpgradeableTest = artifacts.require('PorbleUpgradeableTest');
 
 const rpcEndpoint = config.AVAX.localSubnetHTTP;
 const provider = new ethers.providers.JsonRpcProvider(rpcEndpoint);
@@ -23,6 +24,7 @@ const web3 = new Web3(new Web3.providers.HttpProvider(config.AVAX.localSubnetHTT
 contract.skip('PorbleUpgradeable.sol', ([owner, account1, account2, account3, account4, account5, account6, account7, account8, account9]) => {
     let porbleUpgradeableInstance: PorbleUpgradeableInstance;
     let multiSigWalletInstance: MultiSigWalletInstance;
+    let porbleUpgradeableTestInstance: PorbleUpgradeableTestInstance;
     let porbleUpgradeableContract: any;
 
     beforeEach(async () => {
@@ -450,7 +452,7 @@ contract.skip('PorbleUpgradeable.sol', ([owner, account1, account2, account3, ac
     });
 
     it('applies the default royalty correctly', async () => {
-        const priceOfPorbleUpgradeableInPORB = web3.utils.toWei('2', 'ether');
+        const priceOfPorbleInPORB = web3.utils.toWei('2', 'ether');
 
         const types = {
             PorbleMintConditions: [
@@ -475,16 +477,16 @@ contract.skip('PorbleUpgradeable.sol', ([owner, account1, account2, account3, ac
         await localExpect(porbleUpgradeableInstance.safeMint(signature, 1, { from: testAccountsData[1].address })).to.eventually.be.fulfilled;
 
         // Assert expected royalty parameters
-        let defaultRoyaltyInfo = await porbleUpgradeableInstance.royaltyInfo('1', priceOfPorbleUpgradeableInPORB);
+        let defaultRoyaltyInfo = await porbleUpgradeableInstance.royaltyInfo('1', priceOfPorbleInPORB);
         const royaltyRecipient = defaultRoyaltyInfo[0];
         const royaltyFee = defaultRoyaltyInfo[1];
         const expectedRoyalFeeNumeratorBips = 400;
         expect(royaltyRecipient).to.equal(multiSigWalletInstance.address);
-        expect(royaltyFee.toString()).to.equal(bigInt(priceOfPorbleUpgradeableInPORB).multiply(expectedRoyalFeeNumeratorBips).divide(10000).toString());
+        expect(royaltyFee.toString()).to.equal(bigInt(priceOfPorbleInPORB).multiply(expectedRoyalFeeNumeratorBips).divide(10000).toString());
     });
 
     it('allows only the owner to change the default royalty fee', async () => {
-        const priceOfPorbleUpgradeableInPORB = web3.utils.toWei('2', 'ether');
+        const priceOfPorbleInPORB = web3.utils.toWei('2', 'ether');
 
         const types = {
             PorbleMintConditions: [
@@ -517,15 +519,15 @@ contract.skip('PorbleUpgradeable.sol', ([owner, account1, account2, account3, ac
         await localExpect(multiSigWalletInstance.confirmTransaction(txId, { from: account1 })).to.eventually.be.fulfilled;
 
         // Assert expected royalty parameters
-        let defaultRoyaltyInfo = await porbleUpgradeableInstance.royaltyInfo('0', priceOfPorbleUpgradeableInPORB);
+        let defaultRoyaltyInfo = await porbleUpgradeableInstance.royaltyInfo('0', priceOfPorbleInPORB);
         const royaltyRecipient = defaultRoyaltyInfo[0];
         const royaltyFee = defaultRoyaltyInfo[1];
         expect(royaltyRecipient).to.equal(multiSigWalletInstance.address);
-        expect(royaltyFee.toString()).to.equal(bigInt(priceOfPorbleUpgradeableInPORB).multiply(updatedRoyaltyFeeBips).divide(10000).toString());
+        expect(royaltyFee.toString()).to.equal(bigInt(priceOfPorbleInPORB).multiply(updatedRoyaltyFeeBips).divide(10000).toString());
     });
 
     it('allows only the owner to change the token custom royalty fee', async () => {
-        const priceOfPorbleUpgradeableInPORB = web3.utils.toWei('2', 'ether');
+        const priceOfPorbleInPORB = web3.utils.toWei('2', 'ether');
 
         const types = {
             PorbleMintConditions: [
@@ -559,15 +561,15 @@ contract.skip('PorbleUpgradeable.sol', ([owner, account1, account2, account3, ac
         await localExpect(multiSigWalletInstance.confirmTransaction(txId, { from: account1 })).to.eventually.be.fulfilled;
 
         // Assert expected royalty parameters
-        let defaultRoyaltyInfo = await porbleUpgradeableInstance.royaltyInfo('0', priceOfPorbleUpgradeableInPORB);
+        let defaultRoyaltyInfo = await porbleUpgradeableInstance.royaltyInfo('0', priceOfPorbleInPORB);
         const royaltyRecipient = defaultRoyaltyInfo[0];
         const royaltyFee = defaultRoyaltyInfo[1];
         expect(royaltyRecipient).to.equal(multiSigWalletInstance.address);
-        expect(royaltyFee.toString()).to.equal(bigInt(priceOfPorbleUpgradeableInPORB).multiply(updatedRoyaltyFeeBips).divide(10000).toString());
+        expect(royaltyFee.toString()).to.equal(bigInt(priceOfPorbleInPORB).multiply(updatedRoyaltyFeeBips).divide(10000).toString());
     });
 
     it('allows only the owner to reset the custom royalty fee', async () => {
-        const priceOfPorbleUpgradeableInPORB = web3.utils.toWei('2', 'ether');
+        const priceOfPorbleInPORB = web3.utils.toWei('2', 'ether');
 
         const types = {
             PorbleMintConditions: [
@@ -599,11 +601,60 @@ contract.skip('PorbleUpgradeable.sol', ([owner, account1, account2, account3, ac
         await localExpect(multiSigWalletInstance.confirmTransaction(txId, { from: account1 })).to.eventually.be.fulfilled;
 
         // Assert expected royalty parameters
-        let defaultRoyaltyInfo = await porbleUpgradeableInstance.royaltyInfo('0', priceOfPorbleUpgradeableInPORB);
+        let defaultRoyaltyInfo = await porbleUpgradeableInstance.royaltyInfo('0', priceOfPorbleInPORB);
         const royaltyRecipient = defaultRoyaltyInfo[0];
         const royaltyFee = defaultRoyaltyInfo[1];
         const expectedRoyalFeeNumeratorBips = 400;
         expect(royaltyRecipient).to.equal(multiSigWalletInstance.address);
-        expect(royaltyFee.toString()).to.equal(bigInt(priceOfPorbleUpgradeableInPORB).multiply(expectedRoyalFeeNumeratorBips).divide(10000).toString());
+        expect(royaltyFee.toString()).to.equal(bigInt(priceOfPorbleInPORB).multiply(expectedRoyalFeeNumeratorBips).divide(10000).toString());
+    });
+
+    it('can be upgraded and store new state variables from the new contract', async () => {
+        const tokenSymbol = await porbleUpgradeableInstance.symbol();
+        expect(tokenSymbol).to.equal('PRBL');
+
+        const types = {
+            PorbleMintConditions: [
+                { name: 'minter', type: 'address' },
+                { name: 'tokenId', type: 'uint256' },
+            ],
+        };
+
+        const porbleUpgradeableMintConditions = { minter: testAccountsData[1].address, tokenId: 1 };
+
+        const domain = {
+            name: 'PortalFantasy',
+            version: '1',
+            chainId: 43214,
+            verifyingContract: porbleUpgradeableInstance.address,
+        };
+
+        // Sign according to the EIP-712 standard
+        const signature = await signer._signTypedData(domain, types, porbleUpgradeableMintConditions);
+
+        // The tokenId and tx sender must match those that have been signed for
+        await localExpect(porbleUpgradeableInstance.safeMint(signature, 1, { from: testAccountsData[1].address })).to.eventually.be.fulfilled;
+
+        porbleUpgradeableTestInstance = (await upgradeProxy(porbleUpgradeableInstance.address, porbleUpgradeableTest as any)) as PorbleUpgradeableTestInstance;
+
+        // Original state variables remain unchanged
+        const newTokenSymbol = await porbleUpgradeableTestInstance.symbol();
+        expect(newTokenSymbol).to.equal('PRBL');
+        const ownerOfMintedPorble1 = await porbleUpgradeableTestInstance.ownerOf('1');
+        expect(ownerOfMintedPorble1).to.equal(account1);
+
+        // Can still only be paused/unpaused by the owner of the previous contract (multiSigWalleet)
+        let data = porbleUpgradeableContract.methods.setPaused(true).encodeABI();
+        await multiSigWalletInstance.submitTransaction(porbleUpgradeableTestInstance.address, 0, data, { from: owner });
+        let txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await localExpect(multiSigWalletInstance.confirmTransaction(txId, { from: account1 })).to.eventually.be.fulfilled;
+
+        // Non-existing method cannot be used to set state variable
+        data = porbleUpgradeableContract.methods.setBaseURIString('https://www.foo.com/').encodeABI();
+        await multiSigWalletInstance.submitTransaction(porbleUpgradeableTestInstance.address, 0, data, { from: owner });
+        txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await localExpect(multiSigWalletInstance.confirmTransaction(txId, { from: account1 })).to.eventually.be.fulfilled;
+        const baseURIString = await porbleUpgradeableTestInstance.baseURIString();
+        expect(baseURIString).to.not.equal('https://www.foo.com/');
     });
 });

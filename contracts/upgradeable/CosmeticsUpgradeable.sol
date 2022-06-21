@@ -2,13 +2,13 @@
 
 pragma solidity ^0.8.0;
 
-import "./lib/Counters.sol";
-import "./lib/ERC721RoyaltyUpgradeable.sol";
-import "./lib/ContractURIStorageUpgradeable.sol";
-import "./lib/IERC20.sol";
-import "./lib/IERC2981.sol";
-import "./lib/OwnableUpgradeable.sol";
-import "./lib/PausableUpgradeable.sol";
+import "../lib/IERC20.sol";
+import "../lib/IERC2981.sol";
+import "../lib/Counters.sol";
+import "../lib/upgradeable/ERC721RoyaltyUpgradeable.sol";
+import "../lib/upgradeable/ContractURIStorageUpgradeable.sol";
+import "../lib/upgradeable/OwnableUpgradeable.sol";
+import "../lib/upgradeable/PausableUpgradeable.sol";
 
 contract CosmeticsUpgradeable is
     ERC721RoyaltyUpgradeable,

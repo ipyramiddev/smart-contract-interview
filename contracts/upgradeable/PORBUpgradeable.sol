@@ -2,10 +2,10 @@
 
 pragma solidity ^0.8.0;
 
-import "./lib/draft-EIP712Upgradeable.sol";
-import "./lib/ERC20Upgradeable.sol";
-import "./lib/OwnableUpgradeable.sol";
-import "./lib/Initializable.sol";
+import "../lib/upgradeable/draft-EIP712Upgradeable.sol";
+import "../lib/upgradeable/ERC20Upgradeable.sol";
+import "../lib/upgradeable/OwnableUpgradeable.sol";
+import "../lib/upgradeable/Initializable.sol";
 
 contract PORBUpgradeable is
     ERC20Upgradeable,
