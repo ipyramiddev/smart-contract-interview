@@ -2,11 +2,11 @@
 
 pragma solidity ^0.8.0;
 
-import "./lib/OwnableUpgradeable.sol";
-import "./lib/IERC20Upgradeable.sol";
-import "./lib/IERC721Upgradeable.sol";
-import "./lib/IERC2981Upgradeable.sol";
-import "./lib/ReentrancyGuardUpgradeable.sol";
+import "../lib/upgradeable/OwnableUpgradeable.sol";
+import "../lib/upgradeable/IERC20Upgradeable.sol";
+import "../lib/upgradeable/IERC721Upgradeable.sol";
+import "../lib/upgradeable/IERC2981Upgradeable.sol";
+import "../lib/upgradeable/ReentrancyGuardUpgradeable.sol";
 
 contract NFTMarketplaceUpgradeable is
     ReentrancyGuardUpgradeable,

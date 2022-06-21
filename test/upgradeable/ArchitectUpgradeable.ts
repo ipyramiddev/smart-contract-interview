@@ -1,18 +1,19 @@
-import { deployProxy } from '@openzeppelin/truffle-upgrades';
+import { deployProxy, upgradeProxy } from '@openzeppelin/truffle-upgrades';
 import bigInt from 'big-integer';
-import { localExpect } from './lib/test-libraries';
-import { ArchitectUpgradeableInstance, PORBUpgradeableInstance, MultiSigWalletInstance } from '../types/truffle-contracts';
-import ARCHITECT_UPGRADEABLE_JSON from '../build/contracts/ArchitectUpgradeable.json';
-import PORB_UPGRADEABLE_JSON from '../build/contracts/PORBUpgradeable.json';
+import { localExpect } from '../lib/test-libraries';
+import { ArchitectUpgradeableInstance, PORBUpgradeableInstance, MultiSigWalletInstance, ArchitectUpgradeableTestInstance } from '../../types/truffle-contracts';
+import ARCHITECT_UPGRADEABLE_JSON from '../../build/contracts/ArchitectUpgradeable.json';
+import PORB_UPGRADEABLE_JSON from '../../build/contracts/PORBUpgradeable.json';
 import Web3 from 'web3';
 import { AbiItem } from 'web3-utils';
-import { getTxIdFromMultiSigWallet } from './lib/test-helpers';
+import { getTxIdFromMultiSigWallet } from '../lib/test-helpers';
 
-const config = require('../config').config;
+const config = require('../../config').config;
 
 const architectUpgradeable = artifacts.require('ArchitectUpgradeable');
 const PORBUpgradeable = artifacts.require('PORBUpgradeable');
 const multiSigWallet = artifacts.require('MultiSigWallet');
+const architectUpgradeableTest = artifacts.require('ArchitectUpgradeableTest');
 
 const web3 = new Web3(new Web3.providers.HttpProvider(config.AVAX.localSubnetHTTP));
 const ARCHITECT_UPGRADEABLE_ABI = ARCHITECT_UPGRADEABLE_JSON.abi as AbiItem[];
@@ -22,6 +23,7 @@ contract.skip('ArchitectUpgradeable.sol', ([owner, account1, account2, account3,
     let architectUpgradeableInstance: ArchitectUpgradeableInstance;
     let PORBUpgradeableInstance: PORBUpgradeableInstance;
     let multiSigWalletInstance: MultiSigWalletInstance;
+    let architectUpgradeableTestInstance: ArchitectUpgradeableTestInstance;
     let architectUpgradeableContract: any;
     let PORBUpgradeableContract: any;
 
@@ -363,5 +365,63 @@ contract.skip('ArchitectUpgradeable.sol', ([owner, account1, account2, account3,
         const expectedRoyalFeeNumeratorBips = 400;
         expect(royaltyRecipient).to.equal(account9);
         expect(royaltyFee.toString()).to.equal(bigInt(priceOfArchitectInPORB).multiply(expectedRoyalFeeNumeratorBips).divide(10000).toString());
+    });
+
+    it('can be upgraded and store new state variables from the new contract', async () => {
+        const tokenSymbol = await architectUpgradeableInstance.symbol();
+        expect(tokenSymbol).to.equal('PHAR');
+
+        const initialPORBAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
+        const priceOfArchitectInPORB = web3.utils.toWei('2', 'ether');
+
+        // Add controller for PORB
+        let data = PORBUpgradeableContract.methods.addController(multiSigWalletInstance.address).encodeABI();
+        await multiSigWalletInstance.submitTransaction(PORBUpgradeableInstance.address, 0, data, { from: owner });
+        let txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
+
+        // Mint PORB
+        data = PORBUpgradeableContract.methods.mint(account1, initialPORBAmountMintedToOwner).encodeABI();
+        await multiSigWalletInstance.submitTransaction(PORBUpgradeableInstance.address, 0, data, { from: owner });
+        txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
+
+        await PORBUpgradeableInstance.approve(architectUpgradeableInstance.address, priceOfArchitectInPORB, { from: account1 });
+        await architectUpgradeableInstance.mintWithPORB({ from: account1 });
+
+        architectUpgradeableTestInstance = (await upgradeProxy(architectUpgradeableInstance.address, architectUpgradeableTest as any)) as ArchitectUpgradeableTestInstance;
+
+        // Original state variables remain unchanged
+        const newTokenSymbol = await architectUpgradeableTestInstance.symbol();
+        expect(newTokenSymbol).to.equal('PHAR');
+        const ownerOfMintedArchitect1 = await architectUpgradeableTestInstance.ownerOf('0');
+        expect(ownerOfMintedArchitect1).to.equal(account1);
+
+        // Mint PORB
+        data = PORBUpgradeableContract.methods.mint(account2, initialPORBAmountMintedToOwner).encodeABI();
+        await multiSigWalletInstance.submitTransaction(PORBUpgradeableInstance.address, 0, data, { from: owner });
+        txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
+
+        await PORBUpgradeableInstance.approve(architectUpgradeableTestInstance.address, priceOfArchitectInPORB, { from: account2 });
+        await architectUpgradeableInstance.mintWithPORB({ from: account2 });
+
+        // Can still mint new tokens
+        const ownerOfMintedArchitect2 = await architectUpgradeableTestInstance.ownerOf('1');
+        expect(ownerOfMintedArchitect2).to.equal(account2);
+
+        // Can still only be paused/unpaused by the owner of the previous contract (multiSigWalleet)
+        data = architectUpgradeableContract.methods.setPaused(true).encodeABI();
+        await multiSigWalletInstance.submitTransaction(architectUpgradeableTestInstance.address, 0, data, { from: owner });
+        txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await localExpect(multiSigWalletInstance.confirmTransaction(txId, { from: account1 })).to.eventually.be.fulfilled;
+
+        // Non-existing method cannot be used to set state variable
+        data = architectUpgradeableContract.methods.setBaseURIString('https://www.foo.com/').encodeABI();
+        await multiSigWalletInstance.submitTransaction(architectUpgradeableTestInstance.address, 0, data, { from: owner });
+        txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await localExpect(multiSigWalletInstance.confirmTransaction(txId, { from: account1 })).to.eventually.be.fulfilled;
+        const baseURIString = await architectUpgradeableTestInstance.baseURIString();
+        expect(baseURIString).to.not.equal('https://www.foo.com/');
     });
 });

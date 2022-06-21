@@ -1,15 +1,16 @@
-import { deployProxy } from '@openzeppelin/truffle-upgrades';
-import { localExpect, bigInt } from './lib/test-libraries';
-import { PFTUpgradeableInstance, MultiSigWalletInstance } from '../types/truffle-contracts';
-import PFT_UPGRADEABLE_JSON from '../build/contracts/PFTUpgradeable.json';
+import { deployProxy, upgradeProxy } from '@openzeppelin/truffle-upgrades';
+import { localExpect, bigInt } from '../lib/test-libraries';
+import { PFTUpgradeableInstance, MultiSigWalletInstance, PFTUpgradeableTestInstance } from '../../types/truffle-contracts';
+import PFT_UPGRADEABLE_JSON from '../../build/contracts/PFTUpgradeable.json';
 import Web3 from 'web3';
 import { AbiItem } from 'web3-utils';
-import { getTxIdFromMultiSigWallet } from './lib/test-helpers';
+import { getTxIdFromMultiSigWallet } from '../lib/test-helpers';
 
-const config = require('../config').config;
+const config = require('../../config').config;
 
 const PFTUpgradeable = artifacts.require('PFTUpgradeable');
 const multiSigWallet = artifacts.require('MultiSigWallet');
+const PFTUpgradeableTest = artifacts.require('PFTUpgradeableTest');
 
 const web3 = new Web3(new Web3.providers.HttpProvider(config.AVAX.localSubnetHTTP));
 const PFT_UPGRADEABLE_ABI = PFT_UPGRADEABLE_JSON.abi as AbiItem[];
@@ -17,6 +18,7 @@ const PFT_UPGRADEABLE_ABI = PFT_UPGRADEABLE_JSON.abi as AbiItem[];
 contract.skip('PFTUpgradeable.sol', ([owner, account1, account2, account3, account4, account5, account6, account7, account8, account9]) => {
     let PFTUpgradeableInstance: PFTUpgradeableInstance;
     let multiSigWalletInstance: MultiSigWalletInstance;
+    let PFTUpgradeableTestInstance: PFTUpgradeableTestInstance;
     let PFTUpgradeableContract: any;
 
     beforeEach(async () => {
@@ -152,5 +154,36 @@ contract.skip('PFTUpgradeable.sol', ([owner, account1, account2, account3, accou
         const balanceOfAccount = (await PFTUpgradeableInstance.balanceOf(account5)).toString();
 
         expect(balanceOfAccount).to.equal(amountToMint);
+    });
+
+    it('can be upgraded and store new state variables from the new contract', async () => {
+        let tokenSymbol = await PFTUpgradeableInstance.symbol();
+        expect(tokenSymbol).to.equal('PFT');
+
+        const amountToMint = web3.utils.toWei('1', 'ether');
+        const totalSupplyBefore = (await PFTUpgradeableInstance.totalSupply()).toString();
+        const expectedTotalSupplyAfter = bigInt(amountToMint).add(bigInt(totalSupplyBefore)).toString();
+
+        let data = PFTUpgradeableContract.methods.mint(account2, amountToMint).encodeABI();
+        await multiSigWalletInstance.submitTransaction(PFTUpgradeableInstance.address, 0, data, { from: owner });
+        let txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await localExpect(multiSigWalletInstance.confirmTransaction(txId, { from: account1 })).to.eventually.be.fulfilled;
+
+        PFTUpgradeableTestInstance = (await upgradeProxy(PFTUpgradeableInstance.address, PFTUpgradeableTest as any)) as PFTUpgradeableTestInstance;
+
+        // State variables should be unchanged after upgrading contract
+        tokenSymbol = await PFTUpgradeableInstance.symbol();
+        expect(tokenSymbol).to.equal('PFT');
+
+        // The mint function is missing in the test contract so shouldn't be able to mint any more tokens
+        data = PFTUpgradeableContract.methods.mint(account2, amountToMint).encodeABI();
+        await multiSigWalletInstance.submitTransaction(PFTUpgradeableInstance.address, 0, data, { from: owner });
+        txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await localExpect(multiSigWalletInstance.confirmTransaction(txId, { from: account1 })).to.eventually.be.fulfilled;
+
+        const totalSupplyAfter = (await PFTUpgradeableInstance.totalSupply()).toString();
+
+        // No new tokens minted, even though we tried to mint amountToMintToVault a second time
+        expect(totalSupplyAfter).to.equal(expectedTotalSupplyAfter);
     });
 });

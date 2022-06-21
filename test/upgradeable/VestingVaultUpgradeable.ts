@@ -1,18 +1,19 @@
-import { deployProxy } from '@openzeppelin/truffle-upgrades';
-import { localExpect, bigInt, addMonths, differenceInSeconds } from './lib/test-libraries';
-import { advanceTimeAndBlock } from '../scripts/utils/time-travel';
-import { PFTUpgradeableInstance, VestingVaultUpgradeableInstance, MultiSigWalletInstance } from '../types/truffle-contracts';
-import VESTING_VAULT_UPGRADEABLE_JSON from '../build/contracts/VestingVaultUpgradeable.json';
-import PFT_UPGRADEABLE_JSON from '../build/contracts/PFTUpgradeable.json';
+import { deployProxy, upgradeProxy } from '@openzeppelin/truffle-upgrades';
+import { localExpect, bigInt, addMonths, differenceInSeconds } from '../lib/test-libraries';
+import { advanceTimeAndBlock } from '../../scripts/utils/time-travel';
+import { PFTUpgradeableInstance, VestingVaultUpgradeableInstance, MultiSigWalletInstance, VestingVaultUpgradeableTestInstance } from '../../types/truffle-contracts';
+import VESTING_VAULT_UPGRADEABLE_JSON from '../../build/contracts/VestingVaultUpgradeable.json';
+import PFT_UPGRADEABLE_JSON from '../../build/contracts/PFTUpgradeable.json';
 import Web3 from 'web3';
 import { AbiItem } from 'web3-utils';
-import { getTxIdFromMultiSigWallet } from './lib/test-helpers';
+import { getTxIdFromMultiSigWallet } from '../lib/test-helpers';
 
-const config = require('../config').config;
+const config = require('../../config').config;
 
 const PFTUpgradeable = artifacts.require('PFTUpgradeable');
 const vestingVaultUpgradeable = artifacts.require('VestingVaultUpgradeable');
 const multiSigWallet = artifacts.require('MultiSigWallet');
+const vestingVaultUpgradeableTest = artifacts.require('VestingVaultUpgradeableTest');
 
 const VESTING_VAULT_UPGRADEABLE_ABI = VESTING_VAULT_UPGRADEABLE_JSON.abi as AbiItem[];
 const PFT_UPGRADEABLE_ABI = PFT_UPGRADEABLE_JSON.abi as AbiItem[];
@@ -25,10 +26,11 @@ const web3 = new Web3(new Web3.providers.HttpProvider(config.ETH.localHTTP));
 
 // @NOTE: Have seen the last test fail intermittently
 
-contract('VestingVaultUpgradeable.sol', ([owner, account1, account2, account3, account4, account5, account6, account7, account8, account9]) => {
+contract.skip('VestingVaultUpgradeable.sol', ([owner, account1, account2, account3, account4, account5, account6, account7, account8, account9]) => {
     let PFTUpgradeableInstance: PFTUpgradeableInstance;
     let vestingVaultUpgradeableInstance: VestingVaultUpgradeableInstance;
     let multiSigWalletInstance: MultiSigWalletInstance;
+    let vestingVaultUpgradeableTestInstance: VestingVaultUpgradeableTestInstance;
     let vestingVaultContract: any;
     let PFTUpgradeableContract: any;
 
@@ -744,5 +746,38 @@ contract('VestingVaultUpgradeable.sol', ([owner, account1, account2, account3, a
 
         const claimerAddress = await vestingVaultUpgradeableInstance.claimer();
         expect(claimerAddress).to.equal(account5);
+    });
+
+    it('can be upgraded and store new state variables from the new contract', async () => {
+        // Grant tokens for account1, with a cliff and linear vesting schedule
+        const cliffInMonths = 2;
+        const vestingDurationInMonths = 10;
+        const amountToGrant = web3.utils.toWei('1', 'ether');
+
+        const data = vestingVaultContract.methods.addTokenGrant(account1, amountToGrant, vestingDurationInMonths, cliffInMonths).encodeABI();
+        await multiSigWalletInstance.submitTransaction(vestingVaultUpgradeableInstance.address, 0, data, { from: owner });
+        const txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
+        await localExpect(vestingVaultUpgradeableInstance.getGrantAmount(account1)).to.eventually.be.fulfilled;
+
+        const balanceOfOwner = (await PFTUpgradeableInstance.balanceOf(multiSigWalletInstance.address)).toString();
+        const balanceOfVestingContract = (await PFTUpgradeableInstance.balanceOf(vestingVaultUpgradeableInstance.address)).toString();
+
+        const expectedBalanceOfOwner = bigInt(initialAmountMintedToOwner).subtract(amountToGrant).toString();
+        const expectedBalanceOfVestingContract = amountToGrant;
+
+        vestingVaultUpgradeableTestInstance = (await upgradeProxy(
+            vestingVaultUpgradeableInstance.address,
+            vestingVaultUpgradeableTest as any
+        )) as VestingVaultUpgradeableTestInstance;
+
+        // State variables should be unchanged after upgrading contract
+        expect(balanceOfOwner).to.equal(expectedBalanceOfOwner);
+        expect(balanceOfVestingContract).to.equal(expectedBalanceOfVestingContract);
+        const claimer = (await vestingVaultUpgradeableInstance.claimer()).toString();
+        expect(claimer).to.equal(account4);
+
+        // The getGrantAmount function has been removed in the test account so expect this call to revert
+        await localExpect(vestingVaultUpgradeableInstance.getGrantAmount(account1)).to.eventually.be.rejected;
     });
 });

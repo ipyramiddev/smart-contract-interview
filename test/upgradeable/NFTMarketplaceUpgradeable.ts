@@ -1,21 +1,29 @@
-import { deployProxy } from '@openzeppelin/truffle-upgrades';
+import { deployProxy, upgradeProxy } from '@openzeppelin/truffle-upgrades';
 import bigInt from 'big-integer';
-import { localExpect } from './lib/test-libraries';
-import { HeroUpgradeableInstance, PORBUpgradeableInstance, MultiSigWalletInstance, NFTMarketplaceUpgradeableInstance, WAVAXInstance } from '../types/truffle-contracts';
-import NFT_MARKETPLACE_UPGRADEABLE_JSON from '../build/contracts/NFTMarketplaceUpgradeable.json';
-import HERO_UPGRADEABLE_JSON from '../build/contracts/HeroUpgradeable.json';
-import PORB_UPGRADEABLE_JSON from '../build/contracts/PORBUpgradeable.json';
+import { localExpect } from '../lib/test-libraries';
+import {
+    HeroUpgradeableInstance,
+    PORBUpgradeableInstance,
+    MultiSigWalletInstance,
+    NFTMarketplaceUpgradeableInstance,
+    WAVAXInstance,
+    NFTMarketplaceUpgradeableTestInstance,
+} from '../../types/truffle-contracts';
+import NFT_MARKETPLACE_UPGRADEABLE_JSON from '../../build/contracts/NFTMarketplaceUpgradeable.json';
+import HERO_UPGRADEABLE_JSON from '../../build/contracts/HeroUpgradeable.json';
+import PORB_UPGRADEABLE_JSON from '../../build/contracts/PORBUpgradeable.json';
 import Web3 from 'web3';
 import { AbiItem } from 'web3-utils';
-import { getTxIdFromMultiSigWallet } from './lib/test-helpers';
+import { getTxIdFromMultiSigWallet } from '../lib/test-helpers';
 
-const config = require('../config').config;
+const config = require('../../config').config;
 
 const NFTMarketplaceUpgradeable = artifacts.require('NFTMarketplaceUpgradeable');
 const heroUpgradeable = artifacts.require('HeroUpgradeable');
 const PORBUpgradeable = artifacts.require('PORBUpgradeable');
 const WAVAX = artifacts.require('WAVAX');
 const multiSigWallet = artifacts.require('MultiSigWallet');
+const NFTMarketplaceUpgradeableTest = artifacts.require('NFTMarketplaceUpgradeableTest');
 
 const web3 = new Web3(new Web3.providers.HttpProvider(config.AVAX.localSubnetHTTP));
 const NFT_MARKETPLACE_ABI = NFT_MARKETPLACE_UPGRADEABLE_JSON.abi as AbiItem[];
@@ -28,6 +36,7 @@ contract.skip('NFTMarketplaceUpgradeable.sol', ([owner, account1, account2, acco
     let PORBUpgradeableInstance: PORBUpgradeableInstance;
     let WAVAXInstance: WAVAXInstance;
     let multiSigWalletInstance: MultiSigWalletInstance;
+    let NFTMarketplaceUpgradeableTestInstance: NFTMarketplaceUpgradeableTestInstance;
     let NFTMarketplaceUpgradeableContract: any;
     let heroUpgradeableContract: any;
     let PORBContract: any;
@@ -516,5 +525,52 @@ contract.skip('NFTMarketplaceUpgradeable.sol', ([owner, account1, account2, acco
         const { price, seller } = await NFTMarketplaceUpgradeableInstance.getListing(heroUpgradeableInstance.address, heroTokenId);
         expect(seller).to.equal(account1);
         expect(price).to.equal(heroTokenListPrice);
+    });
+
+    it('can be upgraded and store new state variables from the new contract', async () => {
+        const initialPORBAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
+        const priceOfHeroInPORB = web3.utils.toWei('2', 'ether');
+        const heroTokenListPrice = '10';
+
+        // Add controller for PORB
+        let data = PORBContract.methods.addController(multiSigWalletInstance.address).encodeABI();
+        await multiSigWalletInstance.submitTransaction(PORBUpgradeableInstance.address, 0, data, { from: owner });
+        let txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
+
+        // Mint PORB for owner
+        data = PORBContract.methods.mint(account1, initialPORBAmountMintedToOwner).encodeABI();
+        await multiSigWalletInstance.submitTransaction(PORBUpgradeableInstance.address, 0, data, { from: owner });
+        txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
+
+        // Approve marketplace to handle hero token
+        await PORBUpgradeableInstance.approve(heroUpgradeableInstance.address, priceOfHeroInPORB, { from: account1 });
+        await heroUpgradeableInstance.mintWithPORB({ from: account1 });
+        const heroTokenId = '0';
+
+        // Whitelist hero contract and then list the hero token
+        data = NFTMarketplaceUpgradeableContract.methods.updateCollectionsWhitelist(heroUpgradeableInstance.address, true).encodeABI();
+        await multiSigWalletInstance.submitTransaction(NFTMarketplaceUpgradeableInstance.address, 0, data, { from: owner });
+        txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
+
+        // List item
+        await heroUpgradeableInstance.approve(NFTMarketplaceUpgradeableInstance.address, heroTokenId, { from: account1 });
+        await NFTMarketplaceUpgradeableInstance.listItem(heroUpgradeableInstance.address, heroTokenId, heroTokenListPrice, { from: account1 });
+
+        const { price, seller } = await NFTMarketplaceUpgradeableInstance.getListing(heroUpgradeableInstance.address, heroTokenId);
+        expect(seller).to.equal(account1);
+        expect(price).to.equal(heroTokenListPrice);
+
+        // Now upgrade the contract
+        NFTMarketplaceUpgradeableTestInstance = (await upgradeProxy(
+            NFTMarketplaceUpgradeableInstance.address,
+            NFTMarketplaceUpgradeableTest as any,
+            {}
+        )) as NFTMarketplaceUpgradeableInstance;
+
+        // The test contract doesn't have the getListing method, so any calls to it should be rejected
+        await localExpect(NFTMarketplaceUpgradeableInstance.getListing(heroUpgradeableInstance.address, heroTokenId)).to.eventually.be.rejected;
     });
 });
