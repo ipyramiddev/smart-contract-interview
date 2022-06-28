@@ -367,7 +367,7 @@ contract.skip('HeroUpgradeable.sol', ([owner, account1, account2, account3, acco
         expect(royaltyFee.toString()).to.equal(bigInt(priceOfHeroInPORB).multiply(expectedRoyalFeeNumeratorBips).divide(10000).toString());
     });
 
-    it.skip('can be upgraded and store new state variables from the new contract', async () => {
+    it('can be upgraded and store new state variables from the new contract', async () => {
         const tokenSymbol = await heroUpgradeableInstance.symbol();
         expect(tokenSymbol).to.equal('PHRO');
 

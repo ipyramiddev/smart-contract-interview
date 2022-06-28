@@ -367,7 +367,7 @@ contract.skip('CosmeticsUpgradeable.sol', ([owner, account1, account2, account3,
         expect(royaltyFee.toString()).to.equal(bigInt(priceOfCosmeticInPORB).multiply(expectedRoyalFeeNumeratorBips).divide(10000).toString());
     });
 
-    it.skip('can be upgraded and store new state variables from the new contract', async () => {
+    it('can be upgraded and store new state variables from the new contract', async () => {
         const tokenSymbol = await cosmeticsUpgradeableInstance.symbol();
         expect(tokenSymbol).to.equal('PCOS');
 

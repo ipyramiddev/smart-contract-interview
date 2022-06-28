@@ -30,7 +30,7 @@ const NFT_MARKETPLACE_ABI = NFT_MARKETPLACE_UPGRADEABLE_JSON.abi as AbiItem[];
 const HERO_UPGRADEABLE_ABI = HERO_UPGRADEABLE_JSON.abi as AbiItem[];
 const PORB_UPGRADEABLE_ABI = PORB_UPGRADEABLE_JSON.abi as AbiItem[];
 
-contract('NFTMarketplaceUpgradeable.sol', ([owner, account1, account2, account3, account4, account5, account6, account7, account8, account9]) => {
+contract.skip('NFTMarketplaceUpgradeable.sol', ([owner, account1, account2, account3, account4, account5, account6, account7, account8, account9]) => {
     let NFTMarketplaceUpgradeableInstance: NFTMarketplaceUpgradeableInstance;
     let heroUpgradeableInstance: HeroUpgradeableInstance;
     let PORBUpgradeableInstance: PORBUpgradeableInstance;
@@ -63,7 +63,7 @@ contract('NFTMarketplaceUpgradeable.sol', ([owner, account1, account2, account3,
         PORBContract = new web3.eth.Contract(PORB_UPGRADEABLE_ABI, PORBUpgradeableInstance.address);
     });
 
-    it.skip('only allows the contract owner to whitelist an NFT collection', async () => {
+    it('only allows the contract owner to whitelist an NFT collection', async () => {
         const exampleNFTContractAddress = '0xb794f5ea0ba39494ce839613fffba74279579268';
 
         await localExpect(NFTMarketplaceUpgradeableInstance.updateCollectionsWhitelist(exampleNFTContractAddress, true)).to.eventually.be.rejected;
@@ -74,7 +74,7 @@ contract('NFTMarketplaceUpgradeable.sol', ([owner, account1, account2, account3,
         await localExpect(multiSigWalletInstance.confirmTransaction(txId, { from: account1 })).to.eventually.be.fulfilled;
     });
 
-    it.skip('only allows an NFT to be listed for sale if its contract has been whitelisted', async () => {
+    it('only allows an NFT to be listed for sale if its contract has been whitelisted', async () => {
         const initialPORBAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
         const priceOfHeroInPORB = web3.utils.toWei('2', 'ether');
 
@@ -108,7 +108,7 @@ contract('NFTMarketplaceUpgradeable.sol', ([owner, account1, account2, account3,
         await localExpect(NFTMarketplaceUpgradeableInstance.listItem(heroUpgradeableInstance.address, heroTokenId, listPriceOfHero, { from: account1 })).to.eventually.be.fulfilled;
     });
 
-    it.skip("prevents a token from being listed by an account that doesn't own it", async () => {
+    it("prevents a token from being listed by an account that doesn't own it", async () => {
         const initialPORBAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
         const priceOfHeroInPORB = web3.utils.toWei('2', 'ether');
 
@@ -141,7 +141,7 @@ contract('NFTMarketplaceUpgradeable.sol', ([owner, account1, account2, account3,
         await localExpect(NFTMarketplaceUpgradeableInstance.listItem(heroUpgradeableInstance.address, heroTokenId, listPriceOfHero, { from: account2 })).to.eventually.be.rejected;
     });
 
-    it.skip('prevents a token from being listed if the price is not greater than zero', async () => {
+    it('prevents a token from being listed if the price is not greater than zero', async () => {
         const initialPORBAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
         const priceOfHeroInPORB = web3.utils.toWei('2', 'ether');
 
@@ -175,7 +175,7 @@ contract('NFTMarketplaceUpgradeable.sol', ([owner, account1, account2, account3,
         await localExpect(NFTMarketplaceUpgradeableInstance.listItem(heroUpgradeableInstance.address, heroTokenId, '1', { from: account1 })).to.eventually.be.fulfilled;
     });
 
-    it.skip("prevents a token from being re-listed if it's already listed", async () => {
+    it("prevents a token from being re-listed if it's already listed", async () => {
         const initialPORBAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
         const priceOfHeroInPORB = web3.utils.toWei('2', 'ether');
 
@@ -208,7 +208,7 @@ contract('NFTMarketplaceUpgradeable.sol', ([owner, account1, account2, account3,
         await localExpect(NFTMarketplaceUpgradeableInstance.listItem(heroUpgradeableInstance.address, heroTokenId, '2', { from: account1 })).to.eventually.be.rejected;
     });
 
-    it.skip('only allows the NFT owner to update the listing', async () => {
+    it('only allows the NFT owner to update the listing', async () => {
         const initialPORBAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
         const priceOfHeroInPORB = web3.utils.toWei('2', 'ether');
 
@@ -246,7 +246,7 @@ contract('NFTMarketplaceUpgradeable.sol', ([owner, account1, account2, account3,
         expect(price).to.equal('3');
     });
 
-    it.skip('only allows the NFT owner to cancel the listing', async () => {
+    it('only allows the NFT owner to cancel the listing', async () => {
         const initialPORBAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
         const priceOfHeroInPORB = web3.utils.toWei('2', 'ether');
 
@@ -288,7 +288,7 @@ contract('NFTMarketplaceUpgradeable.sol', ([owner, account1, account2, account3,
         expect(price).to.equal('0');
     });
 
-    it.skip('only allows the marketplace contract owner to force-cancel a listing', async () => {
+    it('only allows the marketplace contract owner to force-cancel a listing', async () => {
         const initialPORBAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
         const priceOfHeroInPORB = web3.utils.toWei('2', 'ether');
 
@@ -333,7 +333,7 @@ contract('NFTMarketplaceUpgradeable.sol', ([owner, account1, account2, account3,
         expect(price).to.equal('0');
     });
 
-    it.skip('allows an NFT to be purchased only if the buyer has sufficient WAVAX', async () => {
+    it('allows an NFT to be purchased only if the buyer has sufficient WAVAX', async () => {
         const initialPORBAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
         const priceOfHeroInPORB = web3.utils.toWei('2', 'ether');
         const heroTokenListPrice = '10';
@@ -382,7 +382,7 @@ contract('NFTMarketplaceUpgradeable.sol', ([owner, account1, account2, account3,
         expect(price).to.equal('0');
     });
 
-    it.skip('records the correct proceeds and royalties when a token is purchased', async () => {
+    it('records the correct proceeds and royalties when a token is purchased', async () => {
         const initialPORBAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
         const priceOfHeroInPORB = web3.utils.toWei('2', 'ether');
         const heroTokenListPrice = '100';
@@ -428,7 +428,7 @@ contract('NFTMarketplaceUpgradeable.sol', ([owner, account1, account2, account3,
         expect(royalties.toString()).to.equal(expectedRoyalties);
     });
 
-    it.skip("doesn't allow a token to be purchased if the collection has been removed from the whitelist since it was listed", async () => {
+    it("doesn't allow a token to be purchased if the collection has been removed from the whitelist since it was listed", async () => {
         const initialPORBAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
         const priceOfHeroInPORB = web3.utils.toWei('2', 'ether');
         const heroTokenListPrice = '10';
@@ -479,7 +479,7 @@ contract('NFTMarketplaceUpgradeable.sol', ([owner, account1, account2, account3,
         expect(price).to.equal(heroTokenListPrice);
     });
 
-    it.skip("doesn't allow a list to be updated if the collection has been removed from the whitelist since it was listed", async () => {
+    it("doesn't allow a list to be updated if the collection has been removed from the whitelist since it was listed", async () => {
         const initialPORBAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
         const priceOfHeroInPORB = web3.utils.toWei('2', 'ether');
 
@@ -527,7 +527,7 @@ contract('NFTMarketplaceUpgradeable.sol', ([owner, account1, account2, account3,
         expect(price).to.equal(heroTokenListPrice);
     });
 
-    it.skip('can be upgraded and store new state variables from the new contract', async () => {
+    it('can be upgraded and store new state variables from the new contract', async () => {
         const initialPORBAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
         const priceOfHeroInPORB = web3.utils.toWei('2', 'ether');
         const heroTokenListPrice = '10';
