@@ -56,6 +56,8 @@ contract.skip('PFTStakingUpgradeable.sol', ([owner, account1, account2, account3
         await localExpect(PFTStakingUpgradeableInstance.stake({ from: account1, value: topUpAmount })).to.eventually.be.fulfilled;
         const { startTime: startTime2 } = await PFTStakingUpgradeableInstance.getStakeInfo(account1);
         expect(startTime2).to.equal(startTime1);
+        const balanceOfStakingContract = (await web3.eth.getBalance(PFTStakingUpgradeableInstance.address)).toString();
+        expect(balanceOfStakingContract).to.equal('1123');
     });
 
     it('allows users to top up a stake to the new minimum staking amount', async () => {
@@ -74,6 +76,8 @@ contract.skip('PFTStakingUpgradeable.sol', ([owner, account1, account2, account3
         await localExpect(PFTStakingUpgradeableInstance.stake({ from: account1, value: topUpAmount })).to.eventually.be.fulfilled;
         const { startTime: startTime3 } = await PFTStakingUpgradeableInstance.getStakeInfo(account1);
         expect(parseInt(startTime3.toString())).to.be.greaterThan(parseInt(startTime1.toString()));
+        const balanceOfStakingContract = (await web3.eth.getBalance(PFTStakingUpgradeableInstance.address)).toString();
+        expect(balanceOfStakingContract).to.equal('2500');
     });
 
     it('allows the user to unstake all their PFT', async () => {
@@ -88,6 +92,8 @@ contract.skip('PFTStakingUpgradeable.sol', ([owner, account1, account2, account3
         const { startTime: startTime2, amount: amount2 } = await PFTStakingUpgradeableInstance.getStakeInfo(account1);
         expect(startTime2).to.equal('0');
         expect(amount2).to.equal('0');
+        const balanceOfStakingContract = (await web3.eth.getBalance(PFTStakingUpgradeableInstance.address)).toString();
+        expect(balanceOfStakingContract).to.equal('0');
     });
 
     it('reverts if there is no PFT to unstake', async () => {
@@ -111,6 +117,8 @@ contract.skip('PFTStakingUpgradeable.sol', ([owner, account1, account2, account3
         const { startTime: startTime2, amount: amount2 } = await PFTStakingUpgradeableInstance.getStakeInfo(account1);
         expect(startTime2).to.equal(startTime1);
         expect(amount2).to.equal('1000');
+        const balanceOfStakingContract = (await web3.eth.getBalance(PFTStakingUpgradeableInstance.address)).toString();
+        expect(balanceOfStakingContract).to.equal('1000');
     });
 
     it('reverts if the unstakeExcess is called and there is no excess PFT staked', async () => {
@@ -130,6 +138,8 @@ contract.skip('PFTStakingUpgradeable.sol', ([owner, account1, account2, account3
         const { startTime: startTime2, amount: amount2 } = await PFTStakingUpgradeableInstance.getStakeInfo(account1);
         expect(startTime2).to.equal(startTime1);
         expect(amount2).to.equal('999');
+        const balanceOfStakingContract = (await web3.eth.getBalance(PFTStakingUpgradeableInstance.address)).toString();
+        expect(balanceOfStakingContract).to.equal('999');
     });
 
     it('reverts if the user tries to unstake an exact amount that is greater than what they have staked', async () => {
