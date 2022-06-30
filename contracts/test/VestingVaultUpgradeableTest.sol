@@ -7,10 +7,14 @@ import "../lib/upgradeable/IERC20Upgradeable.sol";
 import "../lib/upgradeable/OwnableUpgradeable.sol";
 import "../lib/upgradeable/SafeMathUpgradeable.sol";
 import "../lib/upgradeable/Initializable.sol";
+import "../lib/upgradeable/ReentrancyGuardUpgradeable.sol";
 
 // @NOTE: Remove getGrantAmount function to test the contract upgrade
 
-contract VestingVaultUpgradeableTest is OwnableUpgradeable {
+contract VestingVaultUpgradeableTest is
+    ReentrancyGuardUpgradeable,
+    OwnableUpgradeable
+{
     using BokkyPooBahsDateTimeLibrary for uint256;
     using SafeMathUpgradeable for uint256;
     using SafeMathUpgradeable for uint16;
@@ -42,6 +46,7 @@ contract VestingVaultUpgradeableTest is OwnableUpgradeable {
 
     function initialize(IERC20Upgradeable _PFT) public initializer {
         require(address(_PFT) != address(0));
+        __ReentrancyGuard_init();
         __Ownable_init();
         claimer = owner();
         PFT = _PFT;
@@ -96,7 +101,10 @@ contract VestingVaultUpgradeableTest is OwnableUpgradeable {
     }
 
     // Allows a grant recipient to claim their vested tokens
-    function claimVestedTokensForRecipient(address _recipient) external {
+    function claimVestedTokensForRecipient(address _recipient)
+        external
+        nonReentrant
+    {
         require(_msgSender() == claimer, "You are not the claimer!");
 
         uint16 monthsVested;
