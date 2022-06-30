@@ -8,6 +8,7 @@ import {
     PFTUpgradeableInstance,
     PorbleUpgradeableInstance,
     VestingVaultUpgradeableInstance,
+    PFTStakingUpgradeableInstance,
 } from '../types/truffle-contracts';
 
 // @NOTE: Remember to reinstate any commented out deployment scripts if you're going to run the corresponding test suite for that contract
@@ -32,7 +33,13 @@ module.exports = (artifacts: Truffle.Artifacts, web3: Web3) => {
         })) as PFTUpgradeableInstance;
         await PFTUpgradeableTransparentProxyInstance.addController(multiSigWalletInstance.address);
         await PFTUpgradeableTransparentProxyInstance.transferOwnership(multiSigWalletInstance.address);
-        // await admin.changeProxyAdmin(PFTUpgradeableInstance.address, multiSigWalletInstance.address);
+
+        const PFTStaking = artifacts.require('PFTStakingUpgradeable');
+        const PFTStakingUpgradeableTransparentProxyInstance = (await deployProxy(PFTStaking as any, ['1000'], {
+            deployer: deployer as any,
+            initializer: 'initialize',
+        })) as PFTStakingUpgradeableInstance;
+        await PFTStakingUpgradeableTransparentProxyInstance.transferOwnership(multiSigWalletInstance.address);
 
         const PORBUpgradeable = artifacts.require('PORBUpgradeable');
         await deployer.deploy<any[]>(PORBUpgradeable, accounts[1], multiSigWalletInstance.address);
