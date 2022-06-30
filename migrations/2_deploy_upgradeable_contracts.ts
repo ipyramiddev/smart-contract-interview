@@ -2,13 +2,13 @@ import { Network } from './types';
 import { deployProxy, admin } from '@openzeppelin/truffle-upgrades';
 import {
     ArchitectUpgradeableInstance,
-    CosmeticsUpgradeableInstance,
     HeroUpgradeableInstance,
     NFTMarketplaceUpgradeableInstance,
     PFTUpgradeableInstance,
     PorbleUpgradeableInstance,
     VestingVaultUpgradeableInstance,
     PFTStakingUpgradeableInstance,
+    GeneralNFTsUpgradeableInstance,
 } from '../types/truffle-contracts';
 
 // @NOTE: Remember to reinstate any commented out deployment scripts if you're going to run the corresponding test suite for that contract
@@ -63,12 +63,12 @@ module.exports = (artifacts: Truffle.Artifacts, web3: Web3) => {
         })) as ArchitectUpgradeableInstance;
         await architectUpgradeableTransparentProxyInstance.transferOwnership(multiSigWalletInstance.address);
 
-        const cosmeticsUpgradeable = artifacts.require('CosmeticsUpgradeable');
-        const cosmeticsUpgradeableTransparentProxyInstance = (await deployProxy(cosmeticsUpgradeable as any, [PORBUpgradeable.address, multiSigWalletInstance.address], {
+        const generalNFTsUpgradeable = artifacts.require('GeneralNFTsUpgradeable');
+        const generalNFTsUpgradeableTransparentProxyInstance = (await deployProxy(generalNFTsUpgradeable as any, [PORBUpgradeable.address, multiSigWalletInstance.address], {
             deployer: deployer as any,
             initializer: 'initialize',
-        })) as CosmeticsUpgradeableInstance;
-        await cosmeticsUpgradeableTransparentProxyInstance.transferOwnership(multiSigWalletInstance.address);
+        })) as GeneralNFTsUpgradeableInstance;
+        await generalNFTsUpgradeableTransparentProxyInstance.transferOwnership(multiSigWalletInstance.address);
 
         const porbleUpgradeable = artifacts.require('PorbleUpgradeable');
         const porbleUpgradeableTransparentProxyInstance = (await deployProxy(porbleUpgradeable as any, [accounts[1], multiSigWalletInstance.address], {
@@ -85,7 +85,7 @@ module.exports = (artifacts: Truffle.Artifacts, web3: Web3) => {
         await NFTMarketplaceUpgradeableTransparentProxyInstance.updateCollectionsWhitelist(heroUpgradeableTransparentProxyInstance.address, true);
         await NFTMarketplaceUpgradeableTransparentProxyInstance.updateCollectionsWhitelist(architectUpgradeableTransparentProxyInstance.address, true);
         await NFTMarketplaceUpgradeableTransparentProxyInstance.updateCollectionsWhitelist(porbleUpgradeableTransparentProxyInstance.address, true);
-        await NFTMarketplaceUpgradeableTransparentProxyInstance.updateCollectionsWhitelist(cosmeticsUpgradeableTransparentProxyInstance.address, true);
+        await NFTMarketplaceUpgradeableTransparentProxyInstance.updateCollectionsWhitelist(generalNFTsUpgradeableTransparentProxyInstance.address, true);
         await NFTMarketplaceUpgradeableTransparentProxyInstance.transferOwnership(multiSigWalletInstance.address);
 
         const VestingVaultUpgradeable = artifacts.require('VestingVaultUpgradeable');

@@ -10,7 +10,7 @@ import "../lib/upgradeable/ContractURIStorageUpgradeable.sol";
 import "../lib/upgradeable/OwnableUpgradeable.sol";
 import "../lib/upgradeable/PausableUpgradeable.sol";
 
-contract CosmeticsUpgradeable is
+contract GeneralNFTsUpgradeable is
     ERC721RoyaltyUpgradeable,
     ContractURIStorageUpgradeable,
     OwnableUpgradeable,
@@ -22,10 +22,10 @@ contract CosmeticsUpgradeable is
 
     string public baseURIString;
 
-    // The cosmetics mint price in AVAX
+    // The general NFT mint price in AVAX
     uint256 public mintPriceInAVAX;
 
-    // The cosmetics mint price in PORB
+    // The general NFT mint price in PORB
     uint256 public mintPriceInPORB;
 
     // The address of the PORB contract
@@ -35,8 +35,8 @@ contract CosmeticsUpgradeable is
     address public vault;
 
     function initialize(address _PORB, address _vault) public initializer {
-        __ERC721_init("Portal Fantasy Cosmetics", "PCOS");
-        __ContractURIStorage_init("https://www.portalfantasy.io/cosmetics/");
+        __ERC721_init("Portal Fantasy General NFTs", "PFGN");
+        __ContractURIStorage_init("https://www.portalfantasy.io/generalNFTs/");
         __Ownable_init();
 
         // @TODO: Have added a placeholder baseURIString. Need to replace with actual when it's implemented.
@@ -44,11 +44,11 @@ contract CosmeticsUpgradeable is
         PORB = IERC20(_PORB);
         vault = _vault;
 
-        // @TODO: Set the actual initial price in PORB to mint a Cosmetic
+        // @TODO: Set the actual initial price in PORB to mint a general NFT
         // 2 PORB initial price
         mintPriceInAVAX = 2000000000000000000;
 
-        // @TODO: Set the actual initial price in PORB to mint a Cosmetic
+        // @TODO: Set the actual initial price in PORB to mint a general NFT
         // 2 PORB initial price
         mintPriceInPORB = 2000000000000000000;
 
