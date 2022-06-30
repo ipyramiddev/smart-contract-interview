@@ -2,33 +2,29 @@
 
 pragma solidity ^0.8.0;
 
-import "../lib/IERC20.sol";
-import "../lib/IERC2981.sol";
-import "../lib/Counters.sol";
-import "../lib/upgradeable/ERC721RoyaltyUpgradeable.sol";
-import "../lib/upgradeable/ContractURIStorageUpgradeable.sol";
-import "../lib/upgradeable/OwnableUpgradeable.sol";
-import "../lib/upgradeable/PausableUpgradeable.sol";
+import "./lib/Counters.sol";
+import "./lib/ERC721Royalty.sol";
+import "./lib/ContractURIStorage.sol";
+import "./lib/IERC20.sol";
+import "./lib/IERC2981.sol";
+import "./lib/Ownable.sol";
+import "./lib/Pausable.sol";
 
-// @NOTE: Remove setBaseURI function to test the contract upgrade
-
-contract CosmeticsUpgradeableTest is
-    ERC721RoyaltyUpgradeable,
-    ContractURIStorageUpgradeable,
-    OwnableUpgradeable,
-    PausableUpgradeable
-{
+contract GeneralNFTs is ERC721Royalty, ContractURIStorage, Ownable, Pausable {
     using Counters for Counters.Counter;
 
     Counters.Counter private _tokenIdCounter;
 
     string public baseURIString;
 
-    // The architect mint price in AVAX
-    uint256 public mintPriceInAVAX;
+    // @TODO: Set the actual initial price in AVAX to mint a general NFT
+    // @TODO: We likely don't need to allow minting via AVAX. Find out and remove if necessary
+    // 2 AVAX initial price
+    uint256 public mintPriceInAVAX = 2000000000000000000;
 
-    // The architect mint price in PORB
-    uint256 public mintPriceInPORB;
+    // @TODO: Set the actual initial price in PORB to mint a general NFT
+    // 2 PORB initial price
+    uint256 public mintPriceInPORB = 2000000000000000000;
 
     // The address of the PORB contract
     IERC20 public PORB;
@@ -36,23 +32,14 @@ contract CosmeticsUpgradeableTest is
     // The vault contract to deposit earned PORB/AVAX and royalties
     address public vault;
 
-    function initialize(address _PORB, address _vault) public initializer {
-        __ERC721_init("Portal Fantasy Cosmetics", "TEST");
-        __ContractURIStorage_init("https://www.portalfantasy.io/architect/");
-        __Ownable_init();
-
+    constructor(address _PORB, address _vault)
+        ERC721("Portal Fantasy General NFTs", "PFGN")
+        ContractURIStorage("https://www.portalfantasy.io/generalNFTs/")
+    {
         // @TODO: Have added a placeholder baseURIString. Need to replace with actual when it's implemented.
         baseURIString = "https://www.portalfantasy.io/";
         PORB = IERC20(_PORB);
         vault = _vault;
-
-        // @TODO: Set the actual initial price in PORB to mint a cosmetic
-        // 2 PORB initial price
-        mintPriceInAVAX = 2000000000000000000;
-
-        // @TODO: Set the actual initial price in PORB to mint a cosmetic
-        // 2 PORB initial price
-        mintPriceInPORB = 2000000000000000000;
 
         // Set the default token royalty to 4%
         _setDefaultRoyalty(vault, 400);
@@ -71,7 +58,8 @@ contract CosmeticsUpgradeableTest is
      */
     function mintWithAVAX() external payable whenNotPaused {
         require(msg.value == mintPriceInAVAX, "Invalid payment amount");
-        payable(vault).transfer(msg.value);
+        (bool success, ) = payable(vault).call{value: msg.value}("");
+        require(success, "transfer to vault failed");
         _safeMint(_msgSender(), _tokenIdCounter.current());
         _tokenIdCounter.increment();
     }
@@ -83,6 +71,17 @@ contract CosmeticsUpgradeableTest is
         PORB.transferFrom(_msgSender(), vault, mintPriceInPORB);
         _safeMint(_msgSender(), _tokenIdCounter.current());
         _tokenIdCounter.increment();
+    }
+
+    /**
+     * Allows the owner to set a new base URI
+     * @param _baseURIString the new base URI to point to
+     */
+    function setBaseURIString(string calldata _baseURIString)
+        external
+        onlyOwner
+    {
+        baseURIString = _baseURIString;
     }
 
     /**
