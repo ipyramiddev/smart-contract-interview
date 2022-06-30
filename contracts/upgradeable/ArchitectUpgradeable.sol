@@ -69,7 +69,8 @@ contract ArchitectUpgradeable is
      */
     function mintWithAVAX() external payable whenNotPaused {
         require(msg.value == mintPriceInAVAX, "Invalid payment amount");
-        payable(vault).transfer(msg.value);
+        (bool success, ) = payable(vault).call{value: msg.value}("");
+        require(success, "transfer to vault failed");
         _safeMint(_msgSender(), _tokenIdCounter.current());
         _tokenIdCounter.increment();
     }

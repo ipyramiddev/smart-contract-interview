@@ -390,6 +390,7 @@ contract MultiSigWallet {
     /// @param to the address to withdraw AVAX to
     /// @param amount the amount of AVAX to withdraw
     function withdrawAVAX(address to, uint256 amount) public onlyWallet {
-        to.transfer(amount);
+        (bool success, ) = to.call.value(amount)("");
+        require(success, "withdraw failed");
     }
 }
