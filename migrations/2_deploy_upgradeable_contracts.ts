@@ -8,9 +8,9 @@ import {
     PorbleUpgradeableInstance,
     VestingVaultUpgradeableInstance,
     PFTStakingUpgradeableInstance,
-    PFTVaultUpgradeableInstance,
     GeneralNFTsUpgradeableInstance,
     USDPUpgradeableInstance,
+    TokenVaultUpgradeableInstance,
 } from '../types/truffle-contracts';
 
 // @NOTE: Remember to reinstate any commented out deployment scripts if you're going to run the corresponding test suite for that contract
@@ -36,12 +36,12 @@ module.exports = (artifacts: Truffle.Artifacts, web3: Web3) => {
         await PFTUpgradeableTransparentProxyInstance.addController(multiSigWalletInstance.address);
         await PFTUpgradeableTransparentProxyInstance.transferOwnership(multiSigWalletInstance.address);
 
-        const PFTVault = artifacts.require('PFTVaultUpgradeable');
-        const PFTVaultUpgradeableTransparentProxyInstance = (await deployProxy(PFTVault as any, [accounts[1]], {
+        const TokenVault = artifacts.require('TokenVaultUpgradeable');
+        const TokenVaultUpgradeableTransparentProxyInstance = (await deployProxy(TokenVault as any, [accounts[1]], {
             deployer: deployer as any,
             initializer: 'initialize',
-        })) as PFTVaultUpgradeableInstance;
-        await PFTVaultUpgradeableTransparentProxyInstance.transferOwnership(multiSigWalletInstance.address);
+        })) as TokenVaultUpgradeableInstance;
+        await TokenVaultUpgradeableTransparentProxyInstance.transferOwnership(multiSigWalletInstance.address);
 
         const PFTStaking = artifacts.require('PFTStakingUpgradeable');
         const PFTStakingUpgradeableTransparentProxyInstance = (await deployProxy(PFTStaking as any, ['1000'], {
@@ -52,23 +52,27 @@ module.exports = (artifacts: Truffle.Artifacts, web3: Web3) => {
 
         const USDPUpgradeable = artifacts.require('USDPUpgradeable');
         await deployer.deploy<any[]>(USDPUpgradeable, accounts[1], multiSigWalletInstance.address);
-        const USDPUpgradeableTransparentProxyInstance = await deployProxy(USDPUpgradeable as any, [], {
+        const USDPUpgradeableTransparentProxyInstance = (await deployProxy(USDPUpgradeable as any, [], {
             deployer: deployer as any,
             initializer: 'initialize',
-        });
+        })) as USDPUpgradeableInstance;
         await USDPUpgradeableTransparentProxyInstance.transferOwnership(multiSigWalletInstance.address);
 
         const heroUpgradeable = artifacts.require('HeroUpgradeable');
-        const heroUpgradeableTransparentProxyInstance = (await deployProxy(heroUpgradeable as any, [USDPUpgradeable.address, PFTVaultUpgradeableTransparentProxyInstance.address], {
-            deployer: deployer as any,
-            initializer: 'initialize',
-        })) as HeroUpgradeableInstance;
+        const heroUpgradeableTransparentProxyInstance = (await deployProxy(
+            heroUpgradeable as any,
+            [USDPUpgradeable.address, TokenVaultUpgradeableTransparentProxyInstance.address],
+            {
+                deployer: deployer as any,
+                initializer: 'initialize',
+            }
+        )) as HeroUpgradeableInstance;
         await heroUpgradeableTransparentProxyInstance.transferOwnership(multiSigWalletInstance.address);
 
         const architectUpgradeable = artifacts.require('ArchitectUpgradeable');
         const architectUpgradeableTransparentProxyInstance = (await deployProxy(
             architectUpgradeable as any,
-            [USDPUpgradeable.address, PFTVaultUpgradeableTransparentProxyInstance.address],
+            [USDPUpgradeable.address, TokenVaultUpgradeableTransparentProxyInstance.address],
             {
                 deployer: deployer as any,
                 initializer: 'initialize',
@@ -79,7 +83,7 @@ module.exports = (artifacts: Truffle.Artifacts, web3: Web3) => {
         const generalNFTsUpgradeable = artifacts.require('GeneralNFTsUpgradeable');
         const generalNFTsUpgradeableTransparentProxyInstance = (await deployProxy(
             generalNFTsUpgradeable as any,
-            [USDPUpgradeable.address, PFTVaultUpgradeableTransparentProxyInstance.address],
+            [USDPUpgradeable.address, TokenVaultUpgradeableTransparentProxyInstance.address],
             {
                 deployer: deployer as any,
                 initializer: 'initialize',
@@ -88,7 +92,7 @@ module.exports = (artifacts: Truffle.Artifacts, web3: Web3) => {
         await generalNFTsUpgradeableTransparentProxyInstance.transferOwnership(multiSigWalletInstance.address);
 
         const porbleUpgradeable = artifacts.require('PorbleUpgradeable');
-        const porbleUpgradeableTransparentProxyInstance = (await deployProxy(porbleUpgradeable as any, [accounts[1], PFTVaultUpgradeableTransparentProxyInstance.address], {
+        const porbleUpgradeableTransparentProxyInstance = (await deployProxy(porbleUpgradeable as any, [accounts[1], TokenVaultUpgradeableTransparentProxyInstance.address], {
             deployer: deployer as any,
             initializer: 'initialize',
         })) as PorbleUpgradeableInstance;

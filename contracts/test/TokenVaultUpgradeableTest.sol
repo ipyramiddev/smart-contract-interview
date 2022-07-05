@@ -2,12 +2,13 @@
 
 pragma solidity ^0.8.0;
 
-import "../lib/upgradeable/IERC20Upgradeable.sol";
 import "../lib/upgradeable/draft-EIP712Upgradeable.sol";
 import "../lib/upgradeable/OwnableUpgradeable.sol";
 import "../lib/upgradeable/ReentrancyGuardUpgradeable.sol";
 
-contract PFTVaultUpgradeable is
+// @NOTE: Remove issueFullRefund function to test the contract upgrade
+
+contract TokenVaultUpgradeableTest is
     ReentrancyGuardUpgradeable,
     EIP712Upgradeable,
     OwnableUpgradeable
@@ -48,24 +49,17 @@ contract PFTVaultUpgradeable is
     }
 
     /**
-     * Allows the contract owner to issue a user a full refund
-     * @param user the address of the user that made the payment
-     * @param opId the operation Id that the user made the payment in relation to
+     * Allows the contract owner (should be MultiSigWallet) to withdraw a specific amount of PFT to an address
+     * @param to the address to withdraw the PFT to
+     * @param amount the amount of PFT to withdraw from this contract
      */
-    function issueFullRefund(address user, uint256 opId)
+    function withdrawPFT(address to, uint256 amount)
         external
         onlyOwner
         nonReentrant
     {
-        uint256 refundAmount = userPaymentsInfo[user][opId];
-        require(
-            refundAmount > 0,
-            "There is no refund to issue for this combination of user and opId"
-        );
-        delete userPaymentsInfo[user][opId];
-        (bool success, ) = payable(user).call{value: refundAmount}("");
-        require(success, "refund failed");
-        emit Payment(user, opId, -int256(refundAmount));
+        (bool success, ) = payable(to).call{value: amount}("");
+        require(success, "withdraw failed");
     }
 
     /**
@@ -124,35 +118,6 @@ contract PFTVaultUpgradeable is
         returns (uint256)
     {
         return userPaymentsInfo[user][opId];
-    }
-
-    /**
-     * Allows the contract owner (should be MultiSigWallet) to withdraw a specific amount of PFT to an address
-     * @param to the address to withdraw the PFT to
-     * @param amount the amount of PFT to withdraw from this contract
-     */
-    function withdrawPFT(address to, uint256 amount)
-        external
-        onlyOwner
-        nonReentrant
-    {
-        (bool success, ) = payable(to).call{value: amount}("");
-        require(success, "withdraw failed");
-    }
-
-    /**
-     * Allows the contract owner (should be MultiSigWallet) to withdraw a specific amount of ERC20 tokens to an address
-     * @param token the ERC20 token address, e.g. USDP
-     * @param to the address to withdraw the PFT to
-     * @param amount the amount of PFT to withdraw from this contract
-     */
-    function withdrawTokens(
-        address token,
-        address to,
-        uint256 amount
-    ) external onlyOwner {
-        bool success = IERC20Upgradeable(token).transfer(to, amount);
-        require(success, "withdraw failed");
     }
 
     fallback() external payable {}
