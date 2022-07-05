@@ -244,9 +244,9 @@ contract.skip('MultiSigWallet.sol', ([owner, account1, account2, account3, accou
         const accountBalanceBeforeWithdrawal = (await web3.eth.getBalance(account9)).toString();
 
         // Withdrawal requires a multiSig so this should fail
-        await localExpect(multiSigWalletInstance.withdrawAVAX(account9, avaxAmountToSend)).to.eventually.be.rejected;
+        await localExpect(multiSigWalletInstance.withdrawPFT(account9, avaxAmountToSend)).to.eventually.be.rejected;
 
-        const data = multiSigWalletContract.methods.withdrawAVAX(account9, avaxAmountToSend).encodeABI();
+        const data = multiSigWalletContract.methods.withdrawPFT(account9, avaxAmountToSend).encodeABI();
         await multiSigWalletInstance.submitTransaction(multiSigWalletInstance.address, 0, data, { from: owner });
         const txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
         await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });

@@ -8,6 +8,7 @@ import {
     PorbleUpgradeableInstance,
     VestingVaultUpgradeableInstance,
     PFTStakingUpgradeableInstance,
+    PFTVaultUpgradeableInstance,
     GeneralNFTsUpgradeableInstance,
 } from '../types/truffle-contracts';
 
@@ -34,6 +35,13 @@ module.exports = (artifacts: Truffle.Artifacts, web3: Web3) => {
         await PFTUpgradeableTransparentProxyInstance.addController(multiSigWalletInstance.address);
         await PFTUpgradeableTransparentProxyInstance.transferOwnership(multiSigWalletInstance.address);
 
+        const PFTVault = artifacts.require('PFTVaultUpgradeable');
+        const PFTVaultUpgradeableTransparentProxyInstance = (await deployProxy(PFTVault as any, [accounts[1]], {
+            deployer: deployer as any,
+            initializer: 'initialize',
+        })) as PFTVaultUpgradeableInstance;
+        await PFTVaultUpgradeableTransparentProxyInstance.transferOwnership(multiSigWalletInstance.address);
+
         const PFTStaking = artifacts.require('PFTStakingUpgradeable');
         const PFTStakingUpgradeableTransparentProxyInstance = (await deployProxy(PFTStaking as any, ['1000'], {
             deployer: deployer as any,
@@ -50,28 +58,36 @@ module.exports = (artifacts: Truffle.Artifacts, web3: Web3) => {
         await PORBUpgradeableTransparentProxyInstance.transferOwnership(multiSigWalletInstance.address);
 
         const heroUpgradeable = artifacts.require('HeroUpgradeable');
-        const heroUpgradeableTransparentProxyInstance = (await deployProxy(heroUpgradeable as any, [PORBUpgradeable.address, multiSigWalletInstance.address], {
+        const heroUpgradeableTransparentProxyInstance = (await deployProxy(heroUpgradeable as any, [PORBUpgradeable.address, PFTVaultUpgradeableTransparentProxyInstance.address], {
             deployer: deployer as any,
             initializer: 'initialize',
         })) as HeroUpgradeableInstance;
         await heroUpgradeableTransparentProxyInstance.transferOwnership(multiSigWalletInstance.address);
 
         const architectUpgradeable = artifacts.require('ArchitectUpgradeable');
-        const architectUpgradeableTransparentProxyInstance = (await deployProxy(architectUpgradeable as any, [PORBUpgradeable.address, multiSigWalletInstance.address], {
-            deployer: deployer as any,
-            initializer: 'initialize',
-        })) as ArchitectUpgradeableInstance;
+        const architectUpgradeableTransparentProxyInstance = (await deployProxy(
+            architectUpgradeable as any,
+            [PORBUpgradeable.address, PFTVaultUpgradeableTransparentProxyInstance.address],
+            {
+                deployer: deployer as any,
+                initializer: 'initialize',
+            }
+        )) as ArchitectUpgradeableInstance;
         await architectUpgradeableTransparentProxyInstance.transferOwnership(multiSigWalletInstance.address);
 
         const generalNFTsUpgradeable = artifacts.require('GeneralNFTsUpgradeable');
-        const generalNFTsUpgradeableTransparentProxyInstance = (await deployProxy(generalNFTsUpgradeable as any, [PORBUpgradeable.address, multiSigWalletInstance.address], {
-            deployer: deployer as any,
-            initializer: 'initialize',
-        })) as GeneralNFTsUpgradeableInstance;
+        const generalNFTsUpgradeableTransparentProxyInstance = (await deployProxy(
+            generalNFTsUpgradeable as any,
+            [PORBUpgradeable.address, PFTVaultUpgradeableTransparentProxyInstance.address],
+            {
+                deployer: deployer as any,
+                initializer: 'initialize',
+            }
+        )) as GeneralNFTsUpgradeableInstance;
         await generalNFTsUpgradeableTransparentProxyInstance.transferOwnership(multiSigWalletInstance.address);
 
         const porbleUpgradeable = artifacts.require('PorbleUpgradeable');
-        const porbleUpgradeableTransparentProxyInstance = (await deployProxy(porbleUpgradeable as any, [accounts[1], multiSigWalletInstance.address], {
+        const porbleUpgradeableTransparentProxyInstance = (await deployProxy(porbleUpgradeable as any, [accounts[1], PFTVaultUpgradeableTransparentProxyInstance.address], {
             deployer: deployer as any,
             initializer: 'initialize',
         })) as PorbleUpgradeableInstance;

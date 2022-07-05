@@ -662,14 +662,14 @@ contract.skip('PORBUpgradeable.sol', ([owner, account1, account2, account3, acco
         await localExpect(PORBUpgradeableInstance.transferFromVault(signature, amountToTransfer, { from: testAccountsData[1].address })).to.eventually.be.rejected;
 
         const newSigner = new ethers.Wallet(testAccountsData[2].privateKey, provider);
-        const newsignature = await newSigner._signTypedData(domain, types, PORBVaultTransferConditions);
+        const newSignature = await newSigner._signTypedData(domain, types, PORBVaultTransferConditions);
 
         // Keep track of balances before the transfer
         const vaultBalanceBefore = (await PORBUpgradeableInstance.balanceOf(multiSigWalletInstance.address)).toString();
         const recipientBalanceBefore = (await PORBUpgradeableInstance.balanceOf(account1)).toString();
 
         // Should now pass because the signer has been updated
-        await localExpect(PORBUpgradeableInstance.transferFromVault(newsignature, amountToTransfer, { from: testAccountsData[1].address })).to.eventually.be.fulfilled;
+        await localExpect(PORBUpgradeableInstance.transferFromVault(newSignature, amountToTransfer, { from: testAccountsData[1].address })).to.eventually.be.fulfilled;
 
         const vaultBalanceAfter = (await PORBUpgradeableInstance.balanceOf(multiSigWalletInstance.address)).toString();
         const recipientBalanceAfter = (await PORBUpgradeableInstance.balanceOf(account1)).toString();

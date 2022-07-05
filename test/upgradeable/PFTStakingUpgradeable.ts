@@ -43,6 +43,17 @@ contract.skip('PFTStakingUpgradeable.sol', ([owner, account1, account2, account3
         expect(amount.toString()).to.equal(minimumStakingAmount);
     });
 
+    it('only allows the contract owner to set the minimum staking amount', async () => {
+        await localExpect(PFTStakingUpgradeableInstance.setMinimumStakeAmount('100')).to.eventually.be.rejected;
+
+        let data = PFTStakingUpgradeableContract.methods.setMinimumStakeAmount('200').encodeABI();
+        await multiSigWalletInstance.submitTransaction(PFTStakingUpgradeableInstance.address, 0, data, { from: owner });
+        let txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
+        const minimumStakingAmount = (await PFTStakingUpgradeableInstance.minimumStakeAmount()).toString();
+        expect(minimumStakingAmount).to.equal('200');
+    });
+
     it('reverts if the user tries to stake less than the minimum staking amount for an initial stake', async () => {
         const minimumStakingAmount = (await PFTStakingUpgradeableInstance.minimumStakeAmount()).toString();
         await localExpect(PFTStakingUpgradeableInstance.stake({ from: account1, value: bigInt(minimumStakingAmount).minus(1).toString() })).to.eventually.be.rejected;
