@@ -2,6 +2,7 @@
 
 pragma solidity ^0.8.0;
 
+import "../lib/upgradeable/IERC20Upgradeable.sol";
 import "../lib/upgradeable/draft-EIP712Upgradeable.sol";
 import "../lib/upgradeable/OwnableUpgradeable.sol";
 import "../lib/upgradeable/ReentrancyGuardUpgradeable.sol";
@@ -68,20 +69,6 @@ contract PFTVaultUpgradeable is
     }
 
     /**
-     * Allows the contract owner (should be MultiSigWallet) to withdraw a specific amount of PFT to an address
-     * @param to the address to withdraw the PFT to
-     * @param amount the amount of PFT to withdraw from this contract
-     */
-    function withdrawPFT(address to, uint256 amount)
-        external
-        onlyOwner
-        nonReentrant
-    {
-        (bool success, ) = payable(to).call{value: amount}("");
-        require(success, "withdraw failed");
-    }
-
-    /**
      * Sets the only valid signer of transfers from the vault contract
      * @param signer the address of the signer to point to
      */
@@ -137,6 +124,35 @@ contract PFTVaultUpgradeable is
         returns (uint256)
     {
         return userPaymentsInfo[user][opId];
+    }
+
+    /**
+     * Allows the contract owner (should be MultiSigWallet) to withdraw a specific amount of PFT to an address
+     * @param to the address to withdraw the PFT to
+     * @param amount the amount of PFT to withdraw from this contract
+     */
+    function withdrawPFT(address to, uint256 amount)
+        external
+        onlyOwner
+        nonReentrant
+    {
+        (bool success, ) = payable(to).call{value: amount}("");
+        require(success, "withdraw failed");
+    }
+
+    /**
+     * Allows the contract owner (should be MultiSigWallet) to withdraw a specific amount of ERC20 tokens to an address
+     * @param token the ERC20 token address, e.g. USDP
+     * @param to the address to withdraw the PFT to
+     * @param amount the amount of PFT to withdraw from this contract
+     */
+    function withdrawTokens(
+        address token,
+        address to,
+        uint256 amount
+    ) external onlyOwner {
+        bool success = IERC20Upgradeable(token).transfer(to, amount);
+        require(success, "withdraw failed");
     }
 
     fallback() external payable {}

@@ -1,8 +1,9 @@
 import { deployProxy, upgradeProxy } from '@openzeppelin/truffle-upgrades';
 import bigInt from 'big-integer';
 import { localExpect } from '../lib/test-libraries';
-import { PFTVaultUpgradeableInstance, MultiSigWalletInstance, PFTVaultUpgradeableTestInstance } from '../../types/truffle-contracts';
+import { PFTVaultUpgradeableInstance, MultiSigWalletInstance, PFTVaultUpgradeableTestInstance, USDPUpgradeableInstance } from '../../types/truffle-contracts';
 import PFT_VAULT_UPGRADEABLE_JSON from '../../build/contracts/PFTVaultUpgradeable.json';
+import USDP_UPGRADEABLE_JSON from '../../build/contracts/USDPUpgradeable.json';
 import Web3 from 'web3';
 import { AbiItem } from 'web3-utils';
 import { getTxIdFromMultiSigWallet } from '../lib/test-helpers';
@@ -13,10 +14,12 @@ const config = require('../../config').config;
 
 const PFTVaultUpgradeable = artifacts.require('PFTVaultUpgradeable');
 const multiSigWallet = artifacts.require('MultiSigWallet');
+const USDPUpgradeable = artifacts.require('USDPUpgradeable');
 const PFTVaultUpgradeableTest = artifacts.require('PFTVaultUpgradeableTest');
 
 const web3 = new Web3(new Web3.providers.HttpProvider(config.AVAX.localSubnetHTTP));
 const PFT_VAULT_UPGRADEABLE_ABI = PFT_VAULT_UPGRADEABLE_JSON.abi as AbiItem[];
+const USDP_UPGRADEABLE_ABI = USDP_UPGRADEABLE_JSON.abi as AbiItem[];
 const rpcEndpoint = config.AVAX.localSubnetHTTP;
 const provider = new ethers.providers.JsonRpcProvider(rpcEndpoint);
 const signer = new ethers.Wallet(testAccountsData[1].privateKey, provider);
@@ -24,19 +27,24 @@ const signer = new ethers.Wallet(testAccountsData[1].privateKey, provider);
 contract.skip('PFTVaultUpgradeable.sol', ([owner, account1, account2, account3, account4, account5, account6, account7, account8, account9]) => {
     let PFTVaultUpgradeableInstance: PFTVaultUpgradeableInstance;
     let multiSigWalletInstance: MultiSigWalletInstance;
+    let USDPUpgradeableInstance: USDPUpgradeableInstance;
     let PFTVaultUpgradeableTestInstance: PFTVaultUpgradeableTestInstance;
     let PFTVaultUpgradeableContract: any;
+    let USDPUpgradeableContract: any;
 
     beforeEach(async () => {
         // Require 2 signatures for multiSig
         multiSigWalletInstance = await multiSigWallet.new([owner, account1, account2], 2);
-
+        USDPUpgradeableInstance = (await deployProxy(USDPUpgradeable as any, [], {
+            initializer: 'initialize',
+        })) as USDPUpgradeableInstance;
         PFTVaultUpgradeableInstance = (await deployProxy(PFTVaultUpgradeable as any, [account1], {
             initializer: 'initialize',
         })) as PFTVaultUpgradeableInstance;
         await PFTVaultUpgradeableInstance.transferOwnership(multiSigWalletInstance.address);
 
         PFTVaultUpgradeableContract = new web3.eth.Contract(PFT_VAULT_UPGRADEABLE_ABI, PFTVaultUpgradeableInstance.address);
+        USDPUpgradeableContract = new web3.eth.Contract(USDP_UPGRADEABLE_ABI, USDPUpgradeableInstance.address);
     });
 
     it('allows a user to pay for a specific opId', async () => {
@@ -101,6 +109,34 @@ contract.skip('PFTVaultUpgradeable.sol', ([owner, account1, account2, account3, 
 
         const accountBalanceOfPFTAfter = (await web3.eth.getBalance(account8)).toString();
         expect(bigInt(accountBalanceOfPFTBefore).add('1000').toString()).to.equal(accountBalanceOfPFTAfter);
+    });
+
+    it('only allows the contract owner to withdraw ERC20 tokens', async () => {
+        USDPUpgradeableInstance = (await deployProxy(USDPUpgradeable as any, [], {
+            initializer: 'initialize',
+        })) as USDPUpgradeableInstance;
+
+        await USDPUpgradeableInstance.addController(multiSigWalletInstance.address);
+        await USDPUpgradeableInstance.transferOwnership(multiSigWalletInstance.address);
+
+        const amountToMint = '3000';
+        let data = USDPUpgradeableContract.methods.mint(PFTVaultUpgradeableInstance.address, amountToMint).encodeABI();
+        await multiSigWalletInstance.submitTransaction(USDPUpgradeableInstance.address, 0, data, { from: owner });
+        let txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
+
+        // This should be rejected as account0 is not the contract owner
+        await localExpect(PFTVaultUpgradeableInstance.withdrawTokens(USDPUpgradeableInstance.address, account8, amountToMint)).to.eventually.be.rejected;
+
+        const accountBalanceOfUSDPBefore = (await USDPUpgradeableInstance.balanceOf(account8)).toString();
+
+        data = PFTVaultUpgradeableContract.methods.withdrawTokens(USDPUpgradeableInstance.address, account8, amountToMint).encodeABI();
+        await multiSigWalletInstance.submitTransaction(PFTVaultUpgradeableInstance.address, 0, data, { from: owner });
+        txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
+
+        const accountBalanceOfUSDPAfter = (await USDPUpgradeableInstance.balanceOf(account8)).toString();
+        expect(bigInt(accountBalanceOfUSDPBefore).add(amountToMint).toString()).to.equal(accountBalanceOfUSDPAfter);
     });
 
     it('allows PFT to be transferred from the vault if the signature is successfully verified', async () => {

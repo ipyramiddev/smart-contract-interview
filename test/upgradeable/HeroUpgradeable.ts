@@ -1,9 +1,9 @@
 import { deployProxy, upgradeProxy } from '@openzeppelin/truffle-upgrades';
 import bigInt from 'big-integer';
 import { localExpect } from '../lib/test-libraries';
-import { HeroUpgradeableInstance, PORBUpgradeableInstance, MultiSigWalletInstance, HeroUpgradeableTestInstance } from '../../types/truffle-contracts';
+import { HeroUpgradeableInstance, USDPUpgradeableInstance, MultiSigWalletInstance, HeroUpgradeableTestInstance } from '../../types/truffle-contracts';
 import HERO_UPGRADEABLE_JSON from '../../build/contracts/HeroUpgradeable.json';
-import PORB_UPGRADEABLE_JSON from '../../build/contracts/PORBUpgradeable.json';
+import USDP_UPGRADEABLE_JSON from '../../build/contracts/USDPUpgradeable.json';
 import Web3 from 'web3';
 import { AbiItem } from 'web3-utils';
 import { getTxIdFromMultiSigWallet } from '../lib/test-helpers';
@@ -11,36 +11,36 @@ import { getTxIdFromMultiSigWallet } from '../lib/test-helpers';
 const config = require('../../config').config;
 
 const heroUpgradeable = artifacts.require('HeroUpgradeable');
-const PORBUpgradeable = artifacts.require('PORBUpgradeable');
+const USDPUpgradeable = artifacts.require('USDPUpgradeable');
 const multiSigWallet = artifacts.require('MultiSigWallet');
 const heroUpgradeableTest = artifacts.require('HeroUpgradeableTest');
 
 const web3 = new Web3(new Web3.providers.HttpProvider(config.AVAX.localSubnetHTTP));
 const HERO_UPGRADEABLE_ABI = HERO_UPGRADEABLE_JSON.abi as AbiItem[];
-const PORB_UPGRADEABLE_ABI = PORB_UPGRADEABLE_JSON.abi as AbiItem[];
+const USDP_UPGRADEABLE_ABI = USDP_UPGRADEABLE_JSON.abi as AbiItem[];
 
 contract.skip('HeroUpgradeable.sol', ([owner, account1, account2, account3, account4, account5, account6, account7, account8, account9]) => {
     let heroUpgradeableInstance: HeroUpgradeableInstance;
-    let PORBUpgradeableInstance: PORBUpgradeableInstance;
+    let USDPUpgradeableInstance: USDPUpgradeableInstance;
     let multiSigWalletInstance: MultiSigWalletInstance;
     let heroUpgradeableTestInstance: HeroUpgradeableTestInstance;
     let heroUpgradeableContract: any;
-    let PORBUpgradeableContract: any;
+    let USDPUpgradeableContract: any;
 
     beforeEach(async () => {
         // Require 2 signatures for multiSig
         multiSigWalletInstance = await multiSigWallet.new([owner, account1, account2], 2);
-        PORBUpgradeableInstance = (await deployProxy(PORBUpgradeable as any, [account1, owner], {
+        USDPUpgradeableInstance = (await deployProxy(USDPUpgradeable as any, [], {
             initializer: 'initialize',
-        })) as PORBUpgradeableInstance;
-        heroUpgradeableInstance = (await deployProxy(heroUpgradeable as any, [PORBUpgradeableInstance.address, account9], {
+        })) as USDPUpgradeableInstance;
+        heroUpgradeableInstance = (await deployProxy(heroUpgradeable as any, [USDPUpgradeableInstance.address, account9], {
             initializer: 'initialize',
         })) as HeroUpgradeableInstance;
-        await PORBUpgradeableInstance.transferOwnership(multiSigWalletInstance.address);
+        await USDPUpgradeableInstance.transferOwnership(multiSigWalletInstance.address);
         await heroUpgradeableInstance.transferOwnership(multiSigWalletInstance.address);
 
         heroUpgradeableContract = new web3.eth.Contract(HERO_UPGRADEABLE_ABI, heroUpgradeableInstance.address);
-        PORBUpgradeableContract = new web3.eth.Contract(PORB_UPGRADEABLE_ABI, PORBUpgradeableInstance.address);
+        USDPUpgradeableContract = new web3.eth.Contract(USDP_UPGRADEABLE_ABI, USDPUpgradeableInstance.address);
     });
 
     it("has token name set to 'Portal Fantasy Hero'", async () => {
@@ -80,65 +80,65 @@ contract.skip('HeroUpgradeable.sol', ([owner, account1, account2, account3, acco
         expect(isPaused).to.be.false;
     });
 
-    it('allows a Hero NFT to be minted with payment in PORB', async () => {
-        const initialPORBAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
-        const priceOfHeroInPORB = web3.utils.toWei('2', 'ether');
+    it('allows a Hero NFT to be minted with payment in USDP', async () => {
+        const initialUSDPAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
+        const priceOfHeroInUSDP = web3.utils.toWei('2', 'ether');
 
-        // Add controller for PORB
-        let data = PORBUpgradeableContract.methods.addController(multiSigWalletInstance.address).encodeABI();
-        await multiSigWalletInstance.submitTransaction(PORBUpgradeableInstance.address, 0, data, { from: owner });
+        // Add controller for USDP
+        let data = USDPUpgradeableContract.methods.addController(multiSigWalletInstance.address).encodeABI();
+        await multiSigWalletInstance.submitTransaction(USDPUpgradeableInstance.address, 0, data, { from: owner });
         let txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
         await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
-        // Mint PORB
-        data = PORBUpgradeableContract.methods.mint(account1, initialPORBAmountMintedToOwner).encodeABI();
-        await multiSigWalletInstance.submitTransaction(PORBUpgradeableInstance.address, 0, data, { from: owner });
+        // Mint USDP
+        data = USDPUpgradeableContract.methods.mint(account1, initialUSDPAmountMintedToOwner).encodeABI();
+        await multiSigWalletInstance.submitTransaction(USDPUpgradeableInstance.address, 0, data, { from: owner });
         txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
         await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
-        await PORBUpgradeableInstance.approve(heroUpgradeableInstance.address, priceOfHeroInPORB, { from: account1 });
-        await heroUpgradeableInstance.mintWithPORB({ from: account1 });
+        await USDPUpgradeableInstance.approve(heroUpgradeableInstance.address, priceOfHeroInUSDP, { from: account1 });
+        await heroUpgradeableInstance.mintWithUSDP({ from: account1 });
 
         const ownerOfMintedHero = await heroUpgradeableInstance.ownerOf('0');
-        const balanceOfPORBVault = (await PORBUpgradeableInstance.balanceOf(account9)).toString();
+        const balanceOfUSDPVault = (await USDPUpgradeableInstance.balanceOf(account9)).toString();
 
         expect(ownerOfMintedHero).to.equal(account1);
-        expect(balanceOfPORBVault).to.equal(priceOfHeroInPORB);
+        expect(balanceOfUSDPVault).to.equal(priceOfHeroInUSDP);
     });
 
-    it('only allows the owner (multiSigWallet) to change mintPriceInPORB', async () => {
-        const newMintPriceInPORB = web3.utils.toWei('5', 'ether');
+    it('only allows the owner (multiSigWallet) to change mintPriceInUSDP', async () => {
+        const newmintPriceInUSDP = web3.utils.toWei('5', 'ether');
 
         // Should fail since caller is not the owner
-        await localExpect(heroUpgradeableInstance.setMintPriceInPORB(newMintPriceInPORB, { from: account1 })).to.eventually.be.rejected;
+        await localExpect(heroUpgradeableInstance.setMintPriceInUSDP(newmintPriceInUSDP, { from: account1 })).to.eventually.be.rejected;
 
-        const data = heroUpgradeableContract.methods.setMintPriceInPORB(newMintPriceInPORB).encodeABI();
+        const data = heroUpgradeableContract.methods.setMintPriceInUSDP(newmintPriceInUSDP).encodeABI();
         await multiSigWalletInstance.submitTransaction(heroUpgradeableInstance.address, 0, data, { from: owner });
         const txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
         await localExpect(multiSigWalletInstance.confirmTransaction(txId, { from: account1 })).to.eventually.be.fulfilled;
 
-        const contractMintPriceInPORB = (await heroUpgradeableInstance.mintPriceInPORB()).toString();
-        expect(contractMintPriceInPORB).to.equal(newMintPriceInPORB);
+        const contractmintPriceInUSDP = (await heroUpgradeableInstance.mintPriceInUSDP()).toString();
+        expect(contractmintPriceInUSDP).to.equal(newmintPriceInUSDP);
     });
 
-    it('only allows the owner (multiSigWallet) to change the PORB contract address', async () => {
-        const newPORBUpgradeableInstance = (await deployProxy(PORBUpgradeable as any, [account1, owner], {
+    it('only allows the owner (multiSigWallet) to change the USDP contract address', async () => {
+        const newUSDPUpgradeableInstance = (await deployProxy(USDPUpgradeable as any, [], {
             initializer: 'initialize',
-        })) as PORBUpgradeableInstance;
+        })) as USDPUpgradeableInstance;
 
         // Should fail since caller is not the owner
-        await localExpect(heroUpgradeableInstance.setPORB(newPORBUpgradeableInstance.address, { from: account1 })).to.eventually.be.rejected;
+        await localExpect(heroUpgradeableInstance.setUSDP(newUSDPUpgradeableInstance.address, { from: account1 })).to.eventually.be.rejected;
 
-        const data = heroUpgradeableContract.methods.setPORB(newPORBUpgradeableInstance.address).encodeABI();
+        const data = heroUpgradeableContract.methods.setUSDP(newUSDPUpgradeableInstance.address).encodeABI();
         await multiSigWalletInstance.submitTransaction(heroUpgradeableInstance.address, 0, data, { from: owner });
         const txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
         await localExpect(multiSigWalletInstance.confirmTransaction(txId, { from: account1 })).to.eventually.be.fulfilled;
 
-        const contractPORBAddress = (await heroUpgradeableInstance.PORB()).toString();
-        expect(contractPORBAddress).to.equal(newPORBUpgradeableInstance.address);
+        const contractUSDPAddress = (await heroUpgradeableInstance.USDP()).toString();
+        expect(contractUSDPAddress).to.equal(newUSDPUpgradeableInstance.address);
     });
 
-    it('only allows the owner (multiSigWallet) to change the PORB vault', async () => {
+    it('only allows the owner (multiSigWallet) to change the USDP vault', async () => {
         // Should fail since caller is not the owner
         await localExpect(heroUpgradeableInstance.setVault(account2, { from: account1 })).to.eventually.be.rejected;
 
@@ -147,52 +147,52 @@ contract.skip('HeroUpgradeable.sol', ([owner, account1, account2, account3, acco
         const txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
         await localExpect(multiSigWalletInstance.confirmTransaction(txId, { from: account1 })).to.eventually.be.fulfilled;
 
-        const contractPORBVault = (await heroUpgradeableInstance.vault()).toString();
-        expect(contractPORBVault).to.equal(account2);
+        const contractUSDPVault = (await heroUpgradeableInstance.vault()).toString();
+        expect(contractUSDPVault).to.equal(account2);
     });
 
     // @TODO: Update this test when we have the final base URI implemented in the contract
     it('generates a valid token URI', async () => {
-        const initialPORBAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
-        const priceOfHeroInPORB = web3.utils.toWei('2', 'ether');
+        const initialUSDPAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
+        const priceOfHeroInUSDP = web3.utils.toWei('2', 'ether');
 
-        // Add controller for PORB
-        let data = PORBUpgradeableContract.methods.addController(multiSigWalletInstance.address).encodeABI();
-        await multiSigWalletInstance.submitTransaction(PORBUpgradeableInstance.address, 0, data, { from: owner });
+        // Add controller for USDP
+        let data = USDPUpgradeableContract.methods.addController(multiSigWalletInstance.address).encodeABI();
+        await multiSigWalletInstance.submitTransaction(USDPUpgradeableInstance.address, 0, data, { from: owner });
         let txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
         await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
-        // Mint PORB
-        data = PORBUpgradeableContract.methods.mint(account1, initialPORBAmountMintedToOwner).encodeABI();
-        await multiSigWalletInstance.submitTransaction(PORBUpgradeableInstance.address, 0, data, { from: owner });
+        // Mint USDP
+        data = USDPUpgradeableContract.methods.mint(account1, initialUSDPAmountMintedToOwner).encodeABI();
+        await multiSigWalletInstance.submitTransaction(USDPUpgradeableInstance.address, 0, data, { from: owner });
         txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
         await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
-        await PORBUpgradeableInstance.approve(heroUpgradeableInstance.address, priceOfHeroInPORB, { from: account1 });
-        await heroUpgradeableInstance.mintWithPORB({ from: account1 });
+        await USDPUpgradeableInstance.approve(heroUpgradeableInstance.address, priceOfHeroInUSDP, { from: account1 });
+        await heroUpgradeableInstance.mintWithUSDP({ from: account1 });
 
         const tokenURI = await heroUpgradeableInstance.tokenURI('0');
         expect(tokenURI).to.equal('https://www.portalfantasy.io/0');
     });
 
     it('allows only the owner (multiSigWallet) to change the base URI', async () => {
-        const initialPORBAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
-        const priceOfHeroInPORB = web3.utils.toWei('2', 'ether');
+        const initialUSDPAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
+        const priceOfHeroInUSDP = web3.utils.toWei('2', 'ether');
 
-        // Add controller for PORB
-        let data = PORBUpgradeableContract.methods.addController(multiSigWalletInstance.address).encodeABI();
-        await multiSigWalletInstance.submitTransaction(PORBUpgradeableInstance.address, 0, data, { from: owner });
+        // Add controller for USDP
+        let data = USDPUpgradeableContract.methods.addController(multiSigWalletInstance.address).encodeABI();
+        await multiSigWalletInstance.submitTransaction(USDPUpgradeableInstance.address, 0, data, { from: owner });
         let txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
         await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
-        // Mint PORB
-        data = PORBUpgradeableContract.methods.mint(account1, initialPORBAmountMintedToOwner).encodeABI();
-        await multiSigWalletInstance.submitTransaction(PORBUpgradeableInstance.address, 0, data, { from: owner });
+        // Mint USDP
+        data = USDPUpgradeableContract.methods.mint(account1, initialUSDPAmountMintedToOwner).encodeABI();
+        await multiSigWalletInstance.submitTransaction(USDPUpgradeableInstance.address, 0, data, { from: owner });
         txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
         await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
-        await PORBUpgradeableInstance.approve(heroUpgradeableInstance.address, priceOfHeroInPORB, { from: account1 });
-        await heroUpgradeableInstance.mintWithPORB({ from: account1 });
+        await USDPUpgradeableInstance.approve(heroUpgradeableInstance.address, priceOfHeroInUSDP, { from: account1 });
+        await heroUpgradeableInstance.mintWithUSDP({ from: account1 });
 
         let tokenURI = await heroUpgradeableInstance.tokenURI('0');
         expect(tokenURI).to.equal('https://www.portalfantasy.io/0');
@@ -226,51 +226,51 @@ contract.skip('HeroUpgradeable.sol', ([owner, account1, account2, account3, acco
     });
 
     it('applies the default royalty correctly', async () => {
-        const initialPORBAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
-        const priceOfHeroInPORB = web3.utils.toWei('2', 'ether');
+        const initialUSDPAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
+        const priceOfHeroInUSDP = web3.utils.toWei('2', 'ether');
 
-        // Add controller for PORB
-        let data = PORBUpgradeableContract.methods.addController(multiSigWalletInstance.address).encodeABI();
-        await multiSigWalletInstance.submitTransaction(PORBUpgradeableInstance.address, 0, data, { from: owner });
+        // Add controller for USDP
+        let data = USDPUpgradeableContract.methods.addController(multiSigWalletInstance.address).encodeABI();
+        await multiSigWalletInstance.submitTransaction(USDPUpgradeableInstance.address, 0, data, { from: owner });
         let txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
         await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
-        // Mint PORB
-        data = PORBUpgradeableContract.methods.mint(account1, initialPORBAmountMintedToOwner).encodeABI();
-        await multiSigWalletInstance.submitTransaction(PORBUpgradeableInstance.address, 0, data, { from: owner });
+        // Mint USDP
+        data = USDPUpgradeableContract.methods.mint(account1, initialUSDPAmountMintedToOwner).encodeABI();
+        await multiSigWalletInstance.submitTransaction(USDPUpgradeableInstance.address, 0, data, { from: owner });
         txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
         await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
-        await PORBUpgradeableInstance.approve(heroUpgradeableInstance.address, priceOfHeroInPORB, { from: account1 });
-        await heroUpgradeableInstance.mintWithPORB({ from: account1 });
+        await USDPUpgradeableInstance.approve(heroUpgradeableInstance.address, priceOfHeroInUSDP, { from: account1 });
+        await heroUpgradeableInstance.mintWithUSDP({ from: account1 });
 
         // Assert expected royalty parameters
-        let defaultRoyaltyInfo = await heroUpgradeableInstance.royaltyInfo('0', priceOfHeroInPORB);
+        let defaultRoyaltyInfo = await heroUpgradeableInstance.royaltyInfo('0', priceOfHeroInUSDP);
         const royaltyRecipient = defaultRoyaltyInfo[0];
         const royaltyFee = defaultRoyaltyInfo[1];
         const expectedRoyalFeeNumeratorBips = 400;
         expect(royaltyRecipient).to.equal(account9);
-        expect(royaltyFee.toString()).to.equal(bigInt(priceOfHeroInPORB).multiply(expectedRoyalFeeNumeratorBips).divide(10000).toString());
+        expect(royaltyFee.toString()).to.equal(bigInt(priceOfHeroInUSDP).multiply(expectedRoyalFeeNumeratorBips).divide(10000).toString());
     });
 
     it('allows only the owner to change the default royalty fee', async () => {
-        const initialPORBAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
-        const priceOfHeroInPORB = web3.utils.toWei('2', 'ether');
+        const initialUSDPAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
+        const priceOfHeroInUSDP = web3.utils.toWei('2', 'ether');
 
-        // Add controller for PORB
-        let data = PORBUpgradeableContract.methods.addController(multiSigWalletInstance.address).encodeABI();
-        await multiSigWalletInstance.submitTransaction(PORBUpgradeableInstance.address, 0, data, { from: owner });
+        // Add controller for USDP
+        let data = USDPUpgradeableContract.methods.addController(multiSigWalletInstance.address).encodeABI();
+        await multiSigWalletInstance.submitTransaction(USDPUpgradeableInstance.address, 0, data, { from: owner });
         let txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
         await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
-        // Mint PORB
-        data = PORBUpgradeableContract.methods.mint(account1, initialPORBAmountMintedToOwner).encodeABI();
-        await multiSigWalletInstance.submitTransaction(PORBUpgradeableInstance.address, 0, data, { from: owner });
+        // Mint USDP
+        data = USDPUpgradeableContract.methods.mint(account1, initialUSDPAmountMintedToOwner).encodeABI();
+        await multiSigWalletInstance.submitTransaction(USDPUpgradeableInstance.address, 0, data, { from: owner });
         txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
         await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
-        await PORBUpgradeableInstance.approve(heroUpgradeableInstance.address, priceOfHeroInPORB, { from: account1 });
-        await heroUpgradeableInstance.mintWithPORB({ from: account1 });
+        await USDPUpgradeableInstance.approve(heroUpgradeableInstance.address, priceOfHeroInUSDP, { from: account1 });
+        await heroUpgradeableInstance.mintWithUSDP({ from: account1 });
 
         // Expect this to fail, as only the owner can change the base URI
         await localExpect(heroUpgradeableInstance.setDefaultRoyalty(300, { from: account1 })).to.eventually.be.rejected;
@@ -282,31 +282,31 @@ contract.skip('HeroUpgradeable.sol', ([owner, account1, account2, account3, acco
         await localExpect(multiSigWalletInstance.confirmTransaction(txId, { from: account1 })).to.eventually.be.fulfilled;
 
         // Assert expected royalty parameters
-        let defaultRoyaltyInfo = await heroUpgradeableInstance.royaltyInfo('0', priceOfHeroInPORB);
+        let defaultRoyaltyInfo = await heroUpgradeableInstance.royaltyInfo('0', priceOfHeroInUSDP);
         const royaltyRecipient = defaultRoyaltyInfo[0];
         const royaltyFee = defaultRoyaltyInfo[1];
         expect(royaltyRecipient).to.equal(account9);
-        expect(royaltyFee.toString()).to.equal(bigInt(priceOfHeroInPORB).multiply(updatedRoyaltyFeeBips).divide(10000).toString());
+        expect(royaltyFee.toString()).to.equal(bigInt(priceOfHeroInUSDP).multiply(updatedRoyaltyFeeBips).divide(10000).toString());
     });
 
     it('allows only the owner to change the token custom royalty fee', async () => {
-        const initialPORBAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
-        const priceOfHeroInPORB = web3.utils.toWei('2', 'ether');
+        const initialUSDPAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
+        const priceOfHeroInUSDP = web3.utils.toWei('2', 'ether');
 
-        // Add controller for PORB
-        let data = PORBUpgradeableContract.methods.addController(multiSigWalletInstance.address).encodeABI();
-        await multiSigWalletInstance.submitTransaction(PORBUpgradeableInstance.address, 0, data, { from: owner });
+        // Add controller for USDP
+        let data = USDPUpgradeableContract.methods.addController(multiSigWalletInstance.address).encodeABI();
+        await multiSigWalletInstance.submitTransaction(USDPUpgradeableInstance.address, 0, data, { from: owner });
         let txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
         await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
-        // Mint PORB
-        data = PORBUpgradeableContract.methods.mint(account1, initialPORBAmountMintedToOwner).encodeABI();
-        await multiSigWalletInstance.submitTransaction(PORBUpgradeableInstance.address, 0, data, { from: owner });
+        // Mint USDP
+        data = USDPUpgradeableContract.methods.mint(account1, initialUSDPAmountMintedToOwner).encodeABI();
+        await multiSigWalletInstance.submitTransaction(USDPUpgradeableInstance.address, 0, data, { from: owner });
         txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
         await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
-        await PORBUpgradeableInstance.approve(heroUpgradeableInstance.address, priceOfHeroInPORB, { from: account1 });
-        await heroUpgradeableInstance.mintWithPORB({ from: account1 });
+        await USDPUpgradeableInstance.approve(heroUpgradeableInstance.address, priceOfHeroInUSDP, { from: account1 });
+        await heroUpgradeableInstance.mintWithUSDP({ from: account1 });
 
         // Expect this to fail, as only the owner can change the base URI
         await localExpect(heroUpgradeableInstance.setTokenRoyalty('0', 300, { from: account1 })).to.eventually.be.rejected;
@@ -318,31 +318,31 @@ contract.skip('HeroUpgradeable.sol', ([owner, account1, account2, account3, acco
         await localExpect(multiSigWalletInstance.confirmTransaction(txId, { from: account1 })).to.eventually.be.fulfilled;
 
         // Assert expected royalty parameters
-        let defaultRoyaltyInfo = await heroUpgradeableInstance.royaltyInfo('0', priceOfHeroInPORB);
+        let defaultRoyaltyInfo = await heroUpgradeableInstance.royaltyInfo('0', priceOfHeroInUSDP);
         const royaltyRecipient = defaultRoyaltyInfo[0];
         const royaltyFee = defaultRoyaltyInfo[1];
         expect(royaltyRecipient).to.equal(account9);
-        expect(royaltyFee.toString()).to.equal(bigInt(priceOfHeroInPORB).multiply(updatedRoyaltyFeeBips).divide(10000).toString());
+        expect(royaltyFee.toString()).to.equal(bigInt(priceOfHeroInUSDP).multiply(updatedRoyaltyFeeBips).divide(10000).toString());
     });
 
     it('allows only the owner to reset the custom royalty fee', async () => {
-        const initialPORBAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
-        const priceOfHeroInPORB = web3.utils.toWei('2', 'ether');
+        const initialUSDPAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
+        const priceOfHeroInUSDP = web3.utils.toWei('2', 'ether');
 
-        // Add controller for PORB
-        let data = PORBUpgradeableContract.methods.addController(multiSigWalletInstance.address).encodeABI();
-        await multiSigWalletInstance.submitTransaction(PORBUpgradeableInstance.address, 0, data, { from: owner });
+        // Add controller for USDP
+        let data = USDPUpgradeableContract.methods.addController(multiSigWalletInstance.address).encodeABI();
+        await multiSigWalletInstance.submitTransaction(USDPUpgradeableInstance.address, 0, data, { from: owner });
         let txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
         await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
-        // Mint PORB
-        data = PORBUpgradeableContract.methods.mint(account1, initialPORBAmountMintedToOwner).encodeABI();
-        await multiSigWalletInstance.submitTransaction(PORBUpgradeableInstance.address, 0, data, { from: owner });
+        // Mint USDP
+        data = USDPUpgradeableContract.methods.mint(account1, initialUSDPAmountMintedToOwner).encodeABI();
+        await multiSigWalletInstance.submitTransaction(USDPUpgradeableInstance.address, 0, data, { from: owner });
         txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
         await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
-        await PORBUpgradeableInstance.approve(heroUpgradeableInstance.address, priceOfHeroInPORB, { from: account1 });
-        await heroUpgradeableInstance.mintWithPORB({ from: account1 });
+        await USDPUpgradeableInstance.approve(heroUpgradeableInstance.address, priceOfHeroInUSDP, { from: account1 });
+        await heroUpgradeableInstance.mintWithUSDP({ from: account1 });
 
         const updatedRoyaltyFeeBips = 100;
         data = heroUpgradeableContract.methods.setTokenRoyalty('0', updatedRoyaltyFeeBips).encodeABI();
@@ -359,35 +359,35 @@ contract.skip('HeroUpgradeable.sol', ([owner, account1, account2, account3, acco
         await localExpect(multiSigWalletInstance.confirmTransaction(txId, { from: account1 })).to.eventually.be.fulfilled;
 
         // Assert expected royalty parameters
-        let defaultRoyaltyInfo = await heroUpgradeableInstance.royaltyInfo('0', priceOfHeroInPORB);
+        let defaultRoyaltyInfo = await heroUpgradeableInstance.royaltyInfo('0', priceOfHeroInUSDP);
         const royaltyRecipient = defaultRoyaltyInfo[0];
         const royaltyFee = defaultRoyaltyInfo[1];
         const expectedRoyalFeeNumeratorBips = 400;
         expect(royaltyRecipient).to.equal(account9);
-        expect(royaltyFee.toString()).to.equal(bigInt(priceOfHeroInPORB).multiply(expectedRoyalFeeNumeratorBips).divide(10000).toString());
+        expect(royaltyFee.toString()).to.equal(bigInt(priceOfHeroInUSDP).multiply(expectedRoyalFeeNumeratorBips).divide(10000).toString());
     });
 
     it('can be upgraded and store new state variables from the new contract', async () => {
         const tokenSymbol = await heroUpgradeableInstance.symbol();
         expect(tokenSymbol).to.equal('PHRO');
 
-        const initialPORBAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
-        const priceOfHeroInPORB = web3.utils.toWei('2', 'ether');
+        const initialUSDPAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
+        const priceOfHeroInUSDP = web3.utils.toWei('2', 'ether');
 
-        // Add controller for PORB
-        let data = PORBUpgradeableContract.methods.addController(multiSigWalletInstance.address).encodeABI();
-        await multiSigWalletInstance.submitTransaction(PORBUpgradeableInstance.address, 0, data, { from: owner });
+        // Add controller for USDP
+        let data = USDPUpgradeableContract.methods.addController(multiSigWalletInstance.address).encodeABI();
+        await multiSigWalletInstance.submitTransaction(USDPUpgradeableInstance.address, 0, data, { from: owner });
         let txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
         await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
-        // Mint PORB
-        data = PORBUpgradeableContract.methods.mint(account1, initialPORBAmountMintedToOwner).encodeABI();
-        await multiSigWalletInstance.submitTransaction(PORBUpgradeableInstance.address, 0, data, { from: owner });
+        // Mint USDP
+        data = USDPUpgradeableContract.methods.mint(account1, initialUSDPAmountMintedToOwner).encodeABI();
+        await multiSigWalletInstance.submitTransaction(USDPUpgradeableInstance.address, 0, data, { from: owner });
         txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
         await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
-        await PORBUpgradeableInstance.approve(heroUpgradeableInstance.address, priceOfHeroInPORB, { from: account1 });
-        await heroUpgradeableInstance.mintWithPORB({ from: account1 });
+        await USDPUpgradeableInstance.approve(heroUpgradeableInstance.address, priceOfHeroInUSDP, { from: account1 });
+        await heroUpgradeableInstance.mintWithUSDP({ from: account1 });
 
         heroUpgradeableTestInstance = (await upgradeProxy(heroUpgradeableInstance.address, heroUpgradeableTest as any)) as HeroUpgradeableTestInstance;
 
@@ -397,14 +397,14 @@ contract.skip('HeroUpgradeable.sol', ([owner, account1, account2, account3, acco
         const ownerOfMintedHero1 = await heroUpgradeableTestInstance.ownerOf('0');
         expect(ownerOfMintedHero1).to.equal(account1);
 
-        // Mint PORB
-        data = PORBUpgradeableContract.methods.mint(account2, initialPORBAmountMintedToOwner).encodeABI();
-        await multiSigWalletInstance.submitTransaction(PORBUpgradeableInstance.address, 0, data, { from: owner });
+        // Mint USDP
+        data = USDPUpgradeableContract.methods.mint(account2, initialUSDPAmountMintedToOwner).encodeABI();
+        await multiSigWalletInstance.submitTransaction(USDPUpgradeableInstance.address, 0, data, { from: owner });
         txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
         await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
-        await PORBUpgradeableInstance.approve(heroUpgradeableTestInstance.address, priceOfHeroInPORB, { from: account2 });
-        await heroUpgradeableInstance.mintWithPORB({ from: account2 });
+        await USDPUpgradeableInstance.approve(heroUpgradeableTestInstance.address, priceOfHeroInUSDP, { from: account2 });
+        await heroUpgradeableInstance.mintWithUSDP({ from: account2 });
 
         // Can still mint new tokens
         const ownerOfMintedHero2 = await heroUpgradeableTestInstance.ownerOf('1');
