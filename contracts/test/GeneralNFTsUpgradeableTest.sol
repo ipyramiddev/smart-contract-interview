@@ -2,15 +2,15 @@
 
 pragma solidity ^0.8.0;
 
-import "../lib/IERC20.sol";
-import "../lib/IERC2981.sol";
-import "../lib/Counters.sol";
+import "../lib/upgradeable/IERC20Upgradeable.sol";
+import "../lib/upgradeable/IERC2981Upgradeable.sol";
+import "../lib/upgradeable/CountersUpgradeable.sol";
 import "../lib/upgradeable/ERC721RoyaltyUpgradeable.sol";
 import "../lib/upgradeable/ContractURIStorageUpgradeable.sol";
 import "../lib/upgradeable/OwnableUpgradeable.sol";
 import "../lib/upgradeable/PausableUpgradeable.sol";
 
-// @NOTE: Remove setBaseURI function to test the contract upgrade
+// @NOTE: Remove setBaseURIString function to test the contract upgrade
 
 contract GeneralNFTsUpgradeableTest is
     ERC721RoyaltyUpgradeable,
@@ -18,41 +18,34 @@ contract GeneralNFTsUpgradeableTest is
     OwnableUpgradeable,
     PausableUpgradeable
 {
-    using Counters for Counters.Counter;
+    using CountersUpgradeable for CountersUpgradeable.Counter;
 
-    Counters.Counter private _tokenIdCounter;
+    CountersUpgradeable.Counter private _tokenIdCounter;
 
     string public baseURIString;
 
-    // The architect mint price in AVAX
-    uint256 public mintPriceInAVAX;
+    // The general NFT mint price in USDP
+    uint256 public mintPriceInUSDP;
 
-    // The architect mint price in PORB
-    uint256 public mintPriceInPORB;
+    // The address of the USDP contract
+    IERC20Upgradeable public USDP;
 
-    // The address of the PORB contract
-    IERC20 public PORB;
-
-    // The vault contract to deposit earned PORB/AVAX and royalties
+    // The vault contract to deposit earned USDP and royalties
     address public vault;
 
-    function initialize(address _PORB, address _vault) public initializer {
-        __ERC721_init("Portal Fantasy General NFTs", "TEST");
+    function initialize(address _USDP, address _vault) public initializer {
+        __ERC721_init("Portal Fantasy General NFTs", "PFGN");
         __ContractURIStorage_init("https://www.portalfantasy.io/generalNFTs/");
         __Ownable_init();
 
         // @TODO: Have added a placeholder baseURIString. Need to replace with actual when it's implemented.
         baseURIString = "https://www.portalfantasy.io/";
-        PORB = IERC20(_PORB);
+        USDP = IERC20Upgradeable(_USDP);
         vault = _vault;
 
-        // @TODO: Set the actual initial price in PORB to mint a general NFT
-        // 2 PORB initial price
-        mintPriceInAVAX = 2000000000000000000;
-
-        // @TODO: Set the actual initial price in PORB to mint a general NFT
-        // 2 PORB initial price
-        mintPriceInPORB = 2000000000000000000;
+        // @TODO: Set the actual initial price in USDP to mint a general NFT
+        // 2 USDP initial price
+        mintPriceInUSDP = 2000000000000000000;
 
         // Set the default token royalty to 4%
         _setDefaultRoyalty(vault, 400);
@@ -67,20 +60,10 @@ contract GeneralNFTsUpgradeableTest is
     }
 
     /**
-     * Allows the caller to mint a token with a payment in AVAX
+     * Allows the caller to mint a token with a payment in USDP
      */
-    function mintWithAVAX() external payable whenNotPaused {
-        require(msg.value == mintPriceInAVAX, "Invalid payment amount");
-        payable(vault).transfer(msg.value);
-        _safeMint(_msgSender(), _tokenIdCounter.current());
-        _tokenIdCounter.increment();
-    }
-
-    /**
-     * Allows the caller to mint a token with a payment in PORB
-     */
-    function mintWithPORB() external whenNotPaused {
-        PORB.transferFrom(_msgSender(), vault, mintPriceInPORB);
+    function mintWithUSDP() external whenNotPaused {
+        USDP.transferFrom(_msgSender(), vault, mintPriceInUSDP);
         _safeMint(_msgSender(), _tokenIdCounter.current());
         _tokenIdCounter.increment();
     }
@@ -97,19 +80,11 @@ contract GeneralNFTsUpgradeableTest is
     }
 
     /**
-     * Allows the owner to set a new mint price in AVAX
-     * @param _mintPriceInAVAX the new mint price
+     * Allows the owner to set a new mint price in USDP
+     * @param _mintPriceInUSDP the new mint price
      */
-    function setMintPriceInAVAX(uint256 _mintPriceInAVAX) external onlyOwner {
-        mintPriceInAVAX = _mintPriceInAVAX;
-    }
-
-    /**
-     * Allows the owner to set a new mint price in PORB
-     * @param _mintPriceInPORB the new mint price
-     */
-    function setMintPriceInPORB(uint256 _mintPriceInPORB) external onlyOwner {
-        mintPriceInPORB = _mintPriceInPORB;
+    function setMintPriceInUSDP(uint256 _mintPriceInUSDP) external onlyOwner {
+        mintPriceInUSDP = _mintPriceInUSDP;
     }
 
     /**
@@ -122,15 +97,15 @@ contract GeneralNFTsUpgradeableTest is
     }
 
     /**
-     * Allows the owner to set a new PORB contract address to point to
-     * @param _PORB the new PORB address
+     * Allows the owner to set a new USDP contract address to point to
+     * @param _USDP the new USDP address
      */
-    function setPORB(address _PORB) external onlyOwner {
-        PORB = IERC20(_PORB);
+    function setUSDP(address _USDP) external onlyOwner {
+        USDP = IERC20Upgradeable(_USDP);
     }
 
     /**
-     * Allows the owner to set a new vault to deposit earned PORB/AVAX
+     * Allows the owner to set a new vault to deposit earned USDP
      * @param _vault the new address for the vault
      */
     function setVault(address _vault) external onlyOwner {

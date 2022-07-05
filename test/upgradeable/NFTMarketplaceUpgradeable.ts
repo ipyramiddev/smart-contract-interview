@@ -3,7 +3,7 @@ import bigInt from 'big-integer';
 import { localExpect } from '../lib/test-libraries';
 import {
     HeroUpgradeableInstance,
-    PORBUpgradeableInstance,
+    USDPUpgradeableInstance,
     MultiSigWalletInstance,
     NFTMarketplaceUpgradeableInstance,
     WAVAXInstance,
@@ -11,7 +11,7 @@ import {
 } from '../../types/truffle-contracts';
 import NFT_MARKETPLACE_UPGRADEABLE_JSON from '../../build/contracts/NFTMarketplaceUpgradeable.json';
 import HERO_UPGRADEABLE_JSON from '../../build/contracts/HeroUpgradeable.json';
-import PORB_UPGRADEABLE_JSON from '../../build/contracts/PORBUpgradeable.json';
+import USDP_UPGRADEABLE_JSON from '../../build/contracts/USDPUpgradeable.json';
 import Web3 from 'web3';
 import { AbiItem } from 'web3-utils';
 import { getTxIdFromMultiSigWallet } from '../lib/test-helpers';
@@ -20,7 +20,7 @@ const config = require('../../config').config;
 
 const NFTMarketplaceUpgradeable = artifacts.require('NFTMarketplaceUpgradeable');
 const heroUpgradeable = artifacts.require('HeroUpgradeable');
-const PORBUpgradeable = artifacts.require('PORBUpgradeable');
+const USDPUpgradeable = artifacts.require('USDPUpgradeable');
 const WAVAX = artifacts.require('WAVAX');
 const multiSigWallet = artifacts.require('MultiSigWallet');
 const NFTMarketplaceUpgradeableTest = artifacts.require('NFTMarketplaceUpgradeableTest');
@@ -28,39 +28,39 @@ const NFTMarketplaceUpgradeableTest = artifacts.require('NFTMarketplaceUpgradeab
 const web3 = new Web3(new Web3.providers.HttpProvider(config.AVAX.localSubnetHTTP));
 const NFT_MARKETPLACE_ABI = NFT_MARKETPLACE_UPGRADEABLE_JSON.abi as AbiItem[];
 const HERO_UPGRADEABLE_ABI = HERO_UPGRADEABLE_JSON.abi as AbiItem[];
-const PORB_UPGRADEABLE_ABI = PORB_UPGRADEABLE_JSON.abi as AbiItem[];
+const USDP_UPGRADEABLE_ABI = USDP_UPGRADEABLE_JSON.abi as AbiItem[];
 
 contract.skip('NFTMarketplaceUpgradeable.sol', ([owner, account1, account2, account3, account4, account5, account6, account7, account8, account9]) => {
     let NFTMarketplaceUpgradeableInstance: NFTMarketplaceUpgradeableInstance;
     let heroUpgradeableInstance: HeroUpgradeableInstance;
-    let PORBUpgradeableInstance: PORBUpgradeableInstance;
+    let USDPUpgradeableInstance: USDPUpgradeableInstance;
     let WAVAXInstance: WAVAXInstance;
     let multiSigWalletInstance: MultiSigWalletInstance;
     let NFTMarketplaceUpgradeableTestInstance: NFTMarketplaceUpgradeableTestInstance;
     let NFTMarketplaceUpgradeableContract: any;
     let heroUpgradeableContract: any;
-    let PORBContract: any;
+    let USDPContract: any;
 
     beforeEach(async () => {
         // Require 2 signatures for multiSig
         multiSigWalletInstance = await multiSigWallet.new([owner, account1, account2], 2);
-        PORBUpgradeableInstance = (await deployProxy(PORBUpgradeable as any, [account1, owner], {
+        USDPUpgradeableInstance = (await deployProxy(USDPUpgradeable as any, [account1, owner], {
             initializer: 'initialize',
-        })) as PORBUpgradeableInstance;
+        })) as USDPUpgradeableInstance;
         WAVAXInstance = await WAVAX.new();
         NFTMarketplaceUpgradeableInstance = (await deployProxy(NFTMarketplaceUpgradeable as any, [WAVAXInstance.address], {
             initializer: 'initialize',
         })) as NFTMarketplaceUpgradeableInstance;
-        heroUpgradeableInstance = (await deployProxy(heroUpgradeable as any, [PORBUpgradeableInstance.address, account9], {
+        heroUpgradeableInstance = (await deployProxy(heroUpgradeable as any, [USDPUpgradeableInstance.address, account9], {
             initializer: 'initialize',
         })) as HeroUpgradeableInstance;
         await NFTMarketplaceUpgradeableInstance.transferOwnership(multiSigWalletInstance.address);
-        await PORBUpgradeableInstance.transferOwnership(multiSigWalletInstance.address);
+        await USDPUpgradeableInstance.transferOwnership(multiSigWalletInstance.address);
         await heroUpgradeableInstance.transferOwnership(multiSigWalletInstance.address);
 
         NFTMarketplaceUpgradeableContract = new web3.eth.Contract(NFT_MARKETPLACE_ABI, NFTMarketplaceUpgradeableInstance.address);
         heroUpgradeableContract = new web3.eth.Contract(HERO_UPGRADEABLE_ABI, heroUpgradeableInstance.address);
-        PORBContract = new web3.eth.Contract(PORB_UPGRADEABLE_ABI, PORBUpgradeableInstance.address);
+        USDPContract = new web3.eth.Contract(USDP_UPGRADEABLE_ABI, USDPUpgradeableInstance.address);
     });
 
     it('only allows the contract owner to whitelist an NFT collection', async () => {
@@ -75,28 +75,28 @@ contract.skip('NFTMarketplaceUpgradeable.sol', ([owner, account1, account2, acco
     });
 
     it('only allows an NFT to be listed for sale if its contract has been whitelisted', async () => {
-        const initialPORBAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
-        const priceOfHeroInPORB = web3.utils.toWei('2', 'ether');
+        const initialUSDPAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
+        const priceOfHeroInUSDP = web3.utils.toWei('2', 'ether');
 
-        // Add controller for PORB
-        let data = PORBContract.methods.addController(multiSigWalletInstance.address).encodeABI();
-        await multiSigWalletInstance.submitTransaction(PORBUpgradeableInstance.address, 0, data, { from: owner });
+        // Add controller for USDP
+        let data = USDPContract.methods.addController(multiSigWalletInstance.address).encodeABI();
+        await multiSigWalletInstance.submitTransaction(USDPUpgradeableInstance.address, 0, data, { from: owner });
         let txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
         await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
-        // Mint PORB
-        data = PORBContract.methods.mint(account1, initialPORBAmountMintedToOwner).encodeABI();
-        await multiSigWalletInstance.submitTransaction(PORBUpgradeableInstance.address, 0, data, { from: owner });
+        // Mint USDP
+        data = USDPContract.methods.mint(account1, initialUSDPAmountMintedToOwner).encodeABI();
+        await multiSigWalletInstance.submitTransaction(USDPUpgradeableInstance.address, 0, data, { from: owner });
         txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
         await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
         // Approve marketplace to handle hero token
-        await PORBUpgradeableInstance.approve(heroUpgradeableInstance.address, priceOfHeroInPORB, { from: account1 });
-        await heroUpgradeableInstance.mintWithPORB({ from: account1 });
+        await USDPUpgradeableInstance.approve(heroUpgradeableInstance.address, priceOfHeroInUSDP, { from: account1 });
+        await heroUpgradeableInstance.mintWithUSDP({ from: account1 });
         const heroTokenId = '0';
 
         // Attempt to list the hero token without whitelisting hero contract
-        const listPriceOfHero = bigInt(priceOfHeroInPORB).multiply(2).toString();
+        const listPriceOfHero = bigInt(priceOfHeroInUSDP).multiply(2).toString();
         await heroUpgradeableInstance.approve(NFTMarketplaceUpgradeableInstance.address, heroTokenId, { from: account1 });
         await localExpect(NFTMarketplaceUpgradeableInstance.listItem(heroUpgradeableInstance.address, heroTokenId, listPriceOfHero, { from: account1 })).to.eventually.be.rejected;
 
@@ -109,24 +109,24 @@ contract.skip('NFTMarketplaceUpgradeable.sol', ([owner, account1, account2, acco
     });
 
     it("prevents a token from being listed by an account that doesn't own it", async () => {
-        const initialPORBAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
-        const priceOfHeroInPORB = web3.utils.toWei('2', 'ether');
+        const initialUSDPAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
+        const priceOfHeroInUSDP = web3.utils.toWei('2', 'ether');
 
-        // Add controller for PORB
-        let data = PORBContract.methods.addController(multiSigWalletInstance.address).encodeABI();
-        await multiSigWalletInstance.submitTransaction(PORBUpgradeableInstance.address, 0, data, { from: owner });
+        // Add controller for USDP
+        let data = USDPContract.methods.addController(multiSigWalletInstance.address).encodeABI();
+        await multiSigWalletInstance.submitTransaction(USDPUpgradeableInstance.address, 0, data, { from: owner });
         let txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
         await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
-        // Mint PORB
-        data = PORBContract.methods.mint(account1, initialPORBAmountMintedToOwner).encodeABI();
-        await multiSigWalletInstance.submitTransaction(PORBUpgradeableInstance.address, 0, data, { from: owner });
+        // Mint USDP
+        data = USDPContract.methods.mint(account1, initialUSDPAmountMintedToOwner).encodeABI();
+        await multiSigWalletInstance.submitTransaction(USDPUpgradeableInstance.address, 0, data, { from: owner });
         txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
         await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
         // Approve marketplace to handle hero token
-        await PORBUpgradeableInstance.approve(heroUpgradeableInstance.address, priceOfHeroInPORB, { from: account1 });
-        await heroUpgradeableInstance.mintWithPORB({ from: account1 });
+        await USDPUpgradeableInstance.approve(heroUpgradeableInstance.address, priceOfHeroInUSDP, { from: account1 });
+        await heroUpgradeableInstance.mintWithUSDP({ from: account1 });
         const heroTokenId = '0';
         await heroUpgradeableInstance.approve(NFTMarketplaceUpgradeableInstance.address, heroTokenId, { from: account1 });
 
@@ -137,29 +137,29 @@ contract.skip('NFTMarketplaceUpgradeable.sol', ([owner, account1, account2, acco
         await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
         // Attempt to list the token by an address that doesn't own it
-        const listPriceOfHero = bigInt(priceOfHeroInPORB).multiply(2).toString();
+        const listPriceOfHero = bigInt(priceOfHeroInUSDP).multiply(2).toString();
         await localExpect(NFTMarketplaceUpgradeableInstance.listItem(heroUpgradeableInstance.address, heroTokenId, listPriceOfHero, { from: account2 })).to.eventually.be.rejected;
     });
 
     it('prevents a token from being listed if the price is not greater than zero', async () => {
-        const initialPORBAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
-        const priceOfHeroInPORB = web3.utils.toWei('2', 'ether');
+        const initialUSDPAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
+        const priceOfHeroInUSDP = web3.utils.toWei('2', 'ether');
 
-        // Add controller for PORB
-        let data = PORBContract.methods.addController(multiSigWalletInstance.address).encodeABI();
-        await multiSigWalletInstance.submitTransaction(PORBUpgradeableInstance.address, 0, data, { from: owner });
+        // Add controller for USDP
+        let data = USDPContract.methods.addController(multiSigWalletInstance.address).encodeABI();
+        await multiSigWalletInstance.submitTransaction(USDPUpgradeableInstance.address, 0, data, { from: owner });
         let txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
         await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
-        // Mint PORB
-        data = PORBContract.methods.mint(account1, initialPORBAmountMintedToOwner).encodeABI();
-        await multiSigWalletInstance.submitTransaction(PORBUpgradeableInstance.address, 0, data, { from: owner });
+        // Mint USDP
+        data = USDPContract.methods.mint(account1, initialUSDPAmountMintedToOwner).encodeABI();
+        await multiSigWalletInstance.submitTransaction(USDPUpgradeableInstance.address, 0, data, { from: owner });
         txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
         await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
         // Approve marketplace to handle hero token
-        await PORBUpgradeableInstance.approve(heroUpgradeableInstance.address, priceOfHeroInPORB, { from: account1 });
-        await heroUpgradeableInstance.mintWithPORB({ from: account1 });
+        await USDPUpgradeableInstance.approve(heroUpgradeableInstance.address, priceOfHeroInUSDP, { from: account1 });
+        await heroUpgradeableInstance.mintWithUSDP({ from: account1 });
         const heroTokenId = '0';
 
         // Whitelist hero contract and then list the hero token
@@ -176,24 +176,24 @@ contract.skip('NFTMarketplaceUpgradeable.sol', ([owner, account1, account2, acco
     });
 
     it("prevents a token from being re-listed if it's already listed", async () => {
-        const initialPORBAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
-        const priceOfHeroInPORB = web3.utils.toWei('2', 'ether');
+        const initialUSDPAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
+        const priceOfHeroInUSDP = web3.utils.toWei('2', 'ether');
 
-        // Add controller for PORB
-        let data = PORBContract.methods.addController(multiSigWalletInstance.address).encodeABI();
-        await multiSigWalletInstance.submitTransaction(PORBUpgradeableInstance.address, 0, data, { from: owner });
+        // Add controller for USDP
+        let data = USDPContract.methods.addController(multiSigWalletInstance.address).encodeABI();
+        await multiSigWalletInstance.submitTransaction(USDPUpgradeableInstance.address, 0, data, { from: owner });
         let txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
         await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
-        // Mint PORB
-        data = PORBContract.methods.mint(account1, initialPORBAmountMintedToOwner).encodeABI();
-        await multiSigWalletInstance.submitTransaction(PORBUpgradeableInstance.address, 0, data, { from: owner });
+        // Mint USDP
+        data = USDPContract.methods.mint(account1, initialUSDPAmountMintedToOwner).encodeABI();
+        await multiSigWalletInstance.submitTransaction(USDPUpgradeableInstance.address, 0, data, { from: owner });
         txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
         await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
         // Approve marketplace to handle hero token
-        await PORBUpgradeableInstance.approve(heroUpgradeableInstance.address, priceOfHeroInPORB, { from: account1 });
-        await heroUpgradeableInstance.mintWithPORB({ from: account1 });
+        await USDPUpgradeableInstance.approve(heroUpgradeableInstance.address, priceOfHeroInUSDP, { from: account1 });
+        await heroUpgradeableInstance.mintWithUSDP({ from: account1 });
         const heroTokenId = '0';
 
         // Whitelist hero contract and then list the hero token
@@ -209,24 +209,24 @@ contract.skip('NFTMarketplaceUpgradeable.sol', ([owner, account1, account2, acco
     });
 
     it('only allows the NFT owner to update the listing', async () => {
-        const initialPORBAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
-        const priceOfHeroInPORB = web3.utils.toWei('2', 'ether');
+        const initialUSDPAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
+        const priceOfHeroInUSDP = web3.utils.toWei('2', 'ether');
 
-        // Add controller for PORB
-        let data = PORBContract.methods.addController(multiSigWalletInstance.address).encodeABI();
-        await multiSigWalletInstance.submitTransaction(PORBUpgradeableInstance.address, 0, data, { from: owner });
+        // Add controller for USDP
+        let data = USDPContract.methods.addController(multiSigWalletInstance.address).encodeABI();
+        await multiSigWalletInstance.submitTransaction(USDPUpgradeableInstance.address, 0, data, { from: owner });
         let txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
         await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
-        // Mint PORB
-        data = PORBContract.methods.mint(account1, initialPORBAmountMintedToOwner).encodeABI();
-        await multiSigWalletInstance.submitTransaction(PORBUpgradeableInstance.address, 0, data, { from: owner });
+        // Mint USDP
+        data = USDPContract.methods.mint(account1, initialUSDPAmountMintedToOwner).encodeABI();
+        await multiSigWalletInstance.submitTransaction(USDPUpgradeableInstance.address, 0, data, { from: owner });
         txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
         await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
         // Approve marketplace to handle hero token
-        await PORBUpgradeableInstance.approve(heroUpgradeableInstance.address, priceOfHeroInPORB, { from: account1 });
-        await heroUpgradeableInstance.mintWithPORB({ from: account1 });
+        await USDPUpgradeableInstance.approve(heroUpgradeableInstance.address, priceOfHeroInUSDP, { from: account1 });
+        await heroUpgradeableInstance.mintWithUSDP({ from: account1 });
         const heroTokenId = '0';
 
         // Whitelist hero contract and then list the hero token
@@ -247,24 +247,24 @@ contract.skip('NFTMarketplaceUpgradeable.sol', ([owner, account1, account2, acco
     });
 
     it('only allows the NFT owner to cancel the listing', async () => {
-        const initialPORBAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
-        const priceOfHeroInPORB = web3.utils.toWei('2', 'ether');
+        const initialUSDPAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
+        const priceOfHeroInUSDP = web3.utils.toWei('2', 'ether');
 
-        // Add controller for PORB
-        let data = PORBContract.methods.addController(multiSigWalletInstance.address).encodeABI();
-        await multiSigWalletInstance.submitTransaction(PORBUpgradeableInstance.address, 0, data, { from: owner });
+        // Add controller for USDP
+        let data = USDPContract.methods.addController(multiSigWalletInstance.address).encodeABI();
+        await multiSigWalletInstance.submitTransaction(USDPUpgradeableInstance.address, 0, data, { from: owner });
         let txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
         await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
-        // Mint PORB
-        data = PORBContract.methods.mint(account1, initialPORBAmountMintedToOwner).encodeABI();
-        await multiSigWalletInstance.submitTransaction(PORBUpgradeableInstance.address, 0, data, { from: owner });
+        // Mint USDP
+        data = USDPContract.methods.mint(account1, initialUSDPAmountMintedToOwner).encodeABI();
+        await multiSigWalletInstance.submitTransaction(USDPUpgradeableInstance.address, 0, data, { from: owner });
         txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
         await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
         // Approve marketplace to handle hero token
-        await PORBUpgradeableInstance.approve(heroUpgradeableInstance.address, priceOfHeroInPORB, { from: account1 });
-        await heroUpgradeableInstance.mintWithPORB({ from: account1 });
+        await USDPUpgradeableInstance.approve(heroUpgradeableInstance.address, priceOfHeroInUSDP, { from: account1 });
+        await heroUpgradeableInstance.mintWithUSDP({ from: account1 });
         const heroTokenId = '0';
 
         // Whitelist hero contract and then list the hero token
@@ -289,24 +289,24 @@ contract.skip('NFTMarketplaceUpgradeable.sol', ([owner, account1, account2, acco
     });
 
     it('only allows the marketplace contract owner to force-cancel a listing', async () => {
-        const initialPORBAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
-        const priceOfHeroInPORB = web3.utils.toWei('2', 'ether');
+        const initialUSDPAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
+        const priceOfHeroInUSDP = web3.utils.toWei('2', 'ether');
 
-        // Add controller for PORB
-        let data = PORBContract.methods.addController(multiSigWalletInstance.address).encodeABI();
-        await multiSigWalletInstance.submitTransaction(PORBUpgradeableInstance.address, 0, data, { from: owner });
+        // Add controller for USDP
+        let data = USDPContract.methods.addController(multiSigWalletInstance.address).encodeABI();
+        await multiSigWalletInstance.submitTransaction(USDPUpgradeableInstance.address, 0, data, { from: owner });
         let txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
         await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
-        // Mint PORB
-        data = PORBContract.methods.mint(account1, initialPORBAmountMintedToOwner).encodeABI();
-        await multiSigWalletInstance.submitTransaction(PORBUpgradeableInstance.address, 0, data, { from: owner });
+        // Mint USDP
+        data = USDPContract.methods.mint(account1, initialUSDPAmountMintedToOwner).encodeABI();
+        await multiSigWalletInstance.submitTransaction(USDPUpgradeableInstance.address, 0, data, { from: owner });
         txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
         await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
         // Approve marketplace to handle hero token
-        await PORBUpgradeableInstance.approve(heroUpgradeableInstance.address, priceOfHeroInPORB, { from: account1 });
-        await heroUpgradeableInstance.mintWithPORB({ from: account1 });
+        await USDPUpgradeableInstance.approve(heroUpgradeableInstance.address, priceOfHeroInUSDP, { from: account1 });
+        await heroUpgradeableInstance.mintWithUSDP({ from: account1 });
         const heroTokenId = '0';
 
         // Whitelist hero contract and then list the hero token
@@ -334,20 +334,20 @@ contract.skip('NFTMarketplaceUpgradeable.sol', ([owner, account1, account2, acco
     });
 
     it('allows an NFT to be purchased only if the buyer has sufficient WAVAX', async () => {
-        const initialPORBAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
-        const priceOfHeroInPORB = web3.utils.toWei('2', 'ether');
+        const initialUSDPAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
+        const priceOfHeroInUSDP = web3.utils.toWei('2', 'ether');
         const heroTokenListPrice = '10';
         const initialWAVAXAmountMintedToBuyer = heroTokenListPrice;
 
-        // Add controller for PORB
-        let data = PORBContract.methods.addController(multiSigWalletInstance.address).encodeABI();
-        await multiSigWalletInstance.submitTransaction(PORBUpgradeableInstance.address, 0, data, { from: owner });
+        // Add controller for USDP
+        let data = USDPContract.methods.addController(multiSigWalletInstance.address).encodeABI();
+        await multiSigWalletInstance.submitTransaction(USDPUpgradeableInstance.address, 0, data, { from: owner });
         let txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
         await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
-        // Mint PORB for owner
-        data = PORBContract.methods.mint(account1, initialPORBAmountMintedToOwner).encodeABI();
-        await multiSigWalletInstance.submitTransaction(PORBUpgradeableInstance.address, 0, data, { from: owner });
+        // Mint USDP for owner
+        data = USDPContract.methods.mint(account1, initialUSDPAmountMintedToOwner).encodeABI();
+        await multiSigWalletInstance.submitTransaction(USDPUpgradeableInstance.address, 0, data, { from: owner });
         txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
         await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
@@ -355,8 +355,8 @@ contract.skip('NFTMarketplaceUpgradeable.sol', ([owner, account1, account2, acco
         await WAVAXInstance.deposit({ from: account2, value: initialWAVAXAmountMintedToBuyer });
 
         // Approve marketplace to handle hero token
-        await PORBUpgradeableInstance.approve(heroUpgradeableInstance.address, priceOfHeroInPORB, { from: account1 });
-        await heroUpgradeableInstance.mintWithPORB({ from: account1 });
+        await USDPUpgradeableInstance.approve(heroUpgradeableInstance.address, priceOfHeroInUSDP, { from: account1 });
+        await heroUpgradeableInstance.mintWithUSDP({ from: account1 });
         const heroTokenId = '0';
 
         // Whitelist hero contract and then list the hero token
@@ -383,26 +383,26 @@ contract.skip('NFTMarketplaceUpgradeable.sol', ([owner, account1, account2, acco
     });
 
     it('records the correct proceeds and royalties when a token is purchased', async () => {
-        const initialPORBAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
-        const priceOfHeroInPORB = web3.utils.toWei('2', 'ether');
+        const initialUSDPAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
+        const priceOfHeroInUSDP = web3.utils.toWei('2', 'ether');
         const heroTokenListPrice = '100';
         const initialWAVAXAmountMintedToBuyer = heroTokenListPrice;
 
-        // Add controller for PORB
-        let data = PORBContract.methods.addController(multiSigWalletInstance.address).encodeABI();
-        await multiSigWalletInstance.submitTransaction(PORBUpgradeableInstance.address, 0, data, { from: owner });
+        // Add controller for USDP
+        let data = USDPContract.methods.addController(multiSigWalletInstance.address).encodeABI();
+        await multiSigWalletInstance.submitTransaction(USDPUpgradeableInstance.address, 0, data, { from: owner });
         let txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
         await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
-        // Mint PORB for owner
-        data = PORBContract.methods.mint(account1, initialPORBAmountMintedToOwner).encodeABI();
-        await multiSigWalletInstance.submitTransaction(PORBUpgradeableInstance.address, 0, data, { from: owner });
+        // Mint USDP for owner
+        data = USDPContract.methods.mint(account1, initialUSDPAmountMintedToOwner).encodeABI();
+        await multiSigWalletInstance.submitTransaction(USDPUpgradeableInstance.address, 0, data, { from: owner });
         txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
         await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
         // Approve marketplace to handle hero token
-        await PORBUpgradeableInstance.approve(heroUpgradeableInstance.address, priceOfHeroInPORB, { from: account1 });
-        await heroUpgradeableInstance.mintWithPORB({ from: account1 });
+        await USDPUpgradeableInstance.approve(heroUpgradeableInstance.address, priceOfHeroInUSDP, { from: account1 });
+        await heroUpgradeableInstance.mintWithUSDP({ from: account1 });
         const heroTokenId = '0';
 
         // Whitelist hero contract and then list the hero token
@@ -429,26 +429,26 @@ contract.skip('NFTMarketplaceUpgradeable.sol', ([owner, account1, account2, acco
     });
 
     it("doesn't allow a token to be purchased if the collection has been removed from the whitelist since it was listed", async () => {
-        const initialPORBAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
-        const priceOfHeroInPORB = web3.utils.toWei('2', 'ether');
+        const initialUSDPAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
+        const priceOfHeroInUSDP = web3.utils.toWei('2', 'ether');
         const heroTokenListPrice = '10';
         const initialWAVAXAmountMintedToBuyer = heroTokenListPrice;
 
-        // Add controller for PORB
-        let data = PORBContract.methods.addController(multiSigWalletInstance.address).encodeABI();
-        await multiSigWalletInstance.submitTransaction(PORBUpgradeableInstance.address, 0, data, { from: owner });
+        // Add controller for USDP
+        let data = USDPContract.methods.addController(multiSigWalletInstance.address).encodeABI();
+        await multiSigWalletInstance.submitTransaction(USDPUpgradeableInstance.address, 0, data, { from: owner });
         let txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
         await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
-        // Mint PORB for owner
-        data = PORBContract.methods.mint(account1, initialPORBAmountMintedToOwner).encodeABI();
-        await multiSigWalletInstance.submitTransaction(PORBUpgradeableInstance.address, 0, data, { from: owner });
+        // Mint USDP for owner
+        data = USDPContract.methods.mint(account1, initialUSDPAmountMintedToOwner).encodeABI();
+        await multiSigWalletInstance.submitTransaction(USDPUpgradeableInstance.address, 0, data, { from: owner });
         txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
         await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
         // Approve marketplace to handle hero token
-        await PORBUpgradeableInstance.approve(heroUpgradeableInstance.address, priceOfHeroInPORB, { from: account1 });
-        await heroUpgradeableInstance.mintWithPORB({ from: account1 });
+        await USDPUpgradeableInstance.approve(heroUpgradeableInstance.address, priceOfHeroInUSDP, { from: account1 });
+        await heroUpgradeableInstance.mintWithUSDP({ from: account1 });
         const heroTokenId = '0';
 
         // Whitelist hero contract and then list the hero token
@@ -480,24 +480,24 @@ contract.skip('NFTMarketplaceUpgradeable.sol', ([owner, account1, account2, acco
     });
 
     it("doesn't allow a list to be updated if the collection has been removed from the whitelist since it was listed", async () => {
-        const initialPORBAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
-        const priceOfHeroInPORB = web3.utils.toWei('2', 'ether');
+        const initialUSDPAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
+        const priceOfHeroInUSDP = web3.utils.toWei('2', 'ether');
 
-        // Add controller for PORB
-        let data = PORBContract.methods.addController(multiSigWalletInstance.address).encodeABI();
-        await multiSigWalletInstance.submitTransaction(PORBUpgradeableInstance.address, 0, data, { from: owner });
+        // Add controller for USDP
+        let data = USDPContract.methods.addController(multiSigWalletInstance.address).encodeABI();
+        await multiSigWalletInstance.submitTransaction(USDPUpgradeableInstance.address, 0, data, { from: owner });
         let txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
         await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
-        // Mint PORB for owner
-        data = PORBContract.methods.mint(account1, initialPORBAmountMintedToOwner).encodeABI();
-        await multiSigWalletInstance.submitTransaction(PORBUpgradeableInstance.address, 0, data, { from: owner });
+        // Mint USDP for owner
+        data = USDPContract.methods.mint(account1, initialUSDPAmountMintedToOwner).encodeABI();
+        await multiSigWalletInstance.submitTransaction(USDPUpgradeableInstance.address, 0, data, { from: owner });
         txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
         await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
         // Approve marketplace to handle hero token
-        await PORBUpgradeableInstance.approve(heroUpgradeableInstance.address, priceOfHeroInPORB, { from: account1 });
-        await heroUpgradeableInstance.mintWithPORB({ from: account1 });
+        await USDPUpgradeableInstance.approve(heroUpgradeableInstance.address, priceOfHeroInUSDP, { from: account1 });
+        await heroUpgradeableInstance.mintWithUSDP({ from: account1 });
         const heroTokenId = '0';
 
         // Whitelist hero contract and then list the hero token
@@ -528,25 +528,25 @@ contract.skip('NFTMarketplaceUpgradeable.sol', ([owner, account1, account2, acco
     });
 
     it('can be upgraded and store new state variables from the new contract', async () => {
-        const initialPORBAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
-        const priceOfHeroInPORB = web3.utils.toWei('2', 'ether');
+        const initialUSDPAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
+        const priceOfHeroInUSDP = web3.utils.toWei('2', 'ether');
         const heroTokenListPrice = '10';
 
-        // Add controller for PORB
-        let data = PORBContract.methods.addController(multiSigWalletInstance.address).encodeABI();
-        await multiSigWalletInstance.submitTransaction(PORBUpgradeableInstance.address, 0, data, { from: owner });
+        // Add controller for USDP
+        let data = USDPContract.methods.addController(multiSigWalletInstance.address).encodeABI();
+        await multiSigWalletInstance.submitTransaction(USDPUpgradeableInstance.address, 0, data, { from: owner });
         let txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
         await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
-        // Mint PORB for owner
-        data = PORBContract.methods.mint(account1, initialPORBAmountMintedToOwner).encodeABI();
-        await multiSigWalletInstance.submitTransaction(PORBUpgradeableInstance.address, 0, data, { from: owner });
+        // Mint USDP for owner
+        data = USDPContract.methods.mint(account1, initialUSDPAmountMintedToOwner).encodeABI();
+        await multiSigWalletInstance.submitTransaction(USDPUpgradeableInstance.address, 0, data, { from: owner });
         txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
         await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
         // Approve marketplace to handle hero token
-        await PORBUpgradeableInstance.approve(heroUpgradeableInstance.address, priceOfHeroInPORB, { from: account1 });
-        await heroUpgradeableInstance.mintWithPORB({ from: account1 });
+        await USDPUpgradeableInstance.approve(heroUpgradeableInstance.address, priceOfHeroInUSDP, { from: account1 });
+        await heroUpgradeableInstance.mintWithUSDP({ from: account1 });
         const heroTokenId = '0';
 
         // Whitelist hero contract and then list the hero token
