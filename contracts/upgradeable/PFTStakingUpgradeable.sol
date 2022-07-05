@@ -19,7 +19,7 @@ contract PFTStakingUpgradeable is
     }
 
     // Stores the critical staking information for each address
-    mapping(address => StakeInfo) private userStakes;
+    mapping(address => StakeInfo) public userStakes;
 
     // The minimum amount that must be staked to receive membership benefits
     uint256 public minimumStakeAmount;
