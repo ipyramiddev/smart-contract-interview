@@ -6,11 +6,13 @@ import "../lib/upgradeable/IERC20Upgradeable.sol";
 import "../lib/upgradeable/draft-EIP712Upgradeable.sol";
 import "../lib/upgradeable/OwnableUpgradeable.sol";
 import "../lib/upgradeable/ReentrancyGuardUpgradeable.sol";
+import "../lib/upgradeable/PausableUpgradeable.sol";
 
 contract TokenVaultUpgradeable is
     ReentrancyGuardUpgradeable,
     EIP712Upgradeable,
-    OwnableUpgradeable
+    OwnableUpgradeable,
+    PausableUpgradeable
 {
     // A negative amount corresponds to a refund
     event Payment(address indexed user, uint256 opId, int256 amount);
@@ -37,7 +39,7 @@ contract TokenVaultUpgradeable is
      * Allows an address to pay for a specific game operation (e.g. synthesizing porbles)
      * @param opId the operation Id that the address wants to pay for
      */
-    function payForOpId(uint256 opId) external payable {
+    function payForOpId(uint256 opId) external payable whenNotPaused {
         require(msg.value > 0, "The caller hasn't sent any PFT");
         require(
             userPaymentsInfo[msg.sender][opId] == 0,
@@ -153,6 +155,15 @@ contract TokenVaultUpgradeable is
     ) external onlyOwner {
         bool success = IERC20Upgradeable(token).transfer(to, amount);
         require(success, "withdraw failed");
+    }
+
+    /**
+     * Enable the owner to pause / unpause payments
+     * @param _paused paused when set to `true`, unpause when set to `false`
+     */
+    function setPaused(bool _paused) external onlyOwner {
+        if (_paused) _pause();
+        else _unpause();
     }
 
     fallback() external payable {}
