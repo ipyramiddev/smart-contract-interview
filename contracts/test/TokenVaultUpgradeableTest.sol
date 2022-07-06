@@ -2,16 +2,19 @@
 
 pragma solidity ^0.8.0;
 
+import "../lib/upgradeable/IERC20Upgradeable.sol";
 import "../lib/upgradeable/draft-EIP712Upgradeable.sol";
 import "../lib/upgradeable/OwnableUpgradeable.sol";
 import "../lib/upgradeable/ReentrancyGuardUpgradeable.sol";
+import "../lib/upgradeable/PausableUpgradeable.sol";
 
 // @NOTE: Remove issueFullRefund function to test the contract upgrade
 
 contract TokenVaultUpgradeableTest is
     ReentrancyGuardUpgradeable,
     EIP712Upgradeable,
-    OwnableUpgradeable
+    OwnableUpgradeable,
+    PausableUpgradeable
 {
     // A negative amount corresponds to a refund
     event Payment(address indexed user, uint256 opId, int256 amount);
@@ -38,7 +41,7 @@ contract TokenVaultUpgradeableTest is
      * Allows an address to pay for a specific game operation (e.g. synthesizing porbles)
      * @param opId the operation Id that the address wants to pay for
      */
-    function payForOpId(uint256 opId) external payable {
+    function payForOpId(uint256 opId) external payable whenNotPaused {
         require(msg.value > 0, "The caller hasn't sent any PFT");
         require(
             userPaymentsInfo[msg.sender][opId] == 0,
@@ -46,20 +49,6 @@ contract TokenVaultUpgradeableTest is
         );
         userPaymentsInfo[msg.sender][opId] = msg.value;
         emit Payment(msg.sender, opId, int256(msg.value));
-    }
-
-    /**
-     * Allows the contract owner (should be MultiSigWallet) to withdraw a specific amount of PFT to an address
-     * @param to the address to withdraw the PFT to
-     * @param amount the amount of PFT to withdraw from this contract
-     */
-    function withdrawPFT(address to, uint256 amount)
-        external
-        onlyOwner
-        nonReentrant
-    {
-        (bool success, ) = payable(to).call{value: amount}("");
-        require(success, "withdraw failed");
     }
 
     /**
@@ -118,6 +107,44 @@ contract TokenVaultUpgradeableTest is
         returns (uint256)
     {
         return userPaymentsInfo[user][opId];
+    }
+
+    /**
+     * Allows the contract owner (should be MultiSigWallet) to withdraw a specific amount of PFT to an address
+     * @param to the address to withdraw the PFT to
+     * @param amount the amount of PFT to withdraw from this contract
+     */
+    function withdrawPFT(address to, uint256 amount)
+        external
+        onlyOwner
+        nonReentrant
+    {
+        (bool success, ) = payable(to).call{value: amount}("");
+        require(success, "withdraw failed");
+    }
+
+    /**
+     * Allows the contract owner (should be MultiSigWallet) to withdraw a specific amount of ERC20 tokens to an address
+     * @param token the ERC20 token address, e.g. USDP
+     * @param to the address to withdraw the PFT to
+     * @param amount the amount of PFT to withdraw from this contract
+     */
+    function withdrawTokens(
+        address token,
+        address to,
+        uint256 amount
+    ) external onlyOwner {
+        bool success = IERC20Upgradeable(token).transfer(to, amount);
+        require(success, "withdraw failed");
+    }
+
+    /**
+     * Enable the owner to pause / unpause payments
+     * @param _paused paused when set to `true`, unpause when set to `false`
+     */
+    function setPaused(bool _paused) external onlyOwner {
+        if (_paused) _pause();
+        else _unpause();
     }
 
     fallback() external payable {}
