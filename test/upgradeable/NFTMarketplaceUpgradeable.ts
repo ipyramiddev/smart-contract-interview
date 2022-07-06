@@ -6,7 +6,6 @@ import {
     USDPUpgradeableInstance,
     MultiSigWalletInstance,
     NFTMarketplaceUpgradeableInstance,
-    WAVAXInstance,
     NFTMarketplaceUpgradeableTestInstance,
 } from '../../types/truffle-contracts';
 import NFT_MARKETPLACE_UPGRADEABLE_JSON from '../../build/contracts/NFTMarketplaceUpgradeable.json';
@@ -21,7 +20,6 @@ const config = require('../../config').config;
 const NFTMarketplaceUpgradeable = artifacts.require('NFTMarketplaceUpgradeable');
 const heroUpgradeable = artifacts.require('HeroUpgradeable');
 const USDPUpgradeable = artifacts.require('USDPUpgradeable');
-const WAVAX = artifacts.require('WAVAX');
 const multiSigWallet = artifacts.require('MultiSigWallet');
 const NFTMarketplaceUpgradeableTest = artifacts.require('NFTMarketplaceUpgradeableTest');
 
@@ -34,7 +32,6 @@ contract.skip('NFTMarketplaceUpgradeable.sol', ([owner, account1, account2, acco
     let NFTMarketplaceUpgradeableInstance: NFTMarketplaceUpgradeableInstance;
     let heroUpgradeableInstance: HeroUpgradeableInstance;
     let USDPUpgradeableInstance: USDPUpgradeableInstance;
-    let WAVAXInstance: WAVAXInstance;
     let multiSigWalletInstance: MultiSigWalletInstance;
     let NFTMarketplaceUpgradeableTestInstance: NFTMarketplaceUpgradeableTestInstance;
     let NFTMarketplaceUpgradeableContract: any;
@@ -44,11 +41,10 @@ contract.skip('NFTMarketplaceUpgradeable.sol', ([owner, account1, account2, acco
     beforeEach(async () => {
         // Require 2 signatures for multiSig
         multiSigWalletInstance = await multiSigWallet.new([owner, account1, account2], 2);
-        USDPUpgradeableInstance = (await deployProxy(USDPUpgradeable as any, [account1, owner], {
+        USDPUpgradeableInstance = (await deployProxy(USDPUpgradeable as any, [], {
             initializer: 'initialize',
         })) as USDPUpgradeableInstance;
-        WAVAXInstance = await WAVAX.new();
-        NFTMarketplaceUpgradeableInstance = (await deployProxy(NFTMarketplaceUpgradeable as any, [WAVAXInstance.address], {
+        NFTMarketplaceUpgradeableInstance = (await deployProxy(NFTMarketplaceUpgradeable as any, [USDPUpgradeableInstance.address], {
             initializer: 'initialize',
         })) as NFTMarketplaceUpgradeableInstance;
         heroUpgradeableInstance = (await deployProxy(heroUpgradeable as any, [USDPUpgradeableInstance.address, account9], {
@@ -333,11 +329,11 @@ contract.skip('NFTMarketplaceUpgradeable.sol', ([owner, account1, account2, acco
         expect(price).to.equal('0');
     });
 
-    it('allows an NFT to be purchased only if the buyer has sufficient WAVAX', async () => {
+    it('allows an NFT to be purchased only if the buyer has sufficient USDP', async () => {
         const initialUSDPAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
         const priceOfHeroInUSDP = web3.utils.toWei('2', 'ether');
         const heroTokenListPrice = '10';
-        const initialWAVAXAmountMintedToBuyer = heroTokenListPrice;
+        const initialUSDPAmountMintedToBuyer = heroTokenListPrice;
 
         // Add controller for USDP
         let data = USDPContract.methods.addController(multiSigWalletInstance.address).encodeABI();
@@ -351,8 +347,11 @@ contract.skip('NFTMarketplaceUpgradeable.sol', ([owner, account1, account2, acco
         txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
         await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
-        // Deposit WAVAX for buyer
-        await WAVAXInstance.deposit({ from: account2, value: initialWAVAXAmountMintedToBuyer });
+        // Mint USDP for buyer
+        data = USDPContract.methods.mint(account2, initialUSDPAmountMintedToBuyer).encodeABI();
+        await multiSigWalletInstance.submitTransaction(USDPUpgradeableInstance.address, 0, data, { from: owner });
+        txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
         // Approve marketplace to handle hero token
         await USDPUpgradeableInstance.approve(heroUpgradeableInstance.address, priceOfHeroInUSDP, { from: account1 });
@@ -370,11 +369,11 @@ contract.skip('NFTMarketplaceUpgradeable.sol', ([owner, account1, account2, acco
         await localExpect(NFTMarketplaceUpgradeableInstance.listItem(heroUpgradeableInstance.address, heroTokenId, heroTokenListPrice, { from: account1 })).to.eventually.be
             .fulfilled;
 
-        // Attempt to buy the item with two different accounts (only one has sufficient WAVAX)
-        await WAVAXInstance.approve(NFTMarketplaceUpgradeableInstance.address, heroTokenListPrice, { from: account3 });
+        // Attempt to buy the item with two different accounts (only one has sufficient USDP)
+        await USDPUpgradeableInstance.approve(NFTMarketplaceUpgradeableInstance.address, heroTokenListPrice, { from: account3 });
         await localExpect(NFTMarketplaceUpgradeableInstance.buyItem(heroUpgradeableInstance.address, heroTokenId, { from: account3 })).to.eventually.be.rejected;
 
-        await WAVAXInstance.approve(NFTMarketplaceUpgradeableInstance.address, heroTokenListPrice, { from: account2 });
+        await USDPUpgradeableInstance.approve(NFTMarketplaceUpgradeableInstance.address, heroTokenListPrice, { from: account2 });
         await localExpect(NFTMarketplaceUpgradeableInstance.buyItem(heroUpgradeableInstance.address, heroTokenId, { from: account2 })).to.eventually.be.fulfilled;
 
         const { price, seller } = await NFTMarketplaceUpgradeableInstance.getListing(heroUpgradeableInstance.address, heroTokenId);
@@ -386,7 +385,7 @@ contract.skip('NFTMarketplaceUpgradeable.sol', ([owner, account1, account2, acco
         const initialUSDPAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
         const priceOfHeroInUSDP = web3.utils.toWei('2', 'ether');
         const heroTokenListPrice = '100';
-        const initialWAVAXAmountMintedToBuyer = heroTokenListPrice;
+        const initialUSDPAmountMintedToBuyer = heroTokenListPrice;
 
         // Add controller for USDP
         let data = USDPContract.methods.addController(multiSigWalletInstance.address).encodeABI();
@@ -411,28 +410,37 @@ contract.skip('NFTMarketplaceUpgradeable.sol', ([owner, account1, account2, acco
         txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
         await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
-        // Deposit WAVAX for buyer
-        await WAVAXInstance.deposit({ from: account2, value: initialWAVAXAmountMintedToBuyer });
+        // Deposit USDP for buyer
+        data = USDPContract.methods.mint(account2, initialUSDPAmountMintedToBuyer).encodeABI();
+        await multiSigWalletInstance.submitTransaction(USDPUpgradeableInstance.address, 0, data, { from: owner });
+        txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
+        const sellerUSDPBalanceBefore = (await USDPUpgradeableInstance.balanceOf(account1)).toString();
+        const royaltyReceiverBalanceBefore = (await USDPUpgradeableInstance.balanceOf(account9)).toString();
         // Buy item
         await heroUpgradeableInstance.approve(NFTMarketplaceUpgradeableInstance.address, heroTokenId, { from: account1 });
         await NFTMarketplaceUpgradeableInstance.listItem(heroUpgradeableInstance.address, heroTokenId, heroTokenListPrice, { from: account1 });
-        await WAVAXInstance.approve(NFTMarketplaceUpgradeableInstance.address, heroTokenListPrice, { from: account2 });
+        await USDPUpgradeableInstance.approve(NFTMarketplaceUpgradeableInstance.address, heroTokenListPrice, { from: account2 });
         await NFTMarketplaceUpgradeableInstance.buyItem(heroUpgradeableInstance.address, heroTokenId, { from: account2 });
 
         const expectedRoyalties = '4';
         const expectedSellerProceeds = (Number(heroTokenListPrice) - Number(expectedRoyalties)).toString();
-        const sellerProceeds = await WAVAXInstance.balanceOf(account1);
-        const royalties = await WAVAXInstance.balanceOf(account9);
-        expect(sellerProceeds.toString()).to.equal(expectedSellerProceeds);
-        expect(royalties.toString()).to.equal(expectedRoyalties);
+        const sellerProceeds = bigInt((await USDPUpgradeableInstance.balanceOf(account1)).toString())
+            .minus(sellerUSDPBalanceBefore)
+            .toString();
+        const royalties = bigInt((await USDPUpgradeableInstance.balanceOf(account9)).toString())
+            .minus(royaltyReceiverBalanceBefore)
+            .toString();
+        expect(sellerProceeds).to.equal(expectedSellerProceeds);
+        expect(royalties).to.equal(expectedRoyalties);
     });
 
     it("doesn't allow a token to be purchased if the collection has been removed from the whitelist since it was listed", async () => {
         const initialUSDPAmountMintedToOwner = web3.utils.toWei('1000000000', 'ether');
         const priceOfHeroInUSDP = web3.utils.toWei('2', 'ether');
         const heroTokenListPrice = '10';
-        const initialWAVAXAmountMintedToBuyer = heroTokenListPrice;
+        const initialUSDPAmountMintedToBuyer = heroTokenListPrice;
 
         // Add controller for USDP
         let data = USDPContract.methods.addController(multiSigWalletInstance.address).encodeABI();
@@ -468,8 +476,11 @@ contract.skip('NFTMarketplaceUpgradeable.sol', ([owner, account1, account2, acco
         txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
         await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
-        // Deposit WAVAX for buyer
-        await WAVAXInstance.deposit({ from: account2, value: initialWAVAXAmountMintedToBuyer });
+        // Deposit USDP for buyer
+        data = USDPContract.methods.mint(account2, initialUSDPAmountMintedToBuyer).encodeABI();
+        await multiSigWalletInstance.submitTransaction(USDPUpgradeableInstance.address, 0, data, { from: owner });
+        txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
 
         // Attempt to buy the item
         await localExpect(NFTMarketplaceUpgradeableInstance.buyItem(heroUpgradeableInstance.address, heroTokenId, { from: account2 })).to.eventually.be.rejected;
