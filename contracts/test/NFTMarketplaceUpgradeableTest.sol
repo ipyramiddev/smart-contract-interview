@@ -77,17 +77,17 @@ contract NFTMarketplaceUpgradeableTest is
         _;
     }
 
-    address WAVAXAddress;
+    address USDPAddress;
 
     mapping(address => mapping(uint256 => Listing)) private listings;
 
     // NFT contracts must be whitelisted before its tokens can be listed
     mapping(address => bool) collectionsWhitelist;
 
-    function initialize(address _WAVAXAddress) public initializer {
+    function initialize(address _USDPAddress) public initializer {
         __ReentrancyGuard_init();
         __Ownable_init();
-        WAVAXAddress = _WAVAXAddress;
+        USDPAddress = _USDPAddress;
     }
 
     function updateCollectionsWhitelist(address NFTAddress, bool allowed)
@@ -141,12 +141,12 @@ contract NFTMarketplaceUpgradeableTest is
         uint256 amountPaidToSeller = listedItem.price - royaltyAmount;
 
         // Pay the royalty fee and the rest to the seller
-        IERC20Upgradeable(WAVAXAddress).transferFrom(
+        IERC20Upgradeable(USDPAddress).transferFrom(
             msg.sender,
             royaltyReceiver,
             royaltyAmount
         );
-        IERC20Upgradeable(WAVAXAddress).transferFrom(
+        IERC20Upgradeable(USDPAddress).transferFrom(
             msg.sender,
             listedItem.seller,
             amountPaidToSeller
@@ -184,13 +184,5 @@ contract NFTMarketplaceUpgradeableTest is
     {
         delete (listings[NFTAddress][tokenId]);
         emit ItemCancelled(msg.sender, NFTAddress, tokenId);
-    }
-
-    function getListing(address NFTAddress, uint256 tokenId)
-        external
-        view
-        returns (Listing memory)
-    {
-        return listings[NFTAddress][tokenId];
     }
 }

@@ -24,7 +24,7 @@ const rpcEndpoint = config.AVAX.localSubnetHTTP;
 const provider = new ethers.providers.JsonRpcProvider(rpcEndpoint);
 const signer = new ethers.Wallet(testAccountsData[1].privateKey, provider);
 
-contract('TokenVaultUpgradeable.sol', ([owner, account1, account2, account3, account4, account5, account6, account7, account8, account9]) => {
+contract.skip('TokenVaultUpgradeable.sol', ([owner, account1, account2, account3, account4, account5, account6, account7, account8, account9]) => {
     let TokenVaultUpgradeableInstance: TokenVaultUpgradeableInstance;
     let multiSigWalletInstance: MultiSigWalletInstance;
     let USDPUpgradeableInstance: USDPUpgradeableInstance;
