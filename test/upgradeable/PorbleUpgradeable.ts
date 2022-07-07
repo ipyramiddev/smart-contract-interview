@@ -80,15 +80,15 @@ contract.skip('PorbleUpgradeable.sol', ([owner, account1, account2, account3, ac
         expect(isPaused).to.be.false;
     });
 
-    it('allows a porbleUpgradeable token to be minted if the signature is successfully verified', async () => {
+    it('allows a porble token to be minted if the signature is successfully verified', async () => {
         const types = {
             PorbleMintConditions: [
                 { name: 'minter', type: 'address' },
-                { name: 'tokenId', type: 'uint256' },
+                { name: 'tokenIds', type: 'uint256[]' },
             ],
         };
 
-        const porbleUpgradeableMintConditions = { minter: testAccountsData[1].address, tokenId: 1 };
+        const porbleMintConditions = { minter: testAccountsData[1].address, tokenIds: ['1'] };
 
         const domain = {
             name: 'PortalFantasy',
@@ -98,21 +98,49 @@ contract.skip('PorbleUpgradeable.sol', ([owner, account1, account2, account3, ac
         };
 
         // Sign according to the EIP-712 standard
-        const signature = await signer._signTypedData(domain, types, porbleUpgradeableMintConditions);
+        const signature = await signer._signTypedData(domain, types, porbleMintConditions);
 
         // The tokenId and tx sender must match those that have been signed for
-        await localExpect(porbleUpgradeableInstance.safeMint(signature, 1, { from: testAccountsData[1].address })).to.eventually.be.fulfilled;
+        await localExpect(porbleUpgradeableInstance.safeMintTokens(signature, ['1'], { from: testAccountsData[1].address })).to.eventually.be.fulfilled;
+        expect(await porbleUpgradeableInstance.ownerOf('1')).to.equal(testAccountsData[1].address);
+    });
+
+    it('allows multiple porble tokens to be minted if the signature is successfully verified', async () => {
+        const types = {
+            PorbleMintConditions: [
+                { name: 'minter', type: 'address' },
+                { name: 'tokenIds', type: 'uint256[]' },
+            ],
+        };
+
+        const porbleMintConditions = { minter: testAccountsData[1].address, tokenIds: ['1', '23', '454'] };
+
+        const domain = {
+            name: 'PortalFantasy',
+            version: '1',
+            chainId: 43214,
+            verifyingContract: porbleUpgradeableInstance.address,
+        };
+
+        // Sign according to the EIP-712 standard
+        const signature = await signer._signTypedData(domain, types, porbleMintConditions);
+
+        // The tokenId and tx sender must match those that have been signed for
+        await localExpect(porbleUpgradeableInstance.safeMintTokens(signature, ['1', '23', '454'], { from: testAccountsData[1].address })).to.eventually.be.fulfilled;
+        expect(await porbleUpgradeableInstance.ownerOf('1')).to.equal(testAccountsData[1].address);
+        expect(await porbleUpgradeableInstance.ownerOf('23')).to.equal(testAccountsData[1].address);
+        expect(await porbleUpgradeableInstance.ownerOf('454')).to.equal(testAccountsData[1].address);
     });
 
     it('reverts if the same signature is used multiple times', async () => {
         const types = {
             PorbleMintConditions: [
                 { name: 'minter', type: 'address' },
-                { name: 'tokenId', type: 'uint256' },
+                { name: 'tokenIds', type: 'uint256[]' },
             ],
         };
 
-        const porbleUpgradeableMintConditions = { minter: testAccountsData[1].address, tokenId: 1 };
+        const porbleMintConditions = { minter: testAccountsData[1].address, tokenIds: ['1'] };
 
         const domain = {
             name: 'PortalFantasy',
@@ -122,23 +150,23 @@ contract.skip('PorbleUpgradeable.sol', ([owner, account1, account2, account3, ac
         };
 
         // Sign according to the EIP-712 standard
-        const signature = await signer._signTypedData(domain, types, porbleUpgradeableMintConditions);
+        const signature = await signer._signTypedData(domain, types, porbleMintConditions);
 
         // The tokenId and tx sender must match those that have been signed for
-        await localExpect(porbleUpgradeableInstance.safeMint(signature, 1, { from: testAccountsData[1].address })).to.eventually.be.fulfilled;
+        await localExpect(porbleUpgradeableInstance.safeMintTokens(signature, ['1'], { from: testAccountsData[1].address })).to.eventually.be.fulfilled;
 
-        await localExpect(porbleUpgradeableInstance.safeMint(signature, 1, { from: testAccountsData[1].address })).to.eventually.be.rejected;
+        await localExpect(porbleUpgradeableInstance.safeMintTokens(signature, ['1'], { from: testAccountsData[1].address })).to.eventually.be.rejected;
     });
 
-    it("prevents a porbleUpgradeable token from being minted if the 'PorbleMintConditions' key doesn't match the name of the object hard-coded in the contract", async () => {
+    it("prevents a porble token from being minted if the 'PorbleMintConditions' key doesn't match the name of the object hard-coded in the contract", async () => {
         const types = {
             PorbleMintConditionsWrong: [
                 { name: 'minter', type: 'address' },
-                { name: 'tokenId', type: 'uint256' },
+                { name: 'tokenIds', type: 'uint256[]' },
             ],
         };
 
-        const porbleUpgradeableMintConditions = { minter: testAccountsData[1].address, tokenId: 2 };
+        const porbleMintConditions = { minter: testAccountsData[1].address, tokenIds: ['2'] };
 
         const domain = {
             name: 'PortalFantasy',
@@ -148,21 +176,21 @@ contract.skip('PorbleUpgradeable.sol', ([owner, account1, account2, account3, ac
         };
 
         // Sign according to the EIP-712 standard
-        const signature = await signer._signTypedData(domain, types, porbleUpgradeableMintConditions);
+        const signature = await signer._signTypedData(domain, types, porbleMintConditions);
 
         // The tokenId and tx sender must match those that have been signed for
-        await localExpect(porbleUpgradeableInstance.safeMint(signature, 2, { from: testAccountsData[1].address })).to.eventually.be.rejected;
+        await localExpect(porbleUpgradeableInstance.safeMintTokens(signature, ['2'], { from: testAccountsData[1].address })).to.eventually.be.rejected;
     });
 
-    it("prevents a porbleUpgradeable token from being minted if the domain name doesn't match the string passed into the contract's constructor", async () => {
+    it("prevents a porble token from being minted if the domain name doesn't match the string passed into the contract's constructor", async () => {
         const types = {
             PorbleMintConditions: [
                 { name: 'minter', type: 'address' },
-                { name: 'tokenId', type: 'uint256' },
+                { name: 'tokenIds', type: 'uint256[]' },
             ],
         };
 
-        const porbleUpgradeableMintConditions = { minter: testAccountsData[1].address, tokenId: 2 };
+        const porbleMintConditions = { minter: testAccountsData[1].address, tokenIds: ['2'] };
 
         const domain = {
             name: 'PortalFantasyWrong',
@@ -172,21 +200,21 @@ contract.skip('PorbleUpgradeable.sol', ([owner, account1, account2, account3, ac
         };
 
         // Sign according to the EIP-712 standard
-        const signature = await signer._signTypedData(domain, types, porbleUpgradeableMintConditions);
+        const signature = await signer._signTypedData(domain, types, porbleMintConditions);
 
         // The tokenId and tx sender must match those that have been signed for
-        await localExpect(porbleUpgradeableInstance.safeMint(signature, 2, { from: testAccountsData[1].address })).to.eventually.be.rejected;
+        await localExpect(porbleUpgradeableInstance.safeMintTokens(signature, ['2'], { from: testAccountsData[1].address })).to.eventually.be.rejected;
     });
 
-    it("prevents a porbleUpgradeable token from being minted if the domain version doesn't match the string passed into the contract's constructor", async () => {
+    it("prevents a porble token from being minted if the domain version doesn't match the string passed into the contract's constructor", async () => {
         const types = {
             PorbleMintConditions: [
                 { name: 'minter', type: 'address' },
-                { name: 'tokenId', type: 'uint256' },
+                { name: 'tokenIds', type: 'uint256[]' },
             ],
         };
 
-        const porbleUpgradeableMintConditions = { minter: testAccountsData[1].address, tokenId: 2 };
+        const porbleMintConditions = { minter: testAccountsData[1].address, tokenIds: ['2'] };
 
         const domain = {
             name: 'PortalFantasy',
@@ -196,21 +224,21 @@ contract.skip('PorbleUpgradeable.sol', ([owner, account1, account2, account3, ac
         };
 
         // Sign according to the EIP-712 standard
-        const signature = await signer._signTypedData(domain, types, porbleUpgradeableMintConditions);
+        const signature = await signer._signTypedData(domain, types, porbleMintConditions);
 
         // The tokenId and tx sender must match those that have been signed for
-        await localExpect(porbleUpgradeableInstance.safeMint(signature, 2, { from: testAccountsData[1].address })).to.eventually.be.rejected;
+        await localExpect(porbleUpgradeableInstance.safeMintTokens(signature, ['2'], { from: testAccountsData[1].address })).to.eventually.be.rejected;
     });
 
-    it("prevents a porbleUpgradeable token from being minted if the domain chainId doesn't match the chainId of the chain the contract is deployed to", async () => {
+    it("prevents a porble token from being minted if the domain chainId doesn't match the chainId of the chain the contract is deployed to", async () => {
         const types = {
             PorbleMintConditions: [
                 { name: 'minter', type: 'address' },
-                { name: 'tokenId', type: 'uint256' },
+                { name: 'tokenIds', type: 'uint256[]' },
             ],
         };
 
-        const porbleUpgradeableMintConditions = { minter: testAccountsData[1].address, tokenId: 2 };
+        const porbleMintConditions = { minter: testAccountsData[1].address, tokenIds: ['2'] };
 
         const domain = {
             name: 'PortalFantasy',
@@ -220,21 +248,21 @@ contract.skip('PorbleUpgradeable.sol', ([owner, account1, account2, account3, ac
         };
 
         // Sign according to the EIP-712 standard
-        const signature = await signer._signTypedData(domain, types, porbleUpgradeableMintConditions);
+        const signature = await signer._signTypedData(domain, types, porbleMintConditions);
 
         // The tokenId and tx sender must match those that have been signed for
-        await localExpect(porbleUpgradeableInstance.safeMint(signature, 2, { from: testAccountsData[1].address })).to.eventually.be.rejected;
+        await localExpect(porbleUpgradeableInstance.safeMintTokens(signature, ['2'], { from: testAccountsData[1].address })).to.eventually.be.rejected;
     });
 
-    it("prevents a porbleUpgradeable token from being minted if the domain verifyingContract doesn't match the address the contract is deployed to", async () => {
+    it("prevents a porble token from being minted if the domain verifyingContract doesn't match the address the contract is deployed to", async () => {
         const types = {
             PorbleMintConditions: [
                 { name: 'minter', type: 'address' },
-                { name: 'tokenId', type: 'uint256' },
+                { name: 'tokenIds', type: 'uint256[]' },
             ],
         };
 
-        const porbleUpgradeableMintConditions = { minter: testAccountsData[1].address, tokenId: 2 };
+        const porbleMintConditions = { minter: testAccountsData[1].address, tokenIds: ['2'] };
 
         const domain = {
             name: 'PortalFantasy',
@@ -244,21 +272,21 @@ contract.skip('PorbleUpgradeable.sol', ([owner, account1, account2, account3, ac
         };
 
         // Sign according to the EIP-712 standard
-        const signature = await signer._signTypedData(domain, types, porbleUpgradeableMintConditions);
+        const signature = await signer._signTypedData(domain, types, porbleMintConditions);
 
         // The tokenId and tx sender must match those that have been signed for
-        await localExpect(porbleUpgradeableInstance.safeMint(signature, 2, { from: testAccountsData[1].address })).to.eventually.be.rejected;
+        await localExpect(porbleUpgradeableInstance.safeMintTokens(signature, ['2'], { from: testAccountsData[1].address })).to.eventually.be.rejected;
     });
 
-    it("prevents a porbleUpgradeable token from being minted if the signed 'minter' address doesn't match the sender address of the tx", async () => {
+    it("prevents a porble token from being minted if the signed 'minter' address doesn't match the sender address of the tx", async () => {
         const types = {
             PorbleMintConditions: [
                 { name: 'minter', type: 'address' },
-                { name: 'tokenId', type: 'uint256' },
+                { name: 'tokenIds', type: 'uint256[]' },
             ],
         };
 
-        const porbleUpgradeableMintConditions = { minter: testAccountsData[1].address, tokenId: 2 };
+        const porbleMintConditions = { minter: testAccountsData[1].address, tokenIds: ['2'] };
 
         const domain = {
             name: 'PortalFantasy',
@@ -268,21 +296,21 @@ contract.skip('PorbleUpgradeable.sol', ([owner, account1, account2, account3, ac
         };
 
         // Sign according to the EIP-712 standard
-        const signature = await signer._signTypedData(domain, types, porbleUpgradeableMintConditions);
+        const signature = await signer._signTypedData(domain, types, porbleMintConditions);
 
         // The tokenId and tx sender must match those that have been signed for
-        await localExpect(porbleUpgradeableInstance.safeMint(signature, 2, { from: testAccountsData[2].address })).to.eventually.be.rejected;
+        await localExpect(porbleUpgradeableInstance.safeMintTokens(signature, ['2'], { from: testAccountsData[2].address })).to.eventually.be.rejected;
     });
 
-    it("prevents a porbleUpgradeable token from being minted if the signed tokenId doesn't match the tokenId specified by the caller", async () => {
+    it("prevents a porble token from being minted if the signed tokenId doesn't match the tokenId specified by the caller", async () => {
         const types = {
             PorbleMintConditions: [
                 { name: 'minter', type: 'address' },
-                { name: 'tokenId', type: 'uint256' },
+                { name: 'tokenIds', type: 'uint256[]' },
             ],
         };
 
-        const porbleUpgradeableMintConditions = { minter: testAccountsData[1].address, tokenId: 2 };
+        const porbleMintConditions = { minter: testAccountsData[1].address, tokenIds: ['2'] };
 
         const domain = {
             name: 'PortalFantasy',
@@ -292,21 +320,21 @@ contract.skip('PorbleUpgradeable.sol', ([owner, account1, account2, account3, ac
         };
 
         // Sign according to the EIP-712 standard
-        const signature = await signer._signTypedData(domain, types, porbleUpgradeableMintConditions);
+        const signature = await signer._signTypedData(domain, types, porbleMintConditions);
 
         // The tokenId and tx sender must match those that have been signed for
-        await localExpect(porbleUpgradeableInstance.safeMint(signature, 99999, { from: testAccountsData[1].address })).to.eventually.be.rejected;
+        await localExpect(porbleUpgradeableInstance.safeMintTokens(signature, ['99999'], { from: testAccountsData[1].address })).to.eventually.be.rejected;
     });
 
-    it('prevents a porbleUpgradeable token from being minted if the signature is tampered with', async () => {
+    it('prevents a porble token from being minted if the signature is tampered with', async () => {
         const types = {
             PorbleMintConditions: [
                 { name: 'minter', type: 'address' },
-                { name: 'tokenId', type: 'uint256' },
+                { name: 'tokenIds', type: 'uint256[]' },
             ],
         };
 
-        const porbleUpgradeableMintConditions = { minter: testAccountsData[1].address, tokenId: 2 };
+        const porbleMintConditions = { minter: testAccountsData[1].address, tokenIds: ['2'] };
 
         const domain = {
             name: 'PortalFantasy',
@@ -316,14 +344,14 @@ contract.skip('PorbleUpgradeable.sol', ([owner, account1, account2, account3, ac
         };
 
         // Sign according to the EIP-712 standard
-        const signature: string = await signer._signTypedData(domain, types, porbleUpgradeableMintConditions);
+        const signature: string = await signer._signTypedData(domain, types, porbleMintConditions);
 
         const signatureArr = signature.split('');
         signatureArr[10] = '7';
         const tamperedSignature = signatureArr.join('');
 
         // The tokenId and tx sender must match those that have been signed for
-        await localExpect(porbleUpgradeableInstance.safeMint(tamperedSignature, 2, { from: testAccountsData[1].address })).to.eventually.be.rejected;
+        await localExpect(porbleUpgradeableInstance.safeMintTokens(tamperedSignature, ['2'], { from: testAccountsData[1].address })).to.eventually.be.rejected;
     });
 
     it('only allows the owner to change the _mintSigner', async () => {
@@ -346,11 +374,11 @@ contract.skip('PorbleUpgradeable.sol', ([owner, account1, account2, account3, ac
         const types = {
             PorbleMintConditions: [
                 { name: 'minter', type: 'address' },
-                { name: 'tokenId', type: 'uint256' },
+                { name: 'tokenIds', type: 'uint256[]' },
             ],
         };
 
-        const porbleUpgradeableMintConditions = { minter: testAccountsData[1].address, tokenId: 2 };
+        const porbleMintConditions = { minter: testAccountsData[1].address, tokenIds: ['2'] };
 
         const domain = {
             name: 'PortalFantasy',
@@ -360,15 +388,15 @@ contract.skip('PorbleUpgradeable.sol', ([owner, account1, account2, account3, ac
         };
 
         // Sign according to the EIP-712 standard
-        const signature = await signer._signTypedData(domain, types, porbleUpgradeableMintConditions);
+        const signature = await signer._signTypedData(domain, types, porbleMintConditions);
 
         // This should fail because the _mintSigner has changed and no longer matches the signer
-        await localExpect(porbleUpgradeableInstance.safeMint(signature, 2, { from: testAccountsData[1].address })).to.eventually.be.rejected;
+        await localExpect(porbleUpgradeableInstance.safeMintTokens(signature, ['2'], { from: testAccountsData[1].address })).to.eventually.be.rejected;
 
         const newSigner = new ethers.Wallet(testAccountsData[2].privateKey, provider);
-        const newsignature = await newSigner._signTypedData(domain, types, porbleUpgradeableMintConditions);
+        const newsignature = await newSigner._signTypedData(domain, types, porbleMintConditions);
 
-        await localExpect(porbleUpgradeableInstance.safeMint(newsignature, 2, { from: testAccountsData[1].address })).to.eventually.be.fulfilled;
+        await localExpect(porbleUpgradeableInstance.safeMintTokens(newsignature, ['2'], { from: testAccountsData[1].address })).to.eventually.be.fulfilled;
     });
 
     // @TODO: Update this test when we have the final base URI implemented in the contract
@@ -376,11 +404,11 @@ contract.skip('PorbleUpgradeable.sol', ([owner, account1, account2, account3, ac
         const types = {
             PorbleMintConditions: [
                 { name: 'minter', type: 'address' },
-                { name: 'tokenId', type: 'uint256' },
+                { name: 'tokenIds', type: 'uint256[]' },
             ],
         };
 
-        const porbleUpgradeableMintConditions = { minter: testAccountsData[1].address, tokenId: 1 };
+        const porbleMintConditions = { minter: testAccountsData[1].address, tokenIds: ['1'] };
 
         const domain = {
             name: 'PortalFantasy',
@@ -390,9 +418,9 @@ contract.skip('PorbleUpgradeable.sol', ([owner, account1, account2, account3, ac
         };
 
         // Sign according to the EIP-712 standard
-        const signature: string = await signer._signTypedData(domain, types, porbleUpgradeableMintConditions);
+        const signature: string = await signer._signTypedData(domain, types, porbleMintConditions);
 
-        await porbleUpgradeableInstance.safeMint(signature, 1, { from: testAccountsData[1].address });
+        await porbleUpgradeableInstance.safeMintTokens(signature, ['1'], { from: testAccountsData[1].address });
 
         const tokenURI = await porbleUpgradeableInstance.tokenURI('1');
         expect(tokenURI).to.equal('https://www.portalfantasy.io/1');
@@ -402,11 +430,11 @@ contract.skip('PorbleUpgradeable.sol', ([owner, account1, account2, account3, ac
         const types = {
             PorbleMintConditions: [
                 { name: 'minter', type: 'address' },
-                { name: 'tokenId', type: 'uint256' },
+                { name: 'tokenIds', type: 'uint256[]' },
             ],
         };
 
-        const porbleUpgradeableMintConditions = { minter: testAccountsData[1].address, tokenId: 1 };
+        const porbleMintConditions = { minter: testAccountsData[1].address, tokenIds: ['1'] };
 
         const domain = {
             name: 'PortalFantasy',
@@ -416,9 +444,9 @@ contract.skip('PorbleUpgradeable.sol', ([owner, account1, account2, account3, ac
         };
 
         // Sign according to the EIP-712 standard
-        const signature: string = await signer._signTypedData(domain, types, porbleUpgradeableMintConditions);
+        const signature: string = await signer._signTypedData(domain, types, porbleMintConditions);
 
-        await porbleUpgradeableInstance.safeMint(signature, 1, { from: testAccountsData[1].address });
+        await porbleUpgradeableInstance.safeMintTokens(signature, ['1'], { from: testAccountsData[1].address });
 
         let tokenURI = await porbleUpgradeableInstance.tokenURI('1');
         expect(tokenURI).to.equal('https://www.portalfantasy.io/1');
@@ -457,11 +485,11 @@ contract.skip('PorbleUpgradeable.sol', ([owner, account1, account2, account3, ac
         const types = {
             PorbleMintConditions: [
                 { name: 'minter', type: 'address' },
-                { name: 'tokenId', type: 'uint256' },
+                { name: 'tokenIds', type: 'uint256[]' },
             ],
         };
 
-        const porbleUpgradeableMintConditions = { minter: testAccountsData[1].address, tokenId: 1 };
+        const porbleMintConditions = { minter: testAccountsData[1].address, tokenIds: ['1'] };
 
         const domain = {
             name: 'PortalFantasy',
@@ -471,10 +499,10 @@ contract.skip('PorbleUpgradeable.sol', ([owner, account1, account2, account3, ac
         };
 
         // Sign according to the EIP-712 standard
-        const signature = await signer._signTypedData(domain, types, porbleUpgradeableMintConditions);
+        const signature = await signer._signTypedData(domain, types, porbleMintConditions);
 
         // The tokenId and tx sender must match those that have been signed for
-        await localExpect(porbleUpgradeableInstance.safeMint(signature, 1, { from: testAccountsData[1].address })).to.eventually.be.fulfilled;
+        await localExpect(porbleUpgradeableInstance.safeMintTokens(signature, ['1'], { from: testAccountsData[1].address })).to.eventually.be.fulfilled;
 
         // Assert expected royalty parameters
         let defaultRoyaltyInfo = await porbleUpgradeableInstance.royaltyInfo('1', priceOfPorbleInPORB);
@@ -491,11 +519,11 @@ contract.skip('PorbleUpgradeable.sol', ([owner, account1, account2, account3, ac
         const types = {
             PorbleMintConditions: [
                 { name: 'minter', type: 'address' },
-                { name: 'tokenId', type: 'uint256' },
+                { name: 'tokenIds', type: 'uint256[]' },
             ],
         };
 
-        const porbleUpgradeableMintConditions = { minter: testAccountsData[1].address, tokenId: 1 };
+        const porbleMintConditions = { minter: testAccountsData[1].address, tokenIds: ['1'] };
 
         const domain = {
             name: 'PortalFantasy',
@@ -505,10 +533,10 @@ contract.skip('PorbleUpgradeable.sol', ([owner, account1, account2, account3, ac
         };
 
         // Sign according to the EIP-712 standard
-        const signature = await signer._signTypedData(domain, types, porbleUpgradeableMintConditions);
+        const signature = await signer._signTypedData(domain, types, porbleMintConditions);
 
         // The tokenId and tx sender must match those that have been signed for
-        await localExpect(porbleUpgradeableInstance.safeMint(signature, 1, { from: testAccountsData[1].address })).to.eventually.be.fulfilled;
+        await localExpect(porbleUpgradeableInstance.safeMintTokens(signature, ['1'], { from: testAccountsData[1].address })).to.eventually.be.fulfilled;
 
         await localExpect(porbleUpgradeableInstance.setDefaultRoyalty(300, { from: account1 })).to.eventually.be.rejected;
 
@@ -532,11 +560,11 @@ contract.skip('PorbleUpgradeable.sol', ([owner, account1, account2, account3, ac
         const types = {
             PorbleMintConditions: [
                 { name: 'minter', type: 'address' },
-                { name: 'tokenId', type: 'uint256' },
+                { name: 'tokenIds', type: 'uint256[]' },
             ],
         };
 
-        const porbleUpgradeableMintConditions = { minter: testAccountsData[1].address, tokenId: 1 };
+        const porbleMintConditions = { minter: testAccountsData[1].address, tokenIds: ['1'] };
 
         const domain = {
             name: 'PortalFantasy',
@@ -546,10 +574,10 @@ contract.skip('PorbleUpgradeable.sol', ([owner, account1, account2, account3, ac
         };
 
         // Sign according to the EIP-712 standard
-        const signature = await signer._signTypedData(domain, types, porbleUpgradeableMintConditions);
+        const signature = await signer._signTypedData(domain, types, porbleMintConditions);
 
         // The tokenId and tx sender must match those that have been signed for
-        await localExpect(porbleUpgradeableInstance.safeMint(signature, 1, { from: testAccountsData[1].address })).to.eventually.be.fulfilled;
+        await localExpect(porbleUpgradeableInstance.safeMintTokens(signature, ['1'], { from: testAccountsData[1].address })).to.eventually.be.fulfilled;
 
         // Expect this to fail, as only the owner can change the base URI
         await localExpect(porbleUpgradeableInstance.setTokenRoyalty('0', 300, { from: account1 })).to.eventually.be.rejected;
@@ -574,11 +602,11 @@ contract.skip('PorbleUpgradeable.sol', ([owner, account1, account2, account3, ac
         const types = {
             PorbleMintConditions: [
                 { name: 'minter', type: 'address' },
-                { name: 'tokenId', type: 'uint256' },
+                { name: 'tokenIds', type: 'uint256[]' },
             ],
         };
 
-        const porbleUpgradeableMintConditions = { minter: testAccountsData[1].address, tokenId: 1 };
+        const porbleMintConditions = { minter: testAccountsData[1].address, tokenIds: ['1'] };
 
         const domain = {
             name: 'PortalFantasy',
@@ -588,10 +616,10 @@ contract.skip('PorbleUpgradeable.sol', ([owner, account1, account2, account3, ac
         };
 
         // Sign according to the EIP-712 standard
-        const signature = await signer._signTypedData(domain, types, porbleUpgradeableMintConditions);
+        const signature = await signer._signTypedData(domain, types, porbleMintConditions);
 
         // The tokenId and tx sender must match those that have been signed for
-        await localExpect(porbleUpgradeableInstance.safeMint(signature, 1, { from: testAccountsData[1].address })).to.eventually.be.fulfilled;
+        await localExpect(porbleUpgradeableInstance.safeMintTokens(signature, ['1'], { from: testAccountsData[1].address })).to.eventually.be.fulfilled;
         // Expect this to fail, as only the owner can change the base URI
         await localExpect(porbleUpgradeableInstance.resetTokenRoyalty('0', { from: account1 })).to.eventually.be.rejected;
 
@@ -616,11 +644,11 @@ contract.skip('PorbleUpgradeable.sol', ([owner, account1, account2, account3, ac
         const types = {
             PorbleMintConditions: [
                 { name: 'minter', type: 'address' },
-                { name: 'tokenId', type: 'uint256' },
+                { name: 'tokenIds', type: 'uint256[]' },
             ],
         };
 
-        const porbleUpgradeableMintConditions = { minter: testAccountsData[1].address, tokenId: 1 };
+        const porbleMintConditions = { minter: testAccountsData[1].address, tokenIds: ['1'] };
 
         const domain = {
             name: 'PortalFantasy',
@@ -630,10 +658,10 @@ contract.skip('PorbleUpgradeable.sol', ([owner, account1, account2, account3, ac
         };
 
         // Sign according to the EIP-712 standard
-        const signature = await signer._signTypedData(domain, types, porbleUpgradeableMintConditions);
+        const signature = await signer._signTypedData(domain, types, porbleMintConditions);
 
         // The tokenId and tx sender must match those that have been signed for
-        await localExpect(porbleUpgradeableInstance.safeMint(signature, 1, { from: testAccountsData[1].address })).to.eventually.be.fulfilled;
+        await localExpect(porbleUpgradeableInstance.safeMintTokens(signature, ['1'], { from: testAccountsData[1].address })).to.eventually.be.fulfilled;
 
         porbleUpgradeableTestInstance = (await upgradeProxy(porbleUpgradeableInstance.address, porbleUpgradeableTest as any)) as PorbleUpgradeableTestInstance;
 
