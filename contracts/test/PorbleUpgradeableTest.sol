@@ -48,21 +48,24 @@ contract PorbleUpgradeableTest is
     }
 
     /**
-     * Allows the caller to mint a token with specified tokenId if the signature is valid
-     * The recipient and the tokenId to be minted is determined by the signer
+     * Allows the caller to mint tokens with the specified tokenIds if the signature is valid
+     * The recipient and the tokenIds to be minted is determined by the signer
      * @param signature the signed message specifying the recipient and tokenId to mint and transfer
-     * @param tokenId the tokenId to mint and transfer to the caller
+     * @param tokenIds the tokenIds to mint and transfer to the caller
      */
-    function safeMint(bytes calldata signature, uint256 tokenId) external {
+    function safeMintTokens(
+        bytes calldata signature,
+        uint256[] calldata tokenIds
+    ) external {
         // Only allow the caller to mint if the signature is valid
         bytes32 digest = _hashTypedDataV4(
             keccak256(
                 abi.encode(
                     keccak256(
-                        "PorbleMintConditions(address minter,uint256 tokenId)"
+                        "PorbleMintConditions(address minter,uint256[] tokenIds)"
                     ),
                     _msgSender(),
-                    tokenId
+                    keccak256(abi.encodePacked(tokenIds))
                 )
             )
         );
@@ -75,7 +78,9 @@ contract PorbleUpgradeableTest is
         );
         require(signer != address(0), "ECDSA: invalid signature");
 
-        _safeMint(_msgSender(), tokenId);
+        for (uint8 i = 0; i < tokenIds.length; i++) {
+            _safeMint(_msgSender(), tokenIds[i]);
+        }
     }
 
     /**
