@@ -2,9 +2,9 @@
 
 pragma solidity ^0.8.0;
 
+import "../lib/upgradeable/draft-EIP712Upgradeable.sol";
 import "../lib/upgradeable/IERC20Upgradeable.sol";
 import "../lib/upgradeable/IERC2981Upgradeable.sol";
-import "../lib/upgradeable/CountersUpgradeable.sol";
 import "../lib/upgradeable/ERC721RoyaltyUpgradeable.sol";
 import "../lib/upgradeable/ContractURIStorageUpgradeable.sol";
 import "../lib/upgradeable/OwnableUpgradeable.sol";
@@ -13,17 +13,14 @@ import "../lib/upgradeable/PausableUpgradeable.sol";
 contract GeneralNFTsUpgradeable is
     ERC721RoyaltyUpgradeable,
     ContractURIStorageUpgradeable,
+    EIP712Upgradeable,
     OwnableUpgradeable,
     PausableUpgradeable
 {
-    using CountersUpgradeable for CountersUpgradeable.Counter;
-
-    CountersUpgradeable.Counter private _tokenIdCounter;
-
     string public baseURIString;
 
-    // The general NFT mint price in USDP
-    uint256 public mintPriceInUSDP;
+    // The expected signer of the signature required for minting
+    address public mintSigner;
 
     // The address of the USDP contract
     IERC20Upgradeable public USDP;
@@ -31,19 +28,21 @@ contract GeneralNFTsUpgradeable is
     // The vault contract to deposit earned USDP and royalties
     address public vault;
 
-    function initialize(address _USDP, address _vault) public initializer {
+    function initialize(
+        address _signer,
+        address _USDP,
+        address _vault
+    ) public initializer {
         __ERC721_init("Portal Fantasy General NFTs", "PFGN");
+        __EIP712_init("PortalFantasy", "1");
         __ContractURIStorage_init("https://www.portalfantasy.io/generalNFTs/");
         __Ownable_init();
 
         // @TODO: Have added a placeholder baseURIString. Need to replace with actual when it's implemented.
         baseURIString = "https://www.portalfantasy.io/";
+        mintSigner = _signer;
         USDP = IERC20Upgradeable(_USDP);
         vault = _vault;
-
-        // @TODO: Set the actual initial price in USDP to mint a general NFT
-        // 2 USDP initial price
-        mintPriceInUSDP = 2000000000000000000;
 
         // Set the default token royalty to 4%
         _setDefaultRoyalty(vault, 400);
@@ -55,15 +54,6 @@ contract GeneralNFTsUpgradeable is
      */
     function _baseURI() internal view virtual override returns (string memory) {
         return baseURIString;
-    }
-
-    /**
-     * Allows the caller to mint a token with a payment in USDP
-     */
-    function mintWithUSDP() external whenNotPaused {
-        USDP.transferFrom(_msgSender(), vault, mintPriceInUSDP);
-        _safeMint(_msgSender(), _tokenIdCounter.current());
-        _tokenIdCounter.increment();
     }
 
     /**
@@ -89,11 +79,51 @@ contract GeneralNFTsUpgradeable is
     }
 
     /**
-     * Allows the owner to set a new mint price in USDP
-     * @param _mintPriceInUSDP the new mint price
+     * Set the address of the signer which can sign messages specifying the mint conditions
+     * @param signer the address of the signer to point to
      */
-    function setMintPriceInUSDP(uint256 _mintPriceInUSDP) external onlyOwner {
-        mintPriceInUSDP = _mintPriceInUSDP;
+    function setMintSigner(address signer) external onlyOwner {
+        mintSigner = signer;
+    }
+
+    /**
+     * Allows the caller to mint tokens with the specified tokenIds and tokenPrices if the signature is valid
+     * The recipient, tokenIds and tokenPrices to be minted is determined by the signer
+     * @param signature the signed message specifying the recipient and tokenId to mint and transfer
+     * @param tokenIds the tokenIds to mint and transfer to the caller
+     * @param tokenPrices the prices of the tokenIds mapped 1:1
+     */
+    function safeMintTokens(
+        bytes calldata signature,
+        uint256[] calldata tokenIds,
+        uint256[] calldata tokenPrices
+    ) external {
+        // Only allow the caller to mint if the signature is valid
+        bytes32 digest = _hashTypedDataV4(
+            keccak256(
+                abi.encode(
+                    keccak256(
+                        "GeneralNFTMintConditions(address minter,uint256[] tokenIds,uint256[] tokenPrices)"
+                    ),
+                    _msgSender(),
+                    keccak256(abi.encodePacked(tokenIds)),
+                    keccak256(abi.encodePacked(tokenPrices))
+                )
+            )
+        );
+
+        address signer = ECDSAUpgradeable.recover(digest, signature);
+
+        require(
+            signer == mintSigner,
+            "PorbleMintConditions: invalid signature"
+        );
+        require(signer != address(0), "ECDSA: invalid signature");
+
+        for (uint8 i = 0; i < tokenIds.length; i++) {
+            USDP.transferFrom(_msgSender(), vault, tokenPrices[i]);
+            _safeMint(_msgSender(), tokenIds[i]);
+        }
     }
 
     /**
