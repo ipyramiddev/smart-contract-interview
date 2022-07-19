@@ -15,6 +15,8 @@ import Web3 from 'web3';
 import { AbiItem } from 'web3-utils';
 import { getTxIdFromMultiSigWallet } from '../lib/test-helpers';
 
+const ethers = require('ethers');
+const testAccountsData = require('../../test/data/test-accounts-data').testAccountsData;
 const config = require('../../config').config;
 
 const NFTMarketplaceUpgradeable = artifacts.require('NFTMarketplaceUpgradeable');
@@ -27,6 +29,10 @@ const web3 = new Web3(new Web3.providers.HttpProvider(config.AVAX.localSubnetHTT
 const NFT_MARKETPLACE_ABI = NFT_MARKETPLACE_UPGRADEABLE_JSON.abi as AbiItem[];
 const HERO_UPGRADEABLE_ABI = HERO_UPGRADEABLE_JSON.abi as AbiItem[];
 const USDP_UPGRADEABLE_ABI = USDP_UPGRADEABLE_JSON.abi as AbiItem[];
+
+const rpcEndpoint = config.AVAX.localSubnetHTTP;
+const provider = new ethers.providers.JsonRpcProvider(rpcEndpoint);
+const signer = new ethers.Wallet(testAccountsData[1].privateKey, provider);
 
 contract.skip('NFTMarketplaceUpgradeable.sol', ([owner, account1, account2, account3, account4, account5, account6, account7, account8, account9]) => {
     let NFTMarketplaceUpgradeableInstance: NFTMarketplaceUpgradeableInstance;
@@ -47,7 +53,7 @@ contract.skip('NFTMarketplaceUpgradeable.sol', ([owner, account1, account2, acco
         NFTMarketplaceUpgradeableInstance = (await deployProxy(NFTMarketplaceUpgradeable as any, [USDPUpgradeableInstance.address], {
             initializer: 'initialize',
         })) as NFTMarketplaceUpgradeableInstance;
-        heroUpgradeableInstance = (await deployProxy(heroUpgradeable as any, [USDPUpgradeableInstance.address, account9], {
+        heroUpgradeableInstance = (await deployProxy(heroUpgradeable as any, [account1, USDPUpgradeableInstance.address, account9], {
             initializer: 'initialize',
         })) as HeroUpgradeableInstance;
         await NFTMarketplaceUpgradeableInstance.transferOwnership(multiSigWalletInstance.address);
@@ -88,8 +94,30 @@ contract.skip('NFTMarketplaceUpgradeable.sol', ([owner, account1, account2, acco
 
         // Approve marketplace to handle hero token
         await USDPUpgradeableInstance.approve(heroUpgradeableInstance.address, priceOfHeroInUSDP, { from: account1 });
-        await heroUpgradeableInstance.mintWithUSDP({ from: account1 });
+
+        const types = {
+            HeroMintConditions: [
+                { name: 'minter', type: 'address' },
+                { name: 'tokenIds', type: 'uint256[]' },
+                { name: 'tokenPrices', type: 'uint256[]' },
+            ],
+        };
         const heroTokenId = '0';
+        const tokenIds = [heroTokenId];
+        const tokenPrices = [web3.utils.toWei('1', 'ether')];
+        const heroMintConditions = { minter: testAccountsData[1].address, tokenIds, tokenPrices };
+
+        const domain = {
+            name: 'PortalFantasy',
+            version: '1',
+            chainId: 43214,
+            verifyingContract: heroUpgradeableInstance.address,
+        };
+
+        // Sign according to the EIP-712 standard
+        const signature = await signer._signTypedData(domain, types, heroMintConditions);
+
+        await heroUpgradeableInstance.safeMintTokens(signature, tokenIds, tokenPrices, { from: testAccountsData[1].address });
 
         // Attempt to list the hero token without whitelisting hero contract
         const listPriceOfHero = bigInt(priceOfHeroInUSDP).multiply(2).toString();
@@ -122,8 +150,31 @@ contract.skip('NFTMarketplaceUpgradeable.sol', ([owner, account1, account2, acco
 
         // Approve marketplace to handle hero token
         await USDPUpgradeableInstance.approve(heroUpgradeableInstance.address, priceOfHeroInUSDP, { from: account1 });
-        await heroUpgradeableInstance.mintWithUSDP({ from: account1 });
+
+        const types = {
+            HeroMintConditions: [
+                { name: 'minter', type: 'address' },
+                { name: 'tokenIds', type: 'uint256[]' },
+                { name: 'tokenPrices', type: 'uint256[]' },
+            ],
+        };
         const heroTokenId = '0';
+        const tokenIds = [heroTokenId];
+        const tokenPrices = [web3.utils.toWei('1', 'ether')];
+        const heroMintConditions = { minter: testAccountsData[1].address, tokenIds, tokenPrices };
+
+        const domain = {
+            name: 'PortalFantasy',
+            version: '1',
+            chainId: 43214,
+            verifyingContract: heroUpgradeableInstance.address,
+        };
+
+        // Sign according to the EIP-712 standard
+        const signature = await signer._signTypedData(domain, types, heroMintConditions);
+
+        await heroUpgradeableInstance.safeMintTokens(signature, tokenIds, tokenPrices, { from: testAccountsData[1].address });
+
         await heroUpgradeableInstance.approve(NFTMarketplaceUpgradeableInstance.address, heroTokenId, { from: account1 });
 
         // Whitelist hero contract and then list the hero token
@@ -155,8 +206,30 @@ contract.skip('NFTMarketplaceUpgradeable.sol', ([owner, account1, account2, acco
 
         // Approve marketplace to handle hero token
         await USDPUpgradeableInstance.approve(heroUpgradeableInstance.address, priceOfHeroInUSDP, { from: account1 });
-        await heroUpgradeableInstance.mintWithUSDP({ from: account1 });
+
+        const types = {
+            HeroMintConditions: [
+                { name: 'minter', type: 'address' },
+                { name: 'tokenIds', type: 'uint256[]' },
+                { name: 'tokenPrices', type: 'uint256[]' },
+            ],
+        };
         const heroTokenId = '0';
+        const tokenIds = [heroTokenId];
+        const tokenPrices = [web3.utils.toWei('1', 'ether')];
+        const heroMintConditions = { minter: testAccountsData[1].address, tokenIds, tokenPrices };
+
+        const domain = {
+            name: 'PortalFantasy',
+            version: '1',
+            chainId: 43214,
+            verifyingContract: heroUpgradeableInstance.address,
+        };
+
+        // Sign according to the EIP-712 standard
+        const signature = await signer._signTypedData(domain, types, heroMintConditions);
+
+        await heroUpgradeableInstance.safeMintTokens(signature, tokenIds, tokenPrices, { from: testAccountsData[1].address });
 
         // Whitelist hero contract and then list the hero token
         data = NFTMarketplaceUpgradeableContract.methods.updateCollectionsWhitelist(heroUpgradeableInstance.address, true).encodeABI();
@@ -189,8 +262,30 @@ contract.skip('NFTMarketplaceUpgradeable.sol', ([owner, account1, account2, acco
 
         // Approve marketplace to handle hero token
         await USDPUpgradeableInstance.approve(heroUpgradeableInstance.address, priceOfHeroInUSDP, { from: account1 });
-        await heroUpgradeableInstance.mintWithUSDP({ from: account1 });
+
+        const types = {
+            HeroMintConditions: [
+                { name: 'minter', type: 'address' },
+                { name: 'tokenIds', type: 'uint256[]' },
+                { name: 'tokenPrices', type: 'uint256[]' },
+            ],
+        };
         const heroTokenId = '0';
+        const tokenIds = [heroTokenId];
+        const tokenPrices = [web3.utils.toWei('1', 'ether')];
+        const heroMintConditions = { minter: testAccountsData[1].address, tokenIds, tokenPrices };
+
+        const domain = {
+            name: 'PortalFantasy',
+            version: '1',
+            chainId: 43214,
+            verifyingContract: heroUpgradeableInstance.address,
+        };
+
+        // Sign according to the EIP-712 standard
+        const signature = await signer._signTypedData(domain, types, heroMintConditions);
+
+        await heroUpgradeableInstance.safeMintTokens(signature, tokenIds, tokenPrices, { from: testAccountsData[1].address });
 
         // Whitelist hero contract and then list the hero token
         data = NFTMarketplaceUpgradeableContract.methods.updateCollectionsWhitelist(heroUpgradeableInstance.address, true).encodeABI();
@@ -222,8 +317,30 @@ contract.skip('NFTMarketplaceUpgradeable.sol', ([owner, account1, account2, acco
 
         // Approve marketplace to handle hero token
         await USDPUpgradeableInstance.approve(heroUpgradeableInstance.address, priceOfHeroInUSDP, { from: account1 });
-        await heroUpgradeableInstance.mintWithUSDP({ from: account1 });
+
+        const types = {
+            HeroMintConditions: [
+                { name: 'minter', type: 'address' },
+                { name: 'tokenIds', type: 'uint256[]' },
+                { name: 'tokenPrices', type: 'uint256[]' },
+            ],
+        };
         const heroTokenId = '0';
+        const tokenIds = [heroTokenId];
+        const tokenPrices = [web3.utils.toWei('1', 'ether')];
+        const heroMintConditions = { minter: testAccountsData[1].address, tokenIds, tokenPrices };
+
+        const domain = {
+            name: 'PortalFantasy',
+            version: '1',
+            chainId: 43214,
+            verifyingContract: heroUpgradeableInstance.address,
+        };
+
+        // Sign according to the EIP-712 standard
+        const signature = await signer._signTypedData(domain, types, heroMintConditions);
+
+        await heroUpgradeableInstance.safeMintTokens(signature, tokenIds, tokenPrices, { from: testAccountsData[1].address });
 
         // Whitelist hero contract and then list the hero token
         data = NFTMarketplaceUpgradeableContract.methods.updateCollectionsWhitelist(heroUpgradeableInstance.address, true).encodeABI();
@@ -260,8 +377,30 @@ contract.skip('NFTMarketplaceUpgradeable.sol', ([owner, account1, account2, acco
 
         // Approve marketplace to handle hero token
         await USDPUpgradeableInstance.approve(heroUpgradeableInstance.address, priceOfHeroInUSDP, { from: account1 });
-        await heroUpgradeableInstance.mintWithUSDP({ from: account1 });
+
+        const types = {
+            HeroMintConditions: [
+                { name: 'minter', type: 'address' },
+                { name: 'tokenIds', type: 'uint256[]' },
+                { name: 'tokenPrices', type: 'uint256[]' },
+            ],
+        };
         const heroTokenId = '0';
+        const tokenIds = [heroTokenId];
+        const tokenPrices = [web3.utils.toWei('1', 'ether')];
+        const heroMintConditions = { minter: testAccountsData[1].address, tokenIds, tokenPrices };
+
+        const domain = {
+            name: 'PortalFantasy',
+            version: '1',
+            chainId: 43214,
+            verifyingContract: heroUpgradeableInstance.address,
+        };
+
+        // Sign according to the EIP-712 standard
+        const signature = await signer._signTypedData(domain, types, heroMintConditions);
+
+        await heroUpgradeableInstance.safeMintTokens(signature, tokenIds, tokenPrices, { from: testAccountsData[1].address });
 
         // Whitelist hero contract and then list the hero token
         data = NFTMarketplaceUpgradeableContract.methods.updateCollectionsWhitelist(heroUpgradeableInstance.address, true).encodeABI();
@@ -302,8 +441,30 @@ contract.skip('NFTMarketplaceUpgradeable.sol', ([owner, account1, account2, acco
 
         // Approve marketplace to handle hero token
         await USDPUpgradeableInstance.approve(heroUpgradeableInstance.address, priceOfHeroInUSDP, { from: account1 });
-        await heroUpgradeableInstance.mintWithUSDP({ from: account1 });
+
+        const types = {
+            HeroMintConditions: [
+                { name: 'minter', type: 'address' },
+                { name: 'tokenIds', type: 'uint256[]' },
+                { name: 'tokenPrices', type: 'uint256[]' },
+            ],
+        };
         const heroTokenId = '0';
+        const tokenIds = [heroTokenId];
+        const tokenPrices = [web3.utils.toWei('1', 'ether')];
+        const heroMintConditions = { minter: testAccountsData[1].address, tokenIds, tokenPrices };
+
+        const domain = {
+            name: 'PortalFantasy',
+            version: '1',
+            chainId: 43214,
+            verifyingContract: heroUpgradeableInstance.address,
+        };
+
+        // Sign according to the EIP-712 standard
+        const signature = await signer._signTypedData(domain, types, heroMintConditions);
+
+        await heroUpgradeableInstance.safeMintTokens(signature, tokenIds, tokenPrices, { from: testAccountsData[1].address });
 
         // Whitelist hero contract and then list the hero token
         data = NFTMarketplaceUpgradeableContract.methods.updateCollectionsWhitelist(heroUpgradeableInstance.address, true).encodeABI();
@@ -355,8 +516,30 @@ contract.skip('NFTMarketplaceUpgradeable.sol', ([owner, account1, account2, acco
 
         // Approve marketplace to handle hero token
         await USDPUpgradeableInstance.approve(heroUpgradeableInstance.address, priceOfHeroInUSDP, { from: account1 });
-        await heroUpgradeableInstance.mintWithUSDP({ from: account1 });
+
+        const types = {
+            HeroMintConditions: [
+                { name: 'minter', type: 'address' },
+                { name: 'tokenIds', type: 'uint256[]' },
+                { name: 'tokenPrices', type: 'uint256[]' },
+            ],
+        };
         const heroTokenId = '0';
+        const tokenIds = [heroTokenId];
+        const tokenPrices = [web3.utils.toWei('1', 'ether')];
+        const heroMintConditions = { minter: testAccountsData[1].address, tokenIds, tokenPrices };
+
+        const domain = {
+            name: 'PortalFantasy',
+            version: '1',
+            chainId: 43214,
+            verifyingContract: heroUpgradeableInstance.address,
+        };
+
+        // Sign according to the EIP-712 standard
+        const signature = await signer._signTypedData(domain, types, heroMintConditions);
+
+        await heroUpgradeableInstance.safeMintTokens(signature, tokenIds, tokenPrices, { from: testAccountsData[1].address });
 
         // Whitelist hero contract and then list the hero token
         data = NFTMarketplaceUpgradeableContract.methods.updateCollectionsWhitelist(heroUpgradeableInstance.address, true).encodeABI();
@@ -401,8 +584,30 @@ contract.skip('NFTMarketplaceUpgradeable.sol', ([owner, account1, account2, acco
 
         // Approve marketplace to handle hero token
         await USDPUpgradeableInstance.approve(heroUpgradeableInstance.address, priceOfHeroInUSDP, { from: account1 });
-        await heroUpgradeableInstance.mintWithUSDP({ from: account1 });
+
+        const types = {
+            HeroMintConditions: [
+                { name: 'minter', type: 'address' },
+                { name: 'tokenIds', type: 'uint256[]' },
+                { name: 'tokenPrices', type: 'uint256[]' },
+            ],
+        };
         const heroTokenId = '0';
+        const tokenIds = [heroTokenId];
+        const tokenPrices = [web3.utils.toWei('1', 'ether')];
+        const heroMintConditions = { minter: testAccountsData[1].address, tokenIds, tokenPrices };
+
+        const domain = {
+            name: 'PortalFantasy',
+            version: '1',
+            chainId: 43214,
+            verifyingContract: heroUpgradeableInstance.address,
+        };
+
+        // Sign according to the EIP-712 standard
+        const signature = await signer._signTypedData(domain, types, heroMintConditions);
+
+        await heroUpgradeableInstance.safeMintTokens(signature, tokenIds, tokenPrices, { from: testAccountsData[1].address });
 
         // Whitelist hero contract and then list the hero token
         data = NFTMarketplaceUpgradeableContract.methods.updateCollectionsWhitelist(heroUpgradeableInstance.address, true).encodeABI();
@@ -456,8 +661,30 @@ contract.skip('NFTMarketplaceUpgradeable.sol', ([owner, account1, account2, acco
 
         // Approve marketplace to handle hero token
         await USDPUpgradeableInstance.approve(heroUpgradeableInstance.address, priceOfHeroInUSDP, { from: account1 });
-        await heroUpgradeableInstance.mintWithUSDP({ from: account1 });
+
+        const types = {
+            HeroMintConditions: [
+                { name: 'minter', type: 'address' },
+                { name: 'tokenIds', type: 'uint256[]' },
+                { name: 'tokenPrices', type: 'uint256[]' },
+            ],
+        };
         const heroTokenId = '0';
+        const tokenIds = [heroTokenId];
+        const tokenPrices = [web3.utils.toWei('1', 'ether')];
+        const heroMintConditions = { minter: testAccountsData[1].address, tokenIds, tokenPrices };
+
+        const domain = {
+            name: 'PortalFantasy',
+            version: '1',
+            chainId: 43214,
+            verifyingContract: heroUpgradeableInstance.address,
+        };
+
+        // Sign according to the EIP-712 standard
+        const signature = await signer._signTypedData(domain, types, heroMintConditions);
+
+        await heroUpgradeableInstance.safeMintTokens(signature, tokenIds, tokenPrices, { from: testAccountsData[1].address });
 
         // Whitelist hero contract and then list the hero token
         data = NFTMarketplaceUpgradeableContract.methods.updateCollectionsWhitelist(heroUpgradeableInstance.address, true).encodeABI();
@@ -508,8 +735,30 @@ contract.skip('NFTMarketplaceUpgradeable.sol', ([owner, account1, account2, acco
 
         // Approve marketplace to handle hero token
         await USDPUpgradeableInstance.approve(heroUpgradeableInstance.address, priceOfHeroInUSDP, { from: account1 });
-        await heroUpgradeableInstance.mintWithUSDP({ from: account1 });
+
+        const types = {
+            HeroMintConditions: [
+                { name: 'minter', type: 'address' },
+                { name: 'tokenIds', type: 'uint256[]' },
+                { name: 'tokenPrices', type: 'uint256[]' },
+            ],
+        };
         const heroTokenId = '0';
+        const tokenIds = [heroTokenId];
+        const tokenPrices = [web3.utils.toWei('1', 'ether')];
+        const heroMintConditions = { minter: testAccountsData[1].address, tokenIds, tokenPrices };
+
+        const domain = {
+            name: 'PortalFantasy',
+            version: '1',
+            chainId: 43214,
+            verifyingContract: heroUpgradeableInstance.address,
+        };
+
+        // Sign according to the EIP-712 standard
+        const signature = await signer._signTypedData(domain, types, heroMintConditions);
+
+        await heroUpgradeableInstance.safeMintTokens(signature, tokenIds, tokenPrices, { from: testAccountsData[1].address });
 
         // Whitelist hero contract and then list the hero token
         data = NFTMarketplaceUpgradeableContract.methods.updateCollectionsWhitelist(heroUpgradeableInstance.address, true).encodeABI();
@@ -557,8 +806,30 @@ contract.skip('NFTMarketplaceUpgradeable.sol', ([owner, account1, account2, acco
 
         // Approve marketplace to handle hero token
         await USDPUpgradeableInstance.approve(heroUpgradeableInstance.address, priceOfHeroInUSDP, { from: account1 });
-        await heroUpgradeableInstance.mintWithUSDP({ from: account1 });
+
+        const types = {
+            HeroMintConditions: [
+                { name: 'minter', type: 'address' },
+                { name: 'tokenIds', type: 'uint256[]' },
+                { name: 'tokenPrices', type: 'uint256[]' },
+            ],
+        };
         const heroTokenId = '0';
+        const tokenIds = [heroTokenId];
+        const tokenPrices = [web3.utils.toWei('1', 'ether')];
+        const heroMintConditions = { minter: testAccountsData[1].address, tokenIds, tokenPrices };
+
+        const domain = {
+            name: 'PortalFantasy',
+            version: '1',
+            chainId: 43214,
+            verifyingContract: heroUpgradeableInstance.address,
+        };
+
+        // Sign according to the EIP-712 standard
+        const signature = await signer._signTypedData(domain, types, heroMintConditions);
+
+        await heroUpgradeableInstance.safeMintTokens(signature, tokenIds, tokenPrices, { from: testAccountsData[1].address });
 
         // Whitelist hero contract and then list the hero token
         data = NFTMarketplaceUpgradeableContract.methods.updateCollectionsWhitelist(heroUpgradeableInstance.address, true).encodeABI();
