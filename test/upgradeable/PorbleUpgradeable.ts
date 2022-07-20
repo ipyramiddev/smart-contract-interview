@@ -685,4 +685,113 @@ contract.skip('PorbleUpgradeable.sol', ([owner, account1, account2, account3, ac
         const baseURIString = await porbleUpgradeableTestInstance.baseURIString();
         expect(baseURIString).to.not.equal('https://www.foo.com/');
     });
+
+    it('facilitates the porble fusion process', async () => {
+        const mintTypes = {
+            PorbleMintConditions: [
+                { name: 'minter', type: 'address' },
+                { name: 'tokenIds', type: 'uint256[]' },
+            ],
+        };
+
+        const tokenIds = ['1', '344', '4562', '48', '898770', '34343235'];
+
+        const porbleMintConditions = { minter: testAccountsData[1].address, tokenIds };
+
+        const domain = {
+            name: 'PortalFantasy',
+            version: '1',
+            chainId: 43214,
+            verifyingContract: porbleUpgradeableInstance.address,
+        };
+
+        // Sign according to the EIP-712 standard
+        const mintSignature = await signer._signTypedData(domain, mintTypes, porbleMintConditions);
+
+        // The tokenId and tx sender must match those that have been signed for
+        await porbleUpgradeableInstance.safeMintTokens(mintSignature, tokenIds, { from: testAccountsData[1].address });
+
+        // Now we want to sacrifice some of the tokens for the fusion
+        const fusionTypes = {
+            PorbleFusionConditions: [
+                { name: 'owner', type: 'address' },
+                { name: 'fusionId', type: 'uint256' },
+                { name: 'sacrificialTokenIds', type: 'uint256[]' },
+            ],
+        };
+
+        const fusionId = '7756';
+        const sacrificialTokenIds = ['48', '344', '898770'];
+        const porbleFusionConditions = { owner: testAccountsData[1].address, fusionId, sacrificialTokenIds };
+
+        // Sign according to the EIP-712 standard
+        const fusionSignature = await signer._signTypedData(domain, fusionTypes, porbleFusionConditions);
+
+        // Fusion has not been triggered so this should return false
+        expect(await porbleUpgradeableInstance.hasFusionCompleted(account1, fusionId)).to.be.false;
+
+        // Trigger the fusion
+        await localExpect(porbleUpgradeableInstance.fuse(fusionSignature, fusionId, sacrificialTokenIds, { from: testAccountsData[1].address })).to.eventually.be.fulfilled;
+
+        expect(await porbleUpgradeableInstance.ownerOf('1')).to.equal(testAccountsData[1].address);
+        expect(await porbleUpgradeableInstance.ownerOf('4562')).to.equal(testAccountsData[1].address);
+        expect(await porbleUpgradeableInstance.ownerOf('34343235')).to.equal(testAccountsData[1].address);
+
+        // Sacrificed tokens
+        await localExpect(porbleUpgradeableInstance.ownerOf('48')).to.eventually.be.rejected;
+        await localExpect(porbleUpgradeableInstance.ownerOf('344')).to.eventually.be.rejected;
+        await localExpect(porbleUpgradeableInstance.ownerOf('898770')).to.eventually.be.rejected;
+
+        // Fusion has completed
+        expect(await porbleUpgradeableInstance.hasFusionCompleted(account1, fusionId)).to.be.true;
+    });
+
+    it('allows fusion for X amount of sacrifical tokens without hitting block gas limits', async () => {
+        const mintTypes = {
+            PorbleMintConditions: [
+                { name: 'minter', type: 'address' },
+                { name: 'tokenIds', type: 'uint256[]' },
+            ],
+        };
+
+        const tokenIds = Array.from({ length: 250 }, (_, i) => i + 1);
+        console.log(tokenIds);
+
+        const porbleMintConditions = { minter: testAccountsData[1].address, tokenIds };
+
+        const domain = {
+            name: 'PortalFantasy',
+            version: '1',
+            chainId: 43214,
+            verifyingContract: porbleUpgradeableInstance.address,
+        };
+
+        // Sign according to the EIP-712 standard
+        const mintSignature = await signer._signTypedData(domain, mintTypes, porbleMintConditions);
+
+        // The tokenId and tx sender must match those that have been signed for
+        await porbleUpgradeableInstance.safeMintTokens(mintSignature, tokenIds, { from: testAccountsData[1].address });
+
+        // Now we want to sacrifice some of the tokens for the fusion
+        const fusionTypes = {
+            PorbleFusionConditions: [
+                { name: 'owner', type: 'address' },
+                { name: 'fusionId', type: 'uint256' },
+                { name: 'sacrificialTokenIds', type: 'uint256[]' },
+            ],
+        };
+
+        const fusionId = '7756';
+        const sacrificialTokenIds = tokenIds;
+        const porbleFusionConditions = { owner: testAccountsData[1].address, fusionId, sacrificialTokenIds };
+
+        // Sign according to the EIP-712 standard
+        const fusionSignature = await signer._signTypedData(domain, fusionTypes, porbleFusionConditions);
+
+        // Trigger the fusion
+        await localExpect(porbleUpgradeableInstance.fuse(fusionSignature, fusionId, sacrificialTokenIds, { from: testAccountsData[1].address })).to.eventually.be.fulfilled;
+
+        // Fusion has completed
+        expect(await porbleUpgradeableInstance.hasFusionCompleted(account1, fusionId)).to.be.true;
+    });
 });
