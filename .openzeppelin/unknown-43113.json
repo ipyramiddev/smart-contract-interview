@@ -1,0 +1,1466 @@
+{
+  "manifestVersion": "3.2",
+  "admin": {
+    "address": "0xc5F6E6DaBc7752f6af3b95F41704d32643912652",
+    "txHash": "0x44c743733bf07b152559a751d939c516d71e97ca15f32921276d2f9a4c9c6006"
+  },
+  "proxies": [
+    {
+      "address": "0x76C16ADAa2D8cBea9D7CE7cc269dE1EdF13f0BF2",
+      "txHash": "0x6fb77531b096efb13dc744c5cf9236e274d48e95d6da0dfa0bb5aa235f93d2e9",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xC413CeD2232Bb272EaBfE3e2F8131f7ae3F3B563",
+      "txHash": "0x13faa73ea48f70e6b9eafd08805dc2ee17f626a3dfa522b0b4f78834c25ef216",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x81EB5e695723eDb0899e58Ab1B04006DE8ECF033",
+      "txHash": "0x1fd09681adb6bc0284fe4a16478c246fc3dc6c1743002cdb36828b0c51e9df96",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x179666F743CC1E28d8DE0C841D58Dc555cE35A68",
+      "txHash": "0xce67dfb21e76bb5fd105052e320d4ef17e42bad83907db25f4b60c3085afd344",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x6Bc703A75955bC809832aCF366177a003be29F7c",
+      "txHash": "0x2e4b615ab9bfa6e1a908d8b1a9ac2d9dbbfb20084c0c24244921bb83d065819c",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xA939e7FD657D1aFdF735156b6716aB561b97fe26",
+      "txHash": "0xaf7954d51217b6a17e9eaedeb527089126b9621f420fbfbbace43076bef7cc58",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x1BbCc049a585cc8DAe6A4b339a16C0Eeb4ba57AB",
+      "txHash": "0xc855b6808272be759d8d6f65ea3a30fe55676597e857d9e5b2bb6f3c57feccc3",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x462D3B2E8E1490Bdfe6C4B736223EA26136873e6",
+      "txHash": "0x884b10ded8573604d9836126b14e014931f9522489a7b9eedaa9a63cc40e3397",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x8ce55be52A917Fa9080c4cc45AFe70465E133C3B",
+      "txHash": "0x88d7be2ba88e55dc4af3a4dbe2c9a9e6b493574ad4f57f9fbd91ace30698a51b",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x52Ffde6ae9964F047C28174DeAc2b7Ad0d5360Ee",
+      "txHash": "0x43203e596a17c3bdde9c778f7e9648b1d781bd6f0f2d4c8bbe6fd9026c39e73e",
+      "kind": "transparent"
+    }
+  ],
+  "impls": {
+    "3b8209b45f3265ed8de754c531d5513634f1de7164d9ecb63b2987de1ac29b16": {
+      "address": "0x0A89390c4B64E0bD071f139A85A455433dC07ef6",
+      "txHash": "0x4eab5c95affefd05ed88dbbb2db97ec18295af5729a3eeb94f45efeca83a81ce",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_uint8",
+            "src": "../project:/contracts/lib/upgradeable/Initializable.sol:60"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "../project:/contracts/lib/upgradeable/Initializable.sol:65"
+          },
+          {
+            "contract": "ContextUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "../project:/contracts/lib/upgradeable/ContextUpgradeable.sol:35"
+          },
+          {
+            "contract": "ERC20Upgradeable",
+            "label": "_balances",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "../project:/contracts/lib/upgradeable/ERC20Upgradeable.sol:42"
+          },
+          {
+            "contract": "ERC20Upgradeable",
+            "label": "_allowances",
+            "type": "t_mapping(t_address,t_mapping(t_address,t_uint256))",
+            "src": "../project:/contracts/lib/upgradeable/ERC20Upgradeable.sol:44"
+          },
+          {
+            "contract": "ERC20Upgradeable",
+            "label": "_totalSupply",
+            "type": "t_uint256",
+            "src": "../project:/contracts/lib/upgradeable/ERC20Upgradeable.sol:46"
+          },
+          {
+            "contract": "ERC20Upgradeable",
+            "label": "_name",
+            "type": "t_string_storage",
+            "src": "../project:/contracts/lib/upgradeable/ERC20Upgradeable.sol:48"
+          },
+          {
+            "contract": "ERC20Upgradeable",
+            "label": "_symbol",
+            "type": "t_string_storage",
+            "src": "../project:/contracts/lib/upgradeable/ERC20Upgradeable.sol:49"
+          },
+          {
+            "contract": "ERC20Upgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)45_storage",
+            "src": "../project:/contracts/lib/upgradeable/ERC20Upgradeable.sol:444"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "../project:/contracts/lib/upgradeable/OwnableUpgradeable.sol:22"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "../project:/contracts/lib/upgradeable/OwnableUpgradeable.sol:100"
+          },
+          {
+            "contract": "PFTUpgradeable",
+            "label": "controllers",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "../project:/contracts/upgradeable/PFTUpgradeable.sol:12"
+          }
+        ],
+        "types": {
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)"
+          },
+          "t_mapping(t_address,t_mapping(t_address,t_uint256))": {
+            "label": "mapping(address => mapping(address => uint256))"
+          },
+          "t_string_storage": {
+            "label": "string"
+          },
+          "t_array(t_uint256)45_storage": {
+            "label": "uint256[45]"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          },
+          "t_uint8": {
+            "label": "uint8"
+          }
+        }
+      }
+    },
+    "3cce55ed0e088557ee01f84dcf588e14909d4eb75d3d891d3b7168301db280c7": {
+      "address": "0x75a555C74bb476F53c3DCFAe04e97ad9A55292Cb",
+      "txHash": "0x1e7971af233f799753e9cbe4150b75222ef36d50ab67aae78940ea7f73a93633",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_uint8",
+            "src": "../project:/contracts/lib/upgradeable/Initializable.sol:60"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "../project:/contracts/lib/upgradeable/Initializable.sol:65"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "_status",
+            "type": "t_uint256",
+            "src": "../project:/contracts/lib/upgradeable/ReentrancyGuardUpgradeable.sol:38"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "../project:/contracts/lib/upgradeable/ReentrancyGuardUpgradeable.sol:74"
+          },
+          {
+            "contract": "EIP712Upgradeable",
+            "label": "_HASHED_NAME",
+            "type": "t_bytes32",
+            "src": "../project:/contracts/lib/upgradeable/draft-EIP712Upgradeable.sol:31"
+          },
+          {
+            "contract": "EIP712Upgradeable",
+            "label": "_HASHED_VERSION",
+            "type": "t_bytes32",
+            "src": "../project:/contracts/lib/upgradeable/draft-EIP712Upgradeable.sol:32"
+          },
+          {
+            "contract": "EIP712Upgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "../project:/contracts/lib/upgradeable/draft-EIP712Upgradeable.sol:148"
+          },
+          {
+            "contract": "ContextUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "../project:/contracts/lib/upgradeable/ContextUpgradeable.sol:35"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "../project:/contracts/lib/upgradeable/OwnableUpgradeable.sol:22"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "../project:/contracts/lib/upgradeable/OwnableUpgradeable.sol:100"
+          },
+          {
+            "contract": "PausableUpgradeable",
+            "label": "_paused",
+            "type": "t_bool",
+            "src": "../project:/contracts/lib/upgradeable/PausableUpgradeable.sol:29"
+          },
+          {
+            "contract": "PausableUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "../project:/contracts/lib/upgradeable/PausableUpgradeable.sol:116"
+          },
+          {
+            "contract": "TokenVaultUpgradeable",
+            "label": "userPaymentsInfo",
+            "type": "t_mapping(t_address,t_mapping(t_uint256,t_uint256))",
+            "src": "../project:/contracts/upgradeable/TokenVaultUpgradeable.sol:22"
+          },
+          {
+            "contract": "TokenVaultUpgradeable",
+            "label": "callerToClaimId",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "../project:/contracts/upgradeable/TokenVaultUpgradeable.sol:25"
+          },
+          {
+            "contract": "TokenVaultUpgradeable",
+            "label": "PFTVaultTransferSigner",
+            "type": "t_address",
+            "src": "../project:/contracts/upgradeable/TokenVaultUpgradeable.sol:28"
+          }
+        ],
+        "types": {
+          "t_mapping(t_address,t_mapping(t_uint256,t_uint256))": {
+            "label": "mapping(address => mapping(uint256 => uint256))"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_mapping(t_uint256,t_uint256)": {
+            "label": "mapping(uint256 => uint256)"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          },
+          "t_bytes32": {
+            "label": "bytes32"
+          },
+          "t_uint8": {
+            "label": "uint8"
+          }
+        }
+      }
+    },
+    "9f2efc6c2c60b6596a1fa5e8c354c2942f6d59e7bf32bb617ad58a4bb37cd464": {
+      "address": "0x6817222b49466b7F6A2Cf4A5969581023Ae263BF",
+      "txHash": "0x77defea6885d414793b570d4fc7bec6df3b2e15199c99e806029d70f12330709",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_uint8",
+            "src": "../project:/contracts/lib/upgradeable/Initializable.sol:60"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "../project:/contracts/lib/upgradeable/Initializable.sol:65"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "_status",
+            "type": "t_uint256",
+            "src": "../project:/contracts/lib/upgradeable/ReentrancyGuardUpgradeable.sol:38"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "../project:/contracts/lib/upgradeable/ReentrancyGuardUpgradeable.sol:74"
+          },
+          {
+            "contract": "ContextUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "../project:/contracts/lib/upgradeable/ContextUpgradeable.sol:35"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "../project:/contracts/lib/upgradeable/OwnableUpgradeable.sol:22"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "../project:/contracts/lib/upgradeable/OwnableUpgradeable.sol:100"
+          },
+          {
+            "contract": "PFTStakingUpgradeable",
+            "label": "userStakes",
+            "type": "t_mapping(t_address,t_struct(StakeInfo)17564_storage)",
+            "src": "../project:/contracts/upgradeable/PFTStakingUpgradeable.sol:22"
+          },
+          {
+            "contract": "PFTStakingUpgradeable",
+            "label": "minimumStakeAmount",
+            "type": "t_uint256",
+            "src": "../project:/contracts/upgradeable/PFTStakingUpgradeable.sol:25"
+          }
+        ],
+        "types": {
+          "t_mapping(t_address,t_struct(StakeInfo)17564_storage)": {
+            "label": "mapping(address => struct PFTStakingUpgradeable.StakeInfo)"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_struct(StakeInfo)17564_storage": {
+            "label": "struct PFTStakingUpgradeable.StakeInfo",
+            "members": [
+              {
+                "label": "startTime",
+                "type": "t_uint256"
+              },
+              {
+                "label": "amount",
+                "type": "t_uint256"
+              }
+            ]
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          },
+          "t_uint8": {
+            "label": "uint8"
+          },
+          "t_bool": {
+            "label": "bool"
+          }
+        }
+      }
+    },
+    "49d63d22bc9da9044ce7074f060eb4314ebf2cce817495221bf58081c33ab17f": {
+      "address": "0xF6b18526C5F448F801A28e5407b3374b420A39c9",
+      "txHash": "0x9e454d7c26c149921602126a7a5c8b22cd5404af699c4b2f509b7cf4d7ceda6a",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_uint8",
+            "src": "../project:/contracts/lib/upgradeable/Initializable.sol:60"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "../project:/contracts/lib/upgradeable/Initializable.sol:65"
+          },
+          {
+            "contract": "ContextUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "../project:/contracts/lib/upgradeable/ContextUpgradeable.sol:35"
+          },
+          {
+            "contract": "ERC20Upgradeable",
+            "label": "_balances",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "../project:/contracts/lib/upgradeable/ERC20Upgradeable.sol:42"
+          },
+          {
+            "contract": "ERC20Upgradeable",
+            "label": "_allowances",
+            "type": "t_mapping(t_address,t_mapping(t_address,t_uint256))",
+            "src": "../project:/contracts/lib/upgradeable/ERC20Upgradeable.sol:44"
+          },
+          {
+            "contract": "ERC20Upgradeable",
+            "label": "_totalSupply",
+            "type": "t_uint256",
+            "src": "../project:/contracts/lib/upgradeable/ERC20Upgradeable.sol:46"
+          },
+          {
+            "contract": "ERC20Upgradeable",
+            "label": "_name",
+            "type": "t_string_storage",
+            "src": "../project:/contracts/lib/upgradeable/ERC20Upgradeable.sol:48"
+          },
+          {
+            "contract": "ERC20Upgradeable",
+            "label": "_symbol",
+            "type": "t_string_storage",
+            "src": "../project:/contracts/lib/upgradeable/ERC20Upgradeable.sol:49"
+          },
+          {
+            "contract": "ERC20Upgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)45_storage",
+            "src": "../project:/contracts/lib/upgradeable/ERC20Upgradeable.sol:444"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "../project:/contracts/lib/upgradeable/OwnableUpgradeable.sol:22"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "../project:/contracts/lib/upgradeable/OwnableUpgradeable.sol:100"
+          },
+          {
+            "contract": "USDPUpgradeable",
+            "label": "controllers",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "../project:/contracts/upgradeable/USDPUpgradeable.sol:11"
+          }
+        ],
+        "types": {
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)"
+          },
+          "t_mapping(t_address,t_mapping(t_address,t_uint256))": {
+            "label": "mapping(address => mapping(address => uint256))"
+          },
+          "t_string_storage": {
+            "label": "string"
+          },
+          "t_array(t_uint256)45_storage": {
+            "label": "uint256[45]"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          },
+          "t_uint8": {
+            "label": "uint8"
+          }
+        }
+      }
+    },
+    "48757d3b8bb4f4662741845791fab701201563d904ac6b0131605b2fbd3a95e5": {
+      "address": "0xA7a31ba5f5ed2201c8fcc9efcB79fdE267DE925b",
+      "txHash": "0x524c2ead6a81b1d68a26f6a99dfcd62c9af4fc1204694fb160f8546211af183c",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_uint8",
+            "src": "../project:/contracts/lib/upgradeable/Initializable.sol:60"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "../project:/contracts/lib/upgradeable/Initializable.sol:65"
+          },
+          {
+            "contract": "ContextUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "../project:/contracts/lib/upgradeable/ContextUpgradeable.sol:35"
+          },
+          {
+            "contract": "ERC165Upgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "../project:/contracts/lib/upgradeable/ERC165Upgradeable.sol:46"
+          },
+          {
+            "contract": "ERC2981Upgradeable",
+            "label": "_defaultRoyaltyInfo",
+            "type": "t_struct(RoyaltyInfo)10313_storage",
+            "src": "../project:/contracts/lib/upgradeable/ERC2981Upgradeable.sol:39"
+          },
+          {
+            "contract": "ERC2981Upgradeable",
+            "label": "_tokenRoyaltyInfo",
+            "type": "t_mapping(t_uint256,t_struct(RoyaltyInfo)10313_storage)",
+            "src": "../project:/contracts/lib/upgradeable/ERC2981Upgradeable.sol:40"
+          },
+          {
+            "contract": "ERC2981Upgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)48_storage",
+            "src": "../project:/contracts/lib/upgradeable/ERC2981Upgradeable.sol:150"
+          },
+          {
+            "contract": "ERC721Upgradeable",
+            "label": "_name",
+            "type": "t_string_storage",
+            "src": "../project:/contracts/lib/upgradeable/ERC721Upgradeable.sol:31"
+          },
+          {
+            "contract": "ERC721Upgradeable",
+            "label": "_symbol",
+            "type": "t_string_storage",
+            "src": "../project:/contracts/lib/upgradeable/ERC721Upgradeable.sol:34"
+          },
+          {
+            "contract": "ERC721Upgradeable",
+            "label": "_owners",
+            "type": "t_mapping(t_uint256,t_address)",
+            "src": "../project:/contracts/lib/upgradeable/ERC721Upgradeable.sol:37"
+          },
+          {
+            "contract": "ERC721Upgradeable",
+            "label": "_balances",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "../project:/contracts/lib/upgradeable/ERC721Upgradeable.sol:40"
+          },
+          {
+            "contract": "ERC721Upgradeable",
+            "label": "_tokenApprovals",
+            "type": "t_mapping(t_uint256,t_address)",
+            "src": "../project:/contracts/lib/upgradeable/ERC721Upgradeable.sol:43"
+          },
+          {
+            "contract": "ERC721Upgradeable",
+            "label": "_operatorApprovals",
+            "type": "t_mapping(t_address,t_mapping(t_address,t_bool))",
+            "src": "../project:/contracts/lib/upgradeable/ERC721Upgradeable.sol:46"
+          },
+          {
+            "contract": "ERC721Upgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)44_storage",
+            "src": "../project:/contracts/lib/upgradeable/ERC721Upgradeable.sol:553"
+          },
+          {
+            "contract": "ERC721RoyaltyUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "../project:/contracts/lib/upgradeable/ERC721RoyaltyUpgradeable.sol:59"
+          },
+          {
+            "contract": "ContractURIStorageUpgradeable",
+            "label": "contractURIString",
+            "type": "t_string_storage",
+            "src": "../project:/contracts/lib/upgradeable/ContractURIStorageUpgradeable.sol:11"
+          },
+          {
+            "contract": "EIP712Upgradeable",
+            "label": "_HASHED_NAME",
+            "type": "t_bytes32",
+            "src": "../project:/contracts/lib/upgradeable/draft-EIP712Upgradeable.sol:31"
+          },
+          {
+            "contract": "EIP712Upgradeable",
+            "label": "_HASHED_VERSION",
+            "type": "t_bytes32",
+            "src": "../project:/contracts/lib/upgradeable/draft-EIP712Upgradeable.sol:32"
+          },
+          {
+            "contract": "EIP712Upgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "../project:/contracts/lib/upgradeable/draft-EIP712Upgradeable.sol:148"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "../project:/contracts/lib/upgradeable/OwnableUpgradeable.sol:22"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "../project:/contracts/lib/upgradeable/OwnableUpgradeable.sol:100"
+          },
+          {
+            "contract": "PausableUpgradeable",
+            "label": "_paused",
+            "type": "t_bool",
+            "src": "../project:/contracts/lib/upgradeable/PausableUpgradeable.sol:29"
+          },
+          {
+            "contract": "PausableUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "../project:/contracts/lib/upgradeable/PausableUpgradeable.sol:116"
+          },
+          {
+            "contract": "HeroUpgradeable",
+            "label": "baseURIString",
+            "type": "t_string_storage",
+            "src": "../project:/contracts/upgradeable/HeroUpgradeable.sol:20"
+          },
+          {
+            "contract": "HeroUpgradeable",
+            "label": "mintSigner",
+            "type": "t_address",
+            "src": "../project:/contracts/upgradeable/HeroUpgradeable.sol:23"
+          },
+          {
+            "contract": "HeroUpgradeable",
+            "label": "USDP",
+            "type": "t_contract(IERC20Upgradeable)11575",
+            "src": "../project:/contracts/upgradeable/HeroUpgradeable.sol:26"
+          },
+          {
+            "contract": "HeroUpgradeable",
+            "label": "vault",
+            "type": "t_address",
+            "src": "../project:/contracts/upgradeable/HeroUpgradeable.sol:29"
+          }
+        ],
+        "types": {
+          "t_string_storage": {
+            "label": "string"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_contract(IERC20Upgradeable)11575": {
+            "label": "contract IERC20Upgradeable"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_bytes32": {
+            "label": "bytes32"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          },
+          "t_mapping(t_uint256,t_address)": {
+            "label": "mapping(uint256 => address)"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)"
+          },
+          "t_mapping(t_address,t_mapping(t_address,t_bool))": {
+            "label": "mapping(address => mapping(address => bool))"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)"
+          },
+          "t_array(t_uint256)44_storage": {
+            "label": "uint256[44]"
+          },
+          "t_struct(RoyaltyInfo)10313_storage": {
+            "label": "struct ERC2981Upgradeable.RoyaltyInfo",
+            "members": [
+              {
+                "label": "receiver",
+                "type": "t_address"
+              },
+              {
+                "label": "royaltyFraction",
+                "type": "t_uint96"
+              }
+            ]
+          },
+          "t_uint96": {
+            "label": "uint96"
+          },
+          "t_mapping(t_uint256,t_struct(RoyaltyInfo)10313_storage)": {
+            "label": "mapping(uint256 => struct ERC2981Upgradeable.RoyaltyInfo)"
+          },
+          "t_array(t_uint256)48_storage": {
+            "label": "uint256[48]"
+          },
+          "t_uint8": {
+            "label": "uint8"
+          }
+        }
+      }
+    },
+    "512662e7ddcf03d4b59b707f5b2f070cae3f3321bec89e12e9ec952a45f8ea33": {
+      "address": "0x950379Fb8486EC594FB77421A820aa8C1afB8f4b",
+      "txHash": "0xeb1d289043a1b1a9523f28a0b69f5ad2fdc189c9c97a1e178a73a500f9b4e835",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_uint8",
+            "src": "../project:/contracts/lib/upgradeable/Initializable.sol:60"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "../project:/contracts/lib/upgradeable/Initializable.sol:65"
+          },
+          {
+            "contract": "ContextUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "../project:/contracts/lib/upgradeable/ContextUpgradeable.sol:35"
+          },
+          {
+            "contract": "ERC165Upgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "../project:/contracts/lib/upgradeable/ERC165Upgradeable.sol:46"
+          },
+          {
+            "contract": "ERC2981Upgradeable",
+            "label": "_defaultRoyaltyInfo",
+            "type": "t_struct(RoyaltyInfo)10313_storage",
+            "src": "../project:/contracts/lib/upgradeable/ERC2981Upgradeable.sol:39"
+          },
+          {
+            "contract": "ERC2981Upgradeable",
+            "label": "_tokenRoyaltyInfo",
+            "type": "t_mapping(t_uint256,t_struct(RoyaltyInfo)10313_storage)",
+            "src": "../project:/contracts/lib/upgradeable/ERC2981Upgradeable.sol:40"
+          },
+          {
+            "contract": "ERC2981Upgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)48_storage",
+            "src": "../project:/contracts/lib/upgradeable/ERC2981Upgradeable.sol:150"
+          },
+          {
+            "contract": "ERC721Upgradeable",
+            "label": "_name",
+            "type": "t_string_storage",
+            "src": "../project:/contracts/lib/upgradeable/ERC721Upgradeable.sol:31"
+          },
+          {
+            "contract": "ERC721Upgradeable",
+            "label": "_symbol",
+            "type": "t_string_storage",
+            "src": "../project:/contracts/lib/upgradeable/ERC721Upgradeable.sol:34"
+          },
+          {
+            "contract": "ERC721Upgradeable",
+            "label": "_owners",
+            "type": "t_mapping(t_uint256,t_address)",
+            "src": "../project:/contracts/lib/upgradeable/ERC721Upgradeable.sol:37"
+          },
+          {
+            "contract": "ERC721Upgradeable",
+            "label": "_balances",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "../project:/contracts/lib/upgradeable/ERC721Upgradeable.sol:40"
+          },
+          {
+            "contract": "ERC721Upgradeable",
+            "label": "_tokenApprovals",
+            "type": "t_mapping(t_uint256,t_address)",
+            "src": "../project:/contracts/lib/upgradeable/ERC721Upgradeable.sol:43"
+          },
+          {
+            "contract": "ERC721Upgradeable",
+            "label": "_operatorApprovals",
+            "type": "t_mapping(t_address,t_mapping(t_address,t_bool))",
+            "src": "../project:/contracts/lib/upgradeable/ERC721Upgradeable.sol:46"
+          },
+          {
+            "contract": "ERC721Upgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)44_storage",
+            "src": "../project:/contracts/lib/upgradeable/ERC721Upgradeable.sol:553"
+          },
+          {
+            "contract": "ERC721RoyaltyUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "../project:/contracts/lib/upgradeable/ERC721RoyaltyUpgradeable.sol:59"
+          },
+          {
+            "contract": "ContractURIStorageUpgradeable",
+            "label": "contractURIString",
+            "type": "t_string_storage",
+            "src": "../project:/contracts/lib/upgradeable/ContractURIStorageUpgradeable.sol:11"
+          },
+          {
+            "contract": "EIP712Upgradeable",
+            "label": "_HASHED_NAME",
+            "type": "t_bytes32",
+            "src": "../project:/contracts/lib/upgradeable/draft-EIP712Upgradeable.sol:31"
+          },
+          {
+            "contract": "EIP712Upgradeable",
+            "label": "_HASHED_VERSION",
+            "type": "t_bytes32",
+            "src": "../project:/contracts/lib/upgradeable/draft-EIP712Upgradeable.sol:32"
+          },
+          {
+            "contract": "EIP712Upgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "../project:/contracts/lib/upgradeable/draft-EIP712Upgradeable.sol:148"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "../project:/contracts/lib/upgradeable/OwnableUpgradeable.sol:22"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "../project:/contracts/lib/upgradeable/OwnableUpgradeable.sol:100"
+          },
+          {
+            "contract": "PausableUpgradeable",
+            "label": "_paused",
+            "type": "t_bool",
+            "src": "../project:/contracts/lib/upgradeable/PausableUpgradeable.sol:29"
+          },
+          {
+            "contract": "PausableUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "../project:/contracts/lib/upgradeable/PausableUpgradeable.sol:116"
+          },
+          {
+            "contract": "ArchitectUpgradeable",
+            "label": "baseURIString",
+            "type": "t_string_storage",
+            "src": "../project:/contracts/upgradeable/ArchitectUpgradeable.sol:20"
+          },
+          {
+            "contract": "ArchitectUpgradeable",
+            "label": "mintSigner",
+            "type": "t_address",
+            "src": "../project:/contracts/upgradeable/ArchitectUpgradeable.sol:23"
+          },
+          {
+            "contract": "ArchitectUpgradeable",
+            "label": "USDP",
+            "type": "t_contract(IERC20Upgradeable)11575",
+            "src": "../project:/contracts/upgradeable/ArchitectUpgradeable.sol:26"
+          },
+          {
+            "contract": "ArchitectUpgradeable",
+            "label": "vault",
+            "type": "t_address",
+            "src": "../project:/contracts/upgradeable/ArchitectUpgradeable.sol:29"
+          }
+        ],
+        "types": {
+          "t_string_storage": {
+            "label": "string"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_contract(IERC20Upgradeable)11575": {
+            "label": "contract IERC20Upgradeable"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_bytes32": {
+            "label": "bytes32"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          },
+          "t_mapping(t_uint256,t_address)": {
+            "label": "mapping(uint256 => address)"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)"
+          },
+          "t_mapping(t_address,t_mapping(t_address,t_bool))": {
+            "label": "mapping(address => mapping(address => bool))"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)"
+          },
+          "t_array(t_uint256)44_storage": {
+            "label": "uint256[44]"
+          },
+          "t_struct(RoyaltyInfo)10313_storage": {
+            "label": "struct ERC2981Upgradeable.RoyaltyInfo",
+            "members": [
+              {
+                "label": "receiver",
+                "type": "t_address"
+              },
+              {
+                "label": "royaltyFraction",
+                "type": "t_uint96"
+              }
+            ]
+          },
+          "t_uint96": {
+            "label": "uint96"
+          },
+          "t_mapping(t_uint256,t_struct(RoyaltyInfo)10313_storage)": {
+            "label": "mapping(uint256 => struct ERC2981Upgradeable.RoyaltyInfo)"
+          },
+          "t_array(t_uint256)48_storage": {
+            "label": "uint256[48]"
+          },
+          "t_uint8": {
+            "label": "uint8"
+          }
+        }
+      }
+    },
+    "b3392615705f70e8ccc4a44d37004ebec563a51279ab2de19fa13dcd798a0723": {
+      "address": "0x5778FD6637bD8792ce19032dA637dD3fee3810fb",
+      "txHash": "0x2c73b30aef036b02a9c4b49658dda3a176e94de2e799954348b7771db271cb4f",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_uint8",
+            "src": "../project:/contracts/lib/upgradeable/Initializable.sol:60"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "../project:/contracts/lib/upgradeable/Initializable.sol:65"
+          },
+          {
+            "contract": "ContextUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "../project:/contracts/lib/upgradeable/ContextUpgradeable.sol:35"
+          },
+          {
+            "contract": "ERC165Upgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "../project:/contracts/lib/upgradeable/ERC165Upgradeable.sol:46"
+          },
+          {
+            "contract": "ERC2981Upgradeable",
+            "label": "_defaultRoyaltyInfo",
+            "type": "t_struct(RoyaltyInfo)10313_storage",
+            "src": "../project:/contracts/lib/upgradeable/ERC2981Upgradeable.sol:39"
+          },
+          {
+            "contract": "ERC2981Upgradeable",
+            "label": "_tokenRoyaltyInfo",
+            "type": "t_mapping(t_uint256,t_struct(RoyaltyInfo)10313_storage)",
+            "src": "../project:/contracts/lib/upgradeable/ERC2981Upgradeable.sol:40"
+          },
+          {
+            "contract": "ERC2981Upgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)48_storage",
+            "src": "../project:/contracts/lib/upgradeable/ERC2981Upgradeable.sol:150"
+          },
+          {
+            "contract": "ERC721Upgradeable",
+            "label": "_name",
+            "type": "t_string_storage",
+            "src": "../project:/contracts/lib/upgradeable/ERC721Upgradeable.sol:31"
+          },
+          {
+            "contract": "ERC721Upgradeable",
+            "label": "_symbol",
+            "type": "t_string_storage",
+            "src": "../project:/contracts/lib/upgradeable/ERC721Upgradeable.sol:34"
+          },
+          {
+            "contract": "ERC721Upgradeable",
+            "label": "_owners",
+            "type": "t_mapping(t_uint256,t_address)",
+            "src": "../project:/contracts/lib/upgradeable/ERC721Upgradeable.sol:37"
+          },
+          {
+            "contract": "ERC721Upgradeable",
+            "label": "_balances",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "../project:/contracts/lib/upgradeable/ERC721Upgradeable.sol:40"
+          },
+          {
+            "contract": "ERC721Upgradeable",
+            "label": "_tokenApprovals",
+            "type": "t_mapping(t_uint256,t_address)",
+            "src": "../project:/contracts/lib/upgradeable/ERC721Upgradeable.sol:43"
+          },
+          {
+            "contract": "ERC721Upgradeable",
+            "label": "_operatorApprovals",
+            "type": "t_mapping(t_address,t_mapping(t_address,t_bool))",
+            "src": "../project:/contracts/lib/upgradeable/ERC721Upgradeable.sol:46"
+          },
+          {
+            "contract": "ERC721Upgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)44_storage",
+            "src": "../project:/contracts/lib/upgradeable/ERC721Upgradeable.sol:553"
+          },
+          {
+            "contract": "ERC721RoyaltyUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "../project:/contracts/lib/upgradeable/ERC721RoyaltyUpgradeable.sol:59"
+          },
+          {
+            "contract": "ContractURIStorageUpgradeable",
+            "label": "contractURIString",
+            "type": "t_string_storage",
+            "src": "../project:/contracts/lib/upgradeable/ContractURIStorageUpgradeable.sol:11"
+          },
+          {
+            "contract": "EIP712Upgradeable",
+            "label": "_HASHED_NAME",
+            "type": "t_bytes32",
+            "src": "../project:/contracts/lib/upgradeable/draft-EIP712Upgradeable.sol:31"
+          },
+          {
+            "contract": "EIP712Upgradeable",
+            "label": "_HASHED_VERSION",
+            "type": "t_bytes32",
+            "src": "../project:/contracts/lib/upgradeable/draft-EIP712Upgradeable.sol:32"
+          },
+          {
+            "contract": "EIP712Upgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "../project:/contracts/lib/upgradeable/draft-EIP712Upgradeable.sol:148"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "../project:/contracts/lib/upgradeable/OwnableUpgradeable.sol:22"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "../project:/contracts/lib/upgradeable/OwnableUpgradeable.sol:100"
+          },
+          {
+            "contract": "PausableUpgradeable",
+            "label": "_paused",
+            "type": "t_bool",
+            "src": "../project:/contracts/lib/upgradeable/PausableUpgradeable.sol:29"
+          },
+          {
+            "contract": "PausableUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "../project:/contracts/lib/upgradeable/PausableUpgradeable.sol:116"
+          },
+          {
+            "contract": "GeneralNFTsUpgradeable",
+            "label": "baseURIString",
+            "type": "t_string_storage",
+            "src": "../project:/contracts/upgradeable/GeneralNFTsUpgradeable.sol:20"
+          },
+          {
+            "contract": "GeneralNFTsUpgradeable",
+            "label": "mintSigner",
+            "type": "t_address",
+            "src": "../project:/contracts/upgradeable/GeneralNFTsUpgradeable.sol:23"
+          },
+          {
+            "contract": "GeneralNFTsUpgradeable",
+            "label": "USDP",
+            "type": "t_contract(IERC20Upgradeable)11575",
+            "src": "../project:/contracts/upgradeable/GeneralNFTsUpgradeable.sol:26"
+          },
+          {
+            "contract": "GeneralNFTsUpgradeable",
+            "label": "vault",
+            "type": "t_address",
+            "src": "../project:/contracts/upgradeable/GeneralNFTsUpgradeable.sol:29"
+          }
+        ],
+        "types": {
+          "t_string_storage": {
+            "label": "string"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_contract(IERC20Upgradeable)11575": {
+            "label": "contract IERC20Upgradeable"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_bytes32": {
+            "label": "bytes32"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          },
+          "t_mapping(t_uint256,t_address)": {
+            "label": "mapping(uint256 => address)"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)"
+          },
+          "t_mapping(t_address,t_mapping(t_address,t_bool))": {
+            "label": "mapping(address => mapping(address => bool))"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)"
+          },
+          "t_array(t_uint256)44_storage": {
+            "label": "uint256[44]"
+          },
+          "t_struct(RoyaltyInfo)10313_storage": {
+            "label": "struct ERC2981Upgradeable.RoyaltyInfo",
+            "members": [
+              {
+                "label": "receiver",
+                "type": "t_address"
+              },
+              {
+                "label": "royaltyFraction",
+                "type": "t_uint96"
+              }
+            ]
+          },
+          "t_uint96": {
+            "label": "uint96"
+          },
+          "t_mapping(t_uint256,t_struct(RoyaltyInfo)10313_storage)": {
+            "label": "mapping(uint256 => struct ERC2981Upgradeable.RoyaltyInfo)"
+          },
+          "t_array(t_uint256)48_storage": {
+            "label": "uint256[48]"
+          },
+          "t_uint8": {
+            "label": "uint8"
+          }
+        }
+      }
+    },
+    "35f39744e054c6888eb80d9d07d4463a14ea8f243eecd259ff1be3d420e99d6c": {
+      "address": "0x099A1e07B11a9Ec1919940A2714D4b61768675B0",
+      "txHash": "0xe909e19cc79755d171036c8dfc5aa58b9222d34ba0f1dc9f03b520adaef6b5df",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_uint8",
+            "src": "../project:/contracts/lib/upgradeable/Initializable.sol:60"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "../project:/contracts/lib/upgradeable/Initializable.sol:65"
+          },
+          {
+            "contract": "ContextUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "../project:/contracts/lib/upgradeable/ContextUpgradeable.sol:35"
+          },
+          {
+            "contract": "ERC165Upgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "../project:/contracts/lib/upgradeable/ERC165Upgradeable.sol:46"
+          },
+          {
+            "contract": "ERC2981Upgradeable",
+            "label": "_defaultRoyaltyInfo",
+            "type": "t_struct(RoyaltyInfo)10313_storage",
+            "src": "../project:/contracts/lib/upgradeable/ERC2981Upgradeable.sol:39"
+          },
+          {
+            "contract": "ERC2981Upgradeable",
+            "label": "_tokenRoyaltyInfo",
+            "type": "t_mapping(t_uint256,t_struct(RoyaltyInfo)10313_storage)",
+            "src": "../project:/contracts/lib/upgradeable/ERC2981Upgradeable.sol:40"
+          },
+          {
+            "contract": "ERC2981Upgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)48_storage",
+            "src": "../project:/contracts/lib/upgradeable/ERC2981Upgradeable.sol:150"
+          },
+          {
+            "contract": "ERC721Upgradeable",
+            "label": "_name",
+            "type": "t_string_storage",
+            "src": "../project:/contracts/lib/upgradeable/ERC721Upgradeable.sol:31"
+          },
+          {
+            "contract": "ERC721Upgradeable",
+            "label": "_symbol",
+            "type": "t_string_storage",
+            "src": "../project:/contracts/lib/upgradeable/ERC721Upgradeable.sol:34"
+          },
+          {
+            "contract": "ERC721Upgradeable",
+            "label": "_owners",
+            "type": "t_mapping(t_uint256,t_address)",
+            "src": "../project:/contracts/lib/upgradeable/ERC721Upgradeable.sol:37"
+          },
+          {
+            "contract": "ERC721Upgradeable",
+            "label": "_balances",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "../project:/contracts/lib/upgradeable/ERC721Upgradeable.sol:40"
+          },
+          {
+            "contract": "ERC721Upgradeable",
+            "label": "_tokenApprovals",
+            "type": "t_mapping(t_uint256,t_address)",
+            "src": "../project:/contracts/lib/upgradeable/ERC721Upgradeable.sol:43"
+          },
+          {
+            "contract": "ERC721Upgradeable",
+            "label": "_operatorApprovals",
+            "type": "t_mapping(t_address,t_mapping(t_address,t_bool))",
+            "src": "../project:/contracts/lib/upgradeable/ERC721Upgradeable.sol:46"
+          },
+          {
+            "contract": "ERC721Upgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)44_storage",
+            "src": "../project:/contracts/lib/upgradeable/ERC721Upgradeable.sol:553"
+          },
+          {
+            "contract": "ERC721RoyaltyUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "../project:/contracts/lib/upgradeable/ERC721RoyaltyUpgradeable.sol:59"
+          },
+          {
+            "contract": "ContractURIStorageUpgradeable",
+            "label": "contractURIString",
+            "type": "t_string_storage",
+            "src": "../project:/contracts/lib/upgradeable/ContractURIStorageUpgradeable.sol:11"
+          },
+          {
+            "contract": "EIP712Upgradeable",
+            "label": "_HASHED_NAME",
+            "type": "t_bytes32",
+            "src": "../project:/contracts/lib/upgradeable/draft-EIP712Upgradeable.sol:31"
+          },
+          {
+            "contract": "EIP712Upgradeable",
+            "label": "_HASHED_VERSION",
+            "type": "t_bytes32",
+            "src": "../project:/contracts/lib/upgradeable/draft-EIP712Upgradeable.sol:32"
+          },
+          {
+            "contract": "EIP712Upgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "../project:/contracts/lib/upgradeable/draft-EIP712Upgradeable.sol:148"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "../project:/contracts/lib/upgradeable/OwnableUpgradeable.sol:22"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "../project:/contracts/lib/upgradeable/OwnableUpgradeable.sol:100"
+          },
+          {
+            "contract": "PausableUpgradeable",
+            "label": "_paused",
+            "type": "t_bool",
+            "src": "../project:/contracts/lib/upgradeable/PausableUpgradeable.sol:29"
+          },
+          {
+            "contract": "PausableUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "../project:/contracts/lib/upgradeable/PausableUpgradeable.sol:116"
+          },
+          {
+            "contract": "PorbleUpgradeable",
+            "label": "baseURIString",
+            "type": "t_string_storage",
+            "src": "../project:/contracts/upgradeable/PorbleUpgradeable.sol:18"
+          },
+          {
+            "contract": "PorbleUpgradeable",
+            "label": "signer",
+            "type": "t_address",
+            "src": "../project:/contracts/upgradeable/PorbleUpgradeable.sol:21"
+          },
+          {
+            "contract": "PorbleUpgradeable",
+            "label": "vault",
+            "type": "t_address",
+            "src": "../project:/contracts/upgradeable/PorbleUpgradeable.sol:24"
+          },
+          {
+            "contract": "PorbleUpgradeable",
+            "label": "userFusionInfo",
+            "type": "t_mapping(t_address,t_mapping(t_uint256,t_bool))",
+            "src": "../project:/contracts/upgradeable/PorbleUpgradeable.sol:28"
+          }
+        ],
+        "types": {
+          "t_string_storage": {
+            "label": "string"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_mapping(t_address,t_mapping(t_uint256,t_bool))": {
+            "label": "mapping(address => mapping(uint256 => bool))"
+          },
+          "t_mapping(t_uint256,t_bool)": {
+            "label": "mapping(uint256 => bool)"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_bytes32": {
+            "label": "bytes32"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          },
+          "t_mapping(t_uint256,t_address)": {
+            "label": "mapping(uint256 => address)"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)"
+          },
+          "t_mapping(t_address,t_mapping(t_address,t_bool))": {
+            "label": "mapping(address => mapping(address => bool))"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)"
+          },
+          "t_array(t_uint256)44_storage": {
+            "label": "uint256[44]"
+          },
+          "t_struct(RoyaltyInfo)10313_storage": {
+            "label": "struct ERC2981Upgradeable.RoyaltyInfo",
+            "members": [
+              {
+                "label": "receiver",
+                "type": "t_address"
+              },
+              {
+                "label": "royaltyFraction",
+                "type": "t_uint96"
+              }
+            ]
+          },
+          "t_uint96": {
+            "label": "uint96"
+          },
+          "t_mapping(t_uint256,t_struct(RoyaltyInfo)10313_storage)": {
+            "label": "mapping(uint256 => struct ERC2981Upgradeable.RoyaltyInfo)"
+          },
+          "t_array(t_uint256)48_storage": {
+            "label": "uint256[48]"
+          },
+          "t_uint8": {
+            "label": "uint8"
+          }
+        }
+      }
+    }
+  }
+}
