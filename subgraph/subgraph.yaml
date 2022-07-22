@@ -1,0 +1,24 @@
+specVersion: 0.0.4
+schema:
+    file: ./schema.graphql
+dataSources:
+    - kind: ethereum
+      name: Porble
+      network: fuji
+      source:
+          address: '0x52Ffde6ae9964F047C28174DeAc2b7Ad0d5360Ee'
+          abi: Porble
+          startBlock: 11806300
+      mapping:
+          kind: ethereum/events
+          apiVersion: 0.0.6
+          language: wasm/assemblyscript
+          entities:
+              - Transfer
+          abis:
+              - name: Porble
+                file: ./abis/Porble.json
+          eventHandlers:
+              - event: Transfer(indexed address,indexed address,indexed uint256)
+                handler: handlePorbleTransfer
+          file: ./src/porble.ts
