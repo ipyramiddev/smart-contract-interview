@@ -7,3 +7,6 @@ contract/keys.json
 .env
 prod-master-keys.ts
 non-truffle-scripts/backups/*
+subgraph/build
+subgraph/node_modules
+subgraph/generated
