@@ -68,8 +68,8 @@ export class Porble extends Entity {
     }
   }
 
-  get createdAt(): BigInt | null {
-    let value = this.get("createdAt");
+  get mintedAt(): BigInt | null {
+    let value = this.get("mintedAt");
     if (!value || value.kind == ValueKind.NULL) {
       return null;
     } else {
@@ -77,11 +77,11 @@ export class Porble extends Entity {
     }
   }
 
-  set createdAt(value: BigInt | null) {
+  set mintedAt(value: BigInt | null) {
     if (!value) {
-      this.unset("createdAt");
+      this.unset("mintedAt");
     } else {
-      this.set("createdAt", Value.fromBigInt(<BigInt>value));
+      this.set("mintedAt", Value.fromBigInt(<BigInt>value));
     }
   }
 }

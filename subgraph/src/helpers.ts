@@ -17,7 +17,7 @@ export function fetchPorble(id: string): Porble {
         porble = new Porble(id);
         porble.tokenId = BigInt.fromString(id);
         porble.owner = ZERO_ADDRESS;
-        porble.createdAt = BigInt.fromI32(0);
+        porble.mintedAt = BigInt.fromI32(0);
 
         porble.save();
     }
