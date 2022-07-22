@@ -2,7 +2,7 @@ type Porble @entity {
     id: ID!
     tokenId: BigInt!
     owner: User
-    createdAt: BigInt
+    mintedAt: BigInt
 }
 
 type PorbleStat @entity {

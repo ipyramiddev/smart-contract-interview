@@ -23,7 +23,7 @@ export function handlePorbleTransfer(event: Transfer): void {
 
     // Token mint
     if (event.params.from.equals(Address.fromString(ZERO_ADDRESS))) {
-        porble.createdAt = event.block.timestamp;
+        porble.mintedAt = event.block.timestamp;
 
         const porbleStat = fetchPorbleStat('global');
         porbleStat.count = porbleStat.count.plus(BigInt.fromI32(1));
