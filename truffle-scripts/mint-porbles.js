@@ -1,6 +1,4 @@
-const Web3 = require('web3');
 const ethers = require('ethers');
-const PORBLE_UPGRADEABLE_ABI = require('../build/contracts/PorbleUpgradeable.json').abi;
 const config = require('../config').config;
 const testAccountsData = require('../test/data/test-accounts-data').testAccountsData;
 
@@ -9,15 +7,13 @@ const provider = new ethers.providers.JsonRpcProvider(rpcEndpoint);
 const signer = new ethers.Wallet(testAccountsData[1].privateKey, provider);
 
 const PorbleUpgradeable = artifacts.require('PorbleUpgradeable');
-const web3 = new Web3(new Web3.providers.HttpProvider(config.AVAX.testnetHTTP));
 
 // Copy these over from .env file because it's safer to do it manually
 const PORBLE_TRANSPARENT_PROXY_ADDRESS = '0x52Ffde6ae9964F047C28174DeAc2b7Ad0d5360Ee';
-const TOKEN_ID_TO_MINT = '123';
+const TOKEN_IDS_TO_MINT = ['2', '3', '4', '5', '6', '7', '8', '9'];
 
 module.exports = async function (callback) {
     try {
-        // const PorbleTransparentProxyContract = new web3.eth.Contract(PORBLE_UPGRADEABLE_ABI, PORBLE_TRANSPARENT_PROXY_ADDRESS);
         const porbleUpgradeableInstance = await PorbleUpgradeable.at(PORBLE_TRANSPARENT_PROXY_ADDRESS);
 
         const types = {
@@ -27,7 +23,7 @@ module.exports = async function (callback) {
             ],
         };
 
-        const tokenIds = [TOKEN_ID_TO_MINT];
+        const tokenIds = TOKEN_IDS_TO_MINT;
 
         const porbleMintConditions = { minter: testAccountsData[1].address, tokenIds };
 
