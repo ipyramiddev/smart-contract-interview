@@ -24,7 +24,15 @@ module.exports = (artifacts: Truffle.Artifacts, web3: Web3) => {
         await deployer.deploy(multiSigWallet, owners, requiredThreshold);
         const multiSigWalletInstance = await multiSigWallet.deployed();
 
-        const PFTUpgradeable = artifacts.require('PFTUpgradeable');
+        // const PFTUpgradeable = artifacts.require('PFTUpgradeable');
+        // const PFTUpgradeableTransparentProxyInstance = (await deployProxy(PFTUpgradeable as any, [], {
+        //     deployer: deployer as any,
+        //     initializer: 'initialize',
+        // })) as PFTUpgradeableInstance;
+        // await PFTUpgradeableTransparentProxyInstance.addController(multiSigWalletInstance.address);
+        // await PFTUpgradeableTransparentProxyInstance.transferOwnership(multiSigWalletInstance.address);
+
+        const PFTUpgradeable = artifacts.require('OPFTUpgradeable');
         const PFTUpgradeableTransparentProxyInstance = (await deployProxy(PFTUpgradeable as any, [], {
             deployer: deployer as any,
             initializer: 'initialize',
