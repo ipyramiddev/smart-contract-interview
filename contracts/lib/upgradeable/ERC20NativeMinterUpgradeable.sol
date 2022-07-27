@@ -52,8 +52,4 @@ contract ERC20NativeMinterUpgradeable is
         _mint(_msgSender(), msg.value);
         emit Deposit(_msgSender(), msg.value);
     }
-
-    function decimals() public view virtual override returns (uint8) {
-        return 18;
-    }
 }
