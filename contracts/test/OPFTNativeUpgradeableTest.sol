@@ -2,21 +2,21 @@
 
 pragma solidity ^0.8.0;
 
-import "../lib/upgradeable/ERC20NativeMinterUpgradeable.sol";
+import "../lib/upgradeable/NativeProxyOFT20Upgradeable.sol";
 import "../lib/upgradeable/IERC20Upgradeable.sol";
 import "../lib/upgradeable/Initializable.sol";
 
 // @NOTE: Remove mint function to test the contract upgrade
 
-contract OPFTUpgradeableTest is ERC20NativeMinterUpgradeable {
+contract OPFTNativeUpgradeableTest is NativeProxyOFT20Upgradeable {
     // Mapping from an address to whether or not it can mint / burn
     mapping(address => bool) public controllers;
 
-    function initialize() public initializer {
-        __ERC20NativeMinter_init(
+    function initialize(address _lzEndpoint) public initializer {
+        __NativeProxyOFT20Upgradeable_init(
             "Portal Fantasy Token",
             "PFT",
-            1000000000000000000000000000
+            _lzEndpoint
         );
         __Ownable_init();
     }

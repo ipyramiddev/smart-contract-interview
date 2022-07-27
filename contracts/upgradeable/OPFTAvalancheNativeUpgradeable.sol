@@ -6,7 +6,7 @@ import "../lib/upgradeable/ERC20NativeMinterUpgradeable.sol";
 import "../lib/upgradeable/IERC20Upgradeable.sol";
 import "../lib/upgradeable/Initializable.sol";
 
-contract OPFTUpgradeable is ERC20NativeMinterUpgradeable {
+contract OPFTAvalancheNativeUpgradeable is ERC20NativeMinterUpgradeable {
     // Mapping from an address to whether or not it can mint / burn
     mapping(address => bool) public controllers;
 
