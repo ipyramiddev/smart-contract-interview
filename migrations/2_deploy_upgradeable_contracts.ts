@@ -24,34 +24,23 @@ module.exports = (artifacts: Truffle.Artifacts, web3: Web3) => {
         await deployer.deploy(multiSigWallet, owners, requiredThreshold);
         const multiSigWalletInstance = await multiSigWallet.deployed();
 
-        // const LZ_ENDPOINT_C_CHAIN = '0x93f54D755A063cE7bB9e6Ac47Eccc8e33411d706';
-        // const OPFTExternalUpgradeable = artifacts.require('OPFTExternalUpgradeable');
-        // const OPFTExternalUpgradeableTransparentProxyInstance = (await deployProxy(OPFTExternalUpgradeable as any, [LZ_ENDPOINT_C_CHAIN], {
+        const LZ_ENDPOINT_C_CHAIN = '0x93f54D755A063cE7bB9e6Ac47Eccc8e33411d706';
+        const PFTUpgradeable = artifacts.require('OPFTExternalUpgradeable');
+        const PFTUpgradeableTransparentProxyInstance = (await deployProxy(PFTUpgradeable as any, [LZ_ENDPOINT_C_CHAIN], {
+            deployer: deployer as any,
+            initializer: 'initialize',
+        })) as PFTUpgradeableInstance;
+        await PFTUpgradeableTransparentProxyInstance.addController(multiSigWalletInstance.address);
+        await PFTUpgradeableTransparentProxyInstance.transferOwnership(multiSigWalletInstance.address);
+
+        // const LZ_ENDPOINT_PF_CHAIN = '0xd682ECF100f6F4284138AA925348633B0611Ae21';
+        // const PFTUpgradeable = artifacts.require('OPFTNativeUpgradeable');
+        // const PFTUpgradeableTransparentProxyInstance = (await deployProxy(PFTUpgradeable as any, [LZ_ENDPOINT_PF_CHAIN], {
         //     deployer: deployer as any,
         //     initializer: 'initialize',
         // })) as PFTUpgradeableInstance;
-        // await OPFTExternalUpgradeableTransparentProxyInstance.addController(multiSigWalletInstance.address);
-        // await OPFTExternalUpgradeableTransparentProxyInstance.transferOwnership(multiSigWalletInstance.address);
-
-        if (network === 'testnet') {
-            const LZ_ENDPOINT_C_CHAIN = '0x93f54D755A063cE7bB9e6Ac47Eccc8e33411d706';
-            const OPFTExternalUpgradeable = artifacts.require('OPFTExternalUpgradeable');
-            const OPFTExternalUpgradeableTransparentProxyInstance = (await deployProxy(OPFTExternalUpgradeable as any, [LZ_ENDPOINT_C_CHAIN], {
-                deployer: deployer as any,
-                initializer: 'initialize',
-            })) as PFTUpgradeableInstance;
-            await OPFTExternalUpgradeableTransparentProxyInstance.addController(multiSigWalletInstance.address);
-            await OPFTExternalUpgradeableTransparentProxyInstance.transferOwnership(multiSigWalletInstance.address);
-        } else {
-            const LZ_ENDPOINT_PF_CHAIN = '0xd682ECF100f6F4284138AA925348633B0611Ae21';
-            const OPFTNativeUpgradeable = artifacts.require('OPFTNativeUpgradeable');
-            const OPFTNativeUpgradeableTransparentProxyInstance = (await deployProxy(OPFTNativeUpgradeable as any, [LZ_ENDPOINT_PF_CHAIN], {
-                deployer: deployer as any,
-                initializer: 'initialize',
-            })) as PFTUpgradeableInstance;
-            await OPFTNativeUpgradeableTransparentProxyInstance.addController(multiSigWalletInstance.address);
-            await OPFTNativeUpgradeableTransparentProxyInstance.transferOwnership(multiSigWalletInstance.address);
-        }
+        // await PFTUpgradeableTransparentProxyInstance.addController(multiSigWalletInstance.address);
+        // await PFTUpgradeableTransparentProxyInstance.transferOwnership(multiSigWalletInstance.address);
 
         // const TokenVault = artifacts.require('TokenVaultUpgradeable');
         // const TokenVaultUpgradeableTransparentProxyInstance = (await deployProxy(TokenVault as any, [accounts[1]], {
