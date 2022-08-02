@@ -1,6 +1,5 @@
 type Porble @entity {
     id: ID!
-    tokenId: BigInt!
     owner: User
     mintedAt: BigInt
 }
