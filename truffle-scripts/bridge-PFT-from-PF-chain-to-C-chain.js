@@ -56,11 +56,12 @@ module.exports = async function (callback) {
         console.log(`nativeFee: ${nativeFee.toString()}`);
         console.log(`zroFee: ${zroFee.toString()}`);
 
-        await PFTUpgradeableInstance.sendFrom(PFT_HOLDER, DESTINATION_CHAIN_ID, DESTINATION_ADDRESS_BYTES, PFT_TO_BRIDGE_AMOUNT, PFT_HOLDER, PFT_HOLDER, '0x', {
+        const result = await PFTUpgradeableInstance.sendFrom(PFT_HOLDER, DESTINATION_CHAIN_ID, DESTINATION_ADDRESS_BYTES, PFT_TO_BRIDGE_AMOUNT, PFT_HOLDER, PFT_HOLDER, '0x', {
             from: PFT_HOLDER,
             value: web3.utils.toWei('150', 'ether'),
         });
-        console.log('bridging tx complete');
+        console.log(`bridging tx complete: ${result.tx}`);
+        console.log(JSON.stringify(result.receipt));
     } catch (error) {
         console.log(error);
     }
