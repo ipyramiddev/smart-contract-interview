@@ -42,12 +42,12 @@ module.exports = (artifacts: Truffle.Artifacts, web3: Web3) => {
         // await PFTUpgradeableTransparentProxyInstance.addController(multiSigWalletInstance.address);
         // await PFTUpgradeableTransparentProxyInstance.transferOwnership(multiSigWalletInstance.address);
 
-        // const TokenVault = artifacts.require('TokenVaultUpgradeable');
-        // const TokenVaultUpgradeableTransparentProxyInstance = (await deployProxy(TokenVault as any, [accounts[1]], {
-        //     deployer: deployer as any,
-        //     initializer: 'initialize',
-        // })) as TokenVaultUpgradeableInstance;
-        // await TokenVaultUpgradeableTransparentProxyInstance.transferOwnership(multiSigWalletInstance.address);
+        const TokenVault = artifacts.require('TokenVaultUpgradeable');
+        const TokenVaultUpgradeableTransparentProxyInstance = (await deployProxy(TokenVault as any, [accounts[1]], {
+            deployer: deployer as any,
+            initializer: 'initialize',
+        })) as TokenVaultUpgradeableInstance;
+        await TokenVaultUpgradeableTransparentProxyInstance.transferOwnership(multiSigWalletInstance.address);
 
         // const PFTStaking = artifacts.require('PFTStakingUpgradeable');
         // const PFTStakingUpgradeableTransparentProxyInstance = (await deployProxy(PFTStaking as any, ['1000'], {
@@ -97,12 +97,12 @@ module.exports = (artifacts: Truffle.Artifacts, web3: Web3) => {
         // )) as GeneralNFTsUpgradeableInstance;
         // await generalNFTsUpgradeableTransparentProxyInstance.transferOwnership(multiSigWalletInstance.address);
 
-        // const porbleUpgradeable = artifacts.require('PorbleUpgradeable');
-        // const porbleUpgradeableTransparentProxyInstance = (await deployProxy(porbleUpgradeable as any, [accounts[1], TokenVaultUpgradeableTransparentProxyInstance.address], {
-        //     deployer: deployer as any,
-        //     initializer: 'initialize',
-        // })) as PorbleUpgradeableInstance;
-        // await porbleUpgradeableTransparentProxyInstance.transferOwnership(multiSigWalletInstance.address);
+        const porbleUpgradeable = artifacts.require('PorbleUpgradeable');
+        const porbleUpgradeableTransparentProxyInstance = (await deployProxy(porbleUpgradeable as any, [accounts[1], TokenVaultUpgradeableTransparentProxyInstance.address], {
+            deployer: deployer as any,
+            initializer: 'initialize',
+        })) as PorbleUpgradeableInstance;
+        await porbleUpgradeableTransparentProxyInstance.transferOwnership(multiSigWalletInstance.address);
 
         // const NFTMarketplaceUpgradeable = artifacts.require('NFTMarketplaceUpgradeable');
         // const NFTMarketplaceUpgradeableTransparentProxyInstance = (await deployProxy(NFTMarketplaceUpgradeable as any, [USDPUpgradeableTransparentProxyInstance.address], {
@@ -116,14 +116,10 @@ module.exports = (artifacts: Truffle.Artifacts, web3: Web3) => {
         // await NFTMarketplaceUpgradeableTransparentProxyInstance.transferOwnership(multiSigWalletInstance.address);
 
         // const VestingVaultUpgradeable = artifacts.require('VestingVaultUpgradeable');
-        // const vestingVaultUpgradeableTransparentProxyInstance = (await deployProxy(
-        //     VestingVaultUpgradeable as any,
-        //     [(OPFTNativeUpgradeableTransparentProxyInstance as any).address],
-        //     {
-        //         deployer: deployer as any,
-        //         initializer: 'initialize',
-        //     }
-        // )) as VestingVaultUpgradeableInstance;
+        // const vestingVaultUpgradeableTransparentProxyInstance = (await deployProxy(VestingVaultUpgradeable as any, [(PFTUpgradeableTransparentProxyInstance as any).address], {
+        //     deployer: deployer as any,
+        //     initializer: 'initialize',
+        // })) as VestingVaultUpgradeableInstance;
         // await vestingVaultUpgradeableTransparentProxyInstance.transferOwnership(multiSigWalletInstance.address);
 
         // Transfer proxy admin ownership to the MultiSigWallet so that upgrades can only be done via a multisig
