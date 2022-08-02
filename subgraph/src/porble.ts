@@ -18,7 +18,7 @@ import { fetchPorbleStat, fetchPorble, fetchUser, fetchPartialUser, fetchPartial
 export function handlePorbleTransfer(event: Transfer): void {
     const user = fetchPartialUser(event.params.to.toHexString());
 
-    const porble = fetchPartialPorble(event.params.tokenId.toString());
+    const porble = fetchPartialPorble(event.params.tokenId.toHexString());
     porble.owner = user.id;
 
     // Token mint

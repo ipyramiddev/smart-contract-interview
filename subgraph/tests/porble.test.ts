@@ -1,4 +1,4 @@
-import { assert, describe, test, clearStore, beforeAll, afterAll, afterEach, beforeEach } from 'matchstick-as/assembly/index';
+import { assert, describe, test, clearStore, afterEach, beforeEach } from 'matchstick-as/assembly/index';
 import { Address, BigInt } from '@graphprotocol/graph-ts';
 import { Porble } from '../generated/schema';
 import { Transfer } from '../generated/Porble/Porble';
@@ -36,8 +36,7 @@ describe('porble.test.ts', () => {
 
     test('updates the user store when a porble is minted to their address, incrementing the porble stats counter', () => {
         assert.entityCount('Porble', 1);
-        assert.fieldEquals('Porble', '1', 'tokenId', '1');
-        assert.fieldEquals('Porble', '1', 'owner', ACCOUNT_1_ADDRESS.toLowerCase());
+        assert.fieldEquals('Porble', '0x1', 'owner', ACCOUNT_1_ADDRESS.toLowerCase());
 
         assert.entityCount('PorbleStat', 1);
         assert.fieldEquals('PorbleStat', 'global', 'count', '1');
@@ -52,8 +51,7 @@ describe('porble.test.ts', () => {
         handlePorbleTransfer(newTransferEvent);
 
         assert.entityCount('Porble', 1);
-        assert.fieldEquals('Porble', '1', 'tokenId', '1');
-        assert.fieldEquals('Porble', '1', 'owner', ZERO_ADDRESS);
+        assert.fieldEquals('Porble', '0x1', 'owner', ZERO_ADDRESS);
 
         assert.entityCount('PorbleStat', 1);
         assert.fieldEquals('PorbleStat', 'global', 'count', '0');
@@ -68,8 +66,7 @@ describe('porble.test.ts', () => {
         handlePorbleTransfer(newTransferEvent);
 
         assert.entityCount('Porble', 1);
-        assert.fieldEquals('Porble', '1', 'tokenId', '1');
-        assert.fieldEquals('Porble', '1', 'owner', ACCOUNT_2_ADDRESS.toLowerCase());
+        assert.fieldEquals('Porble', '0x1', 'owner', ACCOUNT_2_ADDRESS.toLowerCase());
 
         assert.entityCount('PorbleStat', 1);
         assert.fieldEquals('PorbleStat', 'global', 'count', '1');

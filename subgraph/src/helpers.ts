@@ -15,7 +15,6 @@ export function fetchPorble(id: string): Porble {
 
     if (!porble) {
         porble = new Porble(id);
-        porble.tokenId = BigInt.fromString(id);
         porble.owner = ZERO_ADDRESS;
         porble.mintedAt = BigInt.fromI32(0);
 
@@ -27,7 +26,6 @@ export function fetchPorble(id: string): Porble {
 
 export function fetchPartialPorble(id: string): Porble {
     const porble = new Porble(id);
-    porble.tokenId = BigInt.fromString(id);
     porble.save();
     return <Porble>porble;
 }
