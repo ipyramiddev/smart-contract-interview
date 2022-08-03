@@ -4,6 +4,7 @@ require('ts-node').register({
 
 const HDWalletProvider = require('@truffle/hdwallet-provider');
 const testAccountsData = require('./test/data/test-accounts-data').testAccountsData;
+const testPrivateAccountsData = require('./test-master-keys').testMasterKeys;
 const config = require('./config').config;
 
 // @NOTE: We use a subnet and private chain for the local development environment because ava-sim doesn't let us create 10 accounts with balances
@@ -35,13 +36,29 @@ module.exports = {
             skipDryRun: true,
         },
         testnet: {
-            provider: () => new HDWalletProvider([testAccountsData[0].privateKey, testAccountsData[1].privateKey, testAccountsData[2].privateKey], config.AVAX.testnetHTTP),
+            provider: () =>
+                new HDWalletProvider(
+                    [
+                        testPrivateAccountsData.privateTestAccount1.privateKey,
+                        testPrivateAccountsData.privateTestAccount2.privateKey,
+                        testPrivateAccountsData.privateTestAccount3.privateKey,
+                    ],
+                    config.AVAX.testnetHTTP
+                ),
             network_id: '*',
             gas: 6721975,
             skipDryRun: true,
         },
         testnetSubnet: {
-            provider: () => new HDWalletProvider([testAccountsData[0].privateKey, testAccountsData[1].privateKey, testAccountsData[2].privateKey], config.AVAX.testnetSubnetHTTP),
+            provider: () =>
+                new HDWalletProvider(
+                    [
+                        testPrivateAccountsData.privateTestAccount1.privateKey,
+                        testPrivateAccountsData.privateTestAccount2.privateKey,
+                        testPrivateAccountsData.privateTestAccount3.privateKey,
+                    ],
+                    config.AVAX.testnetSubnetHTTP
+                ),
             network_id: '*',
             gas: 6721975,
             skipDryRun: true,
