@@ -33,12 +33,6 @@ contract NativeProxyOFT20Upgradeable is
         uint256 _amount
     );
 
-    // constructor(
-    //     string memory _name,
-    //     string memory _symbol,
-    //     address _lzEndpoint
-    // ) ERC20(_name, _symbol) NonblockingLzApp(_lzEndpoint) {}
-
     function __NativeProxyOFT20Upgradeable_init(
         string memory _name,
         string memory _symbol,

@@ -12,7 +12,6 @@ contract OPFTExternalUpgradeable is OFT20Upgradeable {
 
     function initialize(address _lzEndpoint) public initializer {
         __OFT20Upgradeable_init("Portal Fantasy Token", "PFT", _lzEndpoint);
-        __Ownable_init();
     }
 
     /**
