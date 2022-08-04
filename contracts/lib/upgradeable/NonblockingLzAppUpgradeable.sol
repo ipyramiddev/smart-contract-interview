@@ -10,8 +10,6 @@ import "./LzAppUpgradeable.sol";
  * NOTE: if the srcAddress is not configured properly, it will still block the message pathway from (srcChainId, srcAddress)
  */
 abstract contract NonblockingLzAppUpgradeable is LzAppUpgradeable {
-    // constructor(address _endpoint) LzApp(_endpoint) {}
-
     function __NonBlockingLzApp_init(address _endpoint)
         internal
         onlyInitializing

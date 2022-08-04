@@ -6,7 +6,7 @@ const getTxIdFromMultiSigWallet = require('../test/lib/test-helpers').getTxIdFro
 
 const MultiSigWallet = artifacts.require('MultiSigWallet');
 const PFTUpgradeable = artifacts.require('OPFTNativeUpgradeable');
-const web3 = new Web3(new Web3.providers.HttpProvider(config.AVAX.localSubnetHTTP));
+const web3 = new Web3(new Web3.providers.HttpProvider(config.AVAX.testnetSubnetHTTP));
 
 // Copy these over from .env file because it's safer to do it manually
 const MULTI_SIG_WALLET_ADDRESS = '0x1A44477AF531Ab811cd82772477f40750e763ff9';

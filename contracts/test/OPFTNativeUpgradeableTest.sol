@@ -18,7 +18,6 @@ contract OPFTNativeUpgradeableTest is NativeProxyOFT20Upgradeable {
             "PFT",
             _lzEndpoint
         );
-        __Ownable_init();
     }
 
     /**

@@ -16,8 +16,6 @@ abstract contract OFT20CoreUpgradeable is
     uint256 public constant FUNCTION_TYPE_SEND = 1;
     bool public useCustomAdapterParams;
 
-    // constructor(address _lzEndpoint) NonblockingLzApp(_lzEndpoint) {}
-
     function __OFT20CoreUpgradeable_init(address _lzEndpoint)
         internal
         onlyInitializing

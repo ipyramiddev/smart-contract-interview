@@ -9,12 +9,6 @@ import "../IOFT20.sol";
 
 // override decimal() function is needed
 contract OFT20Upgradeable is OFT20CoreUpgradeable, ERC20Upgradeable, IOFT20 {
-    // constructor(
-    //     string memory _name,
-    //     string memory _symbol,
-    //     address _lzEndpoint
-    // ) ERC20(_name, _symbol) OFT20Core(_lzEndpoint) {}
-
     function __OFT20Upgradeable_init(
         string memory _name,
         string memory _symbol,

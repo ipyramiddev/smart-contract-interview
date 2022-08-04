@@ -22,10 +22,6 @@ abstract contract LzAppUpgradeable is
 
     event SetTrustedRemote(uint16 _srcChainId, bytes _srcAddress);
 
-    // constructor(address _endpoint) {
-    //     lzEndpoint = ILayerZeroEndpoint(_endpoint);
-    // }
-
     function __LzApp_init(address _endpoint) internal onlyInitializing {
         __Ownable_init();
         lzEndpoint = ILayerZeroEndpoint(_endpoint);

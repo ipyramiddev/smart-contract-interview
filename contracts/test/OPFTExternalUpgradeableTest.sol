@@ -2,30 +2,18 @@
 
 pragma solidity ^0.8.0;
 
-import "../lib/upgradeable/NativeProxyOFT20Upgradeable.sol";
+import "../lib/upgradeable/OFT20Upgradeable.sol";
 import "../lib/upgradeable/IERC20Upgradeable.sol";
 import "../lib/upgradeable/Initializable.sol";
 
-contract OPFTNativeUpgradeable is NativeProxyOFT20Upgradeable {
+// @NOTE: Remove mint function to test the contract upgrade
+
+contract OPFTExternalUpgradeableTest is OFT20Upgradeable {
     // Mapping from an address to whether or not it can mint / burn
     mapping(address => bool) public controllers;
 
     function initialize(address _lzEndpoint) public initializer {
-        __NativeProxyOFT20Upgradeable_init(
-            "Portal Fantasy Token",
-            "PFT",
-            _lzEndpoint
-        );
-    }
-
-    /**
-     * Mints PORB to a recipient
-     * @param to the recipient of the PORB
-     * @param amount the amount of PORB to mint
-     */
-    function mint(address to, uint256 amount) external {
-        require(controllers[msg.sender], "Only controllers can mint");
-        _mint(to, amount);
+        __OFT20Upgradeable_init("Portal Fantasy Token", "PFT", _lzEndpoint);
     }
 
     /**
