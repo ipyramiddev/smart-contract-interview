@@ -41,7 +41,7 @@ contract NativeProxyOFT20Upgradeable is
         __ERC20_init(_name, _symbol);
         __ERC165_init();
         __ReentrancyGuard_init();
-        __NonBlockingLzApp_init(_lzEndpoint);
+        __NonblockingLzAppUpgradeable_init(_lzEndpoint);
     }
 
     function estimateSendFee(

@@ -1,8 +1,8 @@
 const PFTUpgradeable = artifacts.require('OPFTExternalUpgradeable');
 
 // Copy these over from .env file because it's safer to do it manually
-const PFT_TRANSPARENT_PROXY_ADDRESS = '0x14d90CfF69af99ECF4f4e706Cd077753BE7789F6';
-const ACCOUNT_ADDRESS = '0x083AE73152d48ad83F15A2Ca8ea9D7743261b780';
+const PFT_TRANSPARENT_PROXY_ADDRESS = '0xa0565592ADF32FC09f17737c3Bf931Fa5cD8A741';
+const ACCOUNT_ADDRESS = '0xA8cb1ABd5107432B99F41Db24922BD3D2F5CFC2E';
 
 module.exports = async function (callback) {
     try {
