@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity >=0.5.0;
+pragma solidity ^0.8.0;
 
-import "./ILayerZeroUserApplicationConfig.sol";
+import "./ILayerZeroUserApplicationConfigUpgradeable.sol";
 
-interface ILayerZeroEndpoint is ILayerZeroUserApplicationConfig {
+interface ILayerZeroEndpointUpgradeable is
+    ILayerZeroUserApplicationConfigUpgradeable
+{
     // @notice send a LayerZero message to the specified address at a LayerZero endpoint.
     // @param _dstChainId - the destination chain identifier
     // @param _destination - the address on destination chain (in bytes). address length/format may vary by chains

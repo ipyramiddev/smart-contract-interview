@@ -9,12 +9,22 @@ import "./LzAppUpgradeable.sol";
  * this abstract class try-catch all fail messages and store locally for future retry. hence, non-blocking
  * NOTE: if the srcAddress is not configured properly, it will still block the message pathway from (srcChainId, srcAddress)
  */
-abstract contract NonblockingLzAppUpgradeable is LzAppUpgradeable {
-    function __NonBlockingLzApp_init(address _endpoint)
+abstract contract NonblockingLzAppUpgradeable is
+    Initializable,
+    LzAppUpgradeable
+{
+    function __NonblockingLzAppUpgradeable_init(address _endpoint)
         internal
         onlyInitializing
     {
-        __LzApp_init(_endpoint);
+        __NonblockingLzAppUpgradeable_init_unchained(_endpoint);
+    }
+
+    function __NonblockingLzAppUpgradeable_init_unchained(address _endpoint)
+        internal
+        onlyInitializing
+    {
+        __LzAppUpgradeable_init_unchained(_endpoint);
     }
 
     mapping(uint16 => mapping(bytes => mapping(uint64 => bytes32)))
@@ -96,4 +106,11 @@ abstract contract NonblockingLzAppUpgradeable is LzAppUpgradeable {
         // execute the message. revert if it fails again
         _nonblockingLzReceive(_srcChainId, _srcAddress, _nonce, _payload);
     }
+
+    /**
+     * @dev This empty reserved space is put in place to allow future versions to add new
+     * variables without shifting down storage in the inheritance chain.
+     * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
+     */
+    uint256[50] private __gap;
 }

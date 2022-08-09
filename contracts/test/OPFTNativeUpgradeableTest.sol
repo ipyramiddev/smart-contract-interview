@@ -6,11 +6,8 @@ import "../lib/upgradeable/NativeProxyOFT20Upgradeable.sol";
 import "../lib/upgradeable/IERC20Upgradeable.sol";
 import "../lib/upgradeable/Initializable.sol";
 
-// @NOTE: Remove mint function to test the contract upgrade
-
 contract OPFTNativeUpgradeableTest is NativeProxyOFT20Upgradeable {
-    // Mapping from an address to whether or not it can mint / burn
-    mapping(address => bool) public controllers;
+    uint256 public testNum;
 
     function initialize(address _lzEndpoint) public initializer {
         __NativeProxyOFT20Upgradeable_init(
@@ -20,29 +17,7 @@ contract OPFTNativeUpgradeableTest is NativeProxyOFT20Upgradeable {
         );
     }
 
-    /**
-     * Burns PORB from a holder
-     * @param from the holder of the PORB
-     * @param amount the amount of PORB to burn
-     */
-    function burn(address from, uint256 amount) external {
-        require(controllers[msg.sender], "Only controllers can burn");
-        _burn(from, amount);
-    }
-
-    /**
-     * Enables an address to mint / burn
-     * @param controller the address to enable
-     */
-    function addController(address controller) external onlyOwner {
-        controllers[controller] = true;
-    }
-
-    /**
-     * Disables an address from minting / burning
-     * @param controller the address to disbale
-     */
-    function removeController(address controller) external onlyOwner {
-        controllers[controller] = false;
+    function setTestNum(uint256 _testNum) external {
+        testNum = _testNum;
     }
 }

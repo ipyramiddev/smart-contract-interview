@@ -3,28 +3,44 @@
 pragma solidity ^0.8.0;
 
 import "./OwnableUpgradeable.sol";
-import "../ILayerZeroReceiver.sol";
-import "../ILayerZeroUserApplicationConfig.sol";
-import "../ILayerZeroEndpoint.sol";
+import "./ILayerZeroReceiverUpgradeable.sol";
+import "./ILayerZeroUserApplicationConfigUpgradeable.sol";
+import "./ILayerZeroEndpointUpgradeable.sol";
 
 /*
  * a generic LzReceiver implementation
  */
 abstract contract LzAppUpgradeable is
+    Initializable,
     OwnableUpgradeable,
-    ILayerZeroReceiver,
-    ILayerZeroUserApplicationConfig
+    ILayerZeroReceiverUpgradeable,
+    ILayerZeroUserApplicationConfigUpgradeable
 {
-    // ILayerZeroEndpoint public immutable lzEndpoint;
-    ILayerZeroEndpoint public lzEndpoint;
+    ILayerZeroEndpointUpgradeable public lzEndpoint;
     mapping(uint16 => bytes) public trustedRemoteLookup;
     mapping(uint16 => mapping(uint256 => uint256)) public minDstGasLookup;
 
     event SetTrustedRemote(uint16 _srcChainId, bytes _srcAddress);
+    event SetMinDstGasLookup(
+        uint16 _dstChainId,
+        uint256 _type,
+        uint256 _dstGasAmount
+    );
 
-    function __LzApp_init(address _endpoint) internal onlyInitializing {
+    function __LzAppUpgradeable_init(address _endpoint)
+        internal
+        onlyInitializing
+    {
         __Ownable_init();
-        lzEndpoint = ILayerZeroEndpoint(_endpoint);
+        __LzAppUpgradeable_init_unchained(_endpoint);
+    }
+
+    function __LzAppUpgradeable_init_unchained(address _endpoint)
+        internal
+        onlyInitializing
+    {
+        __Ownable_init();
+        lzEndpoint = ILayerZeroEndpointUpgradeable(_endpoint);
     }
 
     function lzReceive(
@@ -160,6 +176,7 @@ abstract contract LzAppUpgradeable is
     ) external onlyOwner {
         require(_dstGasAmount > 0, "LzApp: invalid _dstGasAmount");
         minDstGasLookup[_dstChainId][_type] = _dstGasAmount;
+        emit SetMinDstGasLookup(_dstChainId, _type, _dstGasAmount);
     }
 
     //--------------------------- VIEW FUNCTION ----------------------------------------
@@ -171,4 +188,11 @@ abstract contract LzAppUpgradeable is
         bytes memory trustedSource = trustedRemoteLookup[_srcChainId];
         return keccak256(trustedSource) == keccak256(_srcAddress);
     }
+
+    /**
+     * @dev This empty reserved space is put in place to allow future versions to add new
+     * variables without shifting down storage in the inheritance chain.
+     * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
+     */
+    uint256[50] private __gap;
 }

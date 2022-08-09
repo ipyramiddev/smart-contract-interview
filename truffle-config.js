@@ -36,34 +36,38 @@ module.exports = {
             skipDryRun: true,
         },
         testnet: {
-            // provider: () =>
-            //     new HDWalletProvider(
-            //         [
-            //             testPrivateAccountsData.privateTestAccount1.privateKey,
-            //             testPrivateAccountsData.privateTestAccount2.privateKey,
-            //             testPrivateAccountsData.privateTestAccount3.privateKey,
-            //         ],
-            //         config.AVAX.testnetHTTP
-            //     ),
-            provider: () => new HDWalletProvider([testAccountsData[0].privateKey, testAccountsData[1].privateKey, testAccountsData[2].privateKey], config.AVAX.testnetHTTP),
+            provider: () =>
+                new HDWalletProvider(
+                    [
+                        testPrivateAccountsData.privateTestAccount1.privateKey,
+                        testPrivateAccountsData.privateTestAccount2.privateKey,
+                        testPrivateAccountsData.privateTestAccount3.privateKey,
+                    ],
+                    config.AVAX.testnetHTTP
+                ),
+            // provider: () => new HDWalletProvider([testAccountsData[0].privateKey, testAccountsData[1].privateKey, testAccountsData[2].privateKey], config.AVAX.testnetHTTP),
             network_id: '*',
             gas: 6721975,
             skipDryRun: true,
+            networkCheckTimeout: 1000000,
+            timeoutBlocks: 200,
         },
         testnetSubnet: {
-            // provider: () =>
-            //     new HDWalletProvider(
-            //         [
-            //             testPrivateAccountsData.privateTestAccount1.privateKey,
-            //             testPrivateAccountsData.privateTestAccount2.privateKey,
-            //             testPrivateAccountsData.privateTestAccount3.privateKey,
-            //         ],
-            //         config.AVAX.testnetSubnetHTTP
-            //     ),
-            provider: () => new HDWalletProvider([testAccountsData[0].privateKey, testAccountsData[1].privateKey, testAccountsData[2].privateKey], config.AVAX.testnetHTTP),
+            provider: () =>
+                new HDWalletProvider(
+                    [
+                        testPrivateAccountsData.privateTestAccount1.privateKey,
+                        testPrivateAccountsData.privateTestAccount2.privateKey,
+                        testPrivateAccountsData.privateTestAccount3.privateKey,
+                    ],
+                    config.AVAX.testnetSubnetHTTP
+                ),
+            // provider: () => new HDWalletProvider([testAccountsData[0].privateKey, testAccountsData[1].privateKey, testAccountsData[2].privateKey], config.AVAX.testnetHTTP),
             network_id: '*',
             gas: 6721975,
             skipDryRun: true,
+            networkCheckTimeout: 1000000,
+            timeoutBlocks: 200,
         },
         // mainnet: {
         //     provider: () => new HDWalletProvider(keys.masterKey, config.AVAX.mainnetHTTP),

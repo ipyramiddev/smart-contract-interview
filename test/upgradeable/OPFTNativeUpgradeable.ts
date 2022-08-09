@@ -35,12 +35,7 @@ contract.skip('OPFTNativeUpgradeable.sol', ([owner, account1, account2, account3
         })) as OPFTNativeUpgradeableInstance;
         await OPFTNativeUpgradeableInstance.transferOwnership(multiSigWalletInstance.address);
 
-        // multiSig for adding MultiSigWallet contract as a controller
         OPFTNativeUpgradeableContract = new web3.eth.Contract(OPFT_NATIVE_UPGRADEABLE_ABI, OPFTNativeUpgradeableInstance.address);
-        const data = OPFTNativeUpgradeableContract.methods.addController(multiSigWalletInstance.address).encodeABI();
-        await multiSigWalletInstance.submitTransaction(OPFTNativeUpgradeableInstance.address, 0, data, { from: owner });
-        const txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
-        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
     });
 
     it("has token name set to 'Portal Fantasy Token'", async () => {
@@ -63,119 +58,9 @@ contract.skip('OPFTNativeUpgradeable.sol', ([owner, account1, account2, account3
         expect(contractOwner).to.equal(multiSigWalletInstance.address);
     });
 
-    it('allows the contract owner (multiSigWallet) to add another controller', async () => {
-        const data = OPFTNativeUpgradeableContract.methods.addController(account2).encodeABI();
-        await multiSigWalletInstance.submitTransaction(OPFTNativeUpgradeableInstance.address, 0, data, { from: owner });
-        const txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
-        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
-
-        const isController = await (OPFTNativeUpgradeableInstance as any).controllers.call(account2);
-        expect(isController).to.be.true;
-    });
-
-    it('allows the contract owner (multiSigWallet) to remove a controller', async () => {
-        const data = OPFTNativeUpgradeableContract.methods.removeController(account2).encodeABI();
-        await multiSigWalletInstance.submitTransaction(OPFTNativeUpgradeableInstance.address, 0, data, { from: owner });
-        const txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
-        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
-
-        const isController = await (OPFTNativeUpgradeableInstance as any).controllers.call(account2);
-        expect(isController).to.be.false;
-    });
-
-    it("doesn't allow a non-PFT-contract-owner account to add a controller", async () => {
-        await localExpect(OPFTNativeUpgradeableInstance.addController(account2, { from: account1 })).to.eventually.be.rejected;
-    });
-
-    it("doesn't allow a non-PFT-contract-owner account to remove a controller", async () => {
-        await localExpect(OPFTNativeUpgradeableInstance.removeController(account2, { from: account1 })).to.eventually.be.rejected;
-    });
-
-    it('allows a controller account (multiSigWallet) to mint tokens after sufficient multiSig confirmations', async () => {
-        const amountToMint = web3.utils.toWei('1', 'ether');
-        const totalSupplyBefore = (await OPFTNativeUpgradeableInstance.totalSupply()).toString();
-        const expectedTotalSupplyAfter = bigInt(amountToMint).add(bigInt(totalSupplyBefore)).toString();
-        const balanceOfAccountBefore = (await OPFTNativeUpgradeableInstance.balanceOf(account2)).toString();
-
-        const data = OPFTNativeUpgradeableContract.methods.mint(account2, amountToMint).encodeABI();
-        await multiSigWalletInstance.submitTransaction(OPFTNativeUpgradeableInstance.address, 0, data, { from: owner });
-        const txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
-        await localExpect(multiSigWalletInstance.confirmTransaction(txId, { from: account1 })).to.eventually.be.fulfilled;
-
-        const totalSupplyAfter = (await OPFTNativeUpgradeableInstance.totalSupply()).toString();
-
-        expect(totalSupplyAfter).to.equal(expectedTotalSupplyAfter);
-
-        const balanceOfAccountAfter = (await OPFTNativeUpgradeableInstance.balanceOf(account2)).toString();
-
-        expect(balanceOfAccountAfter).to.equal(bigInt(amountToMint).plus(balanceOfAccountBefore).toString());
-    });
-
-    it('allows a controller account (multiSigWallet) to burn tokens', async () => {
-        const amountToMint = web3.utils.toWei('1', 'ether');
-        const amountToBurn = web3.utils.toWei('0.1', 'ether');
-        const expectedChangeInTotalSupply = bigInt(amountToMint).subtract(amountToBurn).toString();
-        const totalSupplyBefore = await (await OPFTNativeUpgradeableInstance.totalSupply()).toString();
-        const expectedTotalSupplyAfter = bigInt(totalSupplyBefore).add(bigInt(expectedChangeInTotalSupply)).toString();
-        const balanceOfAccountBefore = (await OPFTNativeUpgradeableInstance.balanceOf(multiSigWalletInstance.address)).toString();
-
-        let data = OPFTNativeUpgradeableContract.methods.mint(multiSigWalletInstance.address, amountToMint).encodeABI();
-        await multiSigWalletInstance.submitTransaction(OPFTNativeUpgradeableInstance.address, 0, data, { from: owner });
-        let txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
-        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
-
-        data = OPFTNativeUpgradeableContract.methods.burn(multiSigWalletInstance.address, amountToBurn).encodeABI();
-        await multiSigWalletInstance.submitTransaction(OPFTNativeUpgradeableInstance.address, 0, data, { from: owner });
-        txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
-        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
-
-        const totalSupplyAfter = (await OPFTNativeUpgradeableInstance.totalSupply()).toString();
-
-        expect(totalSupplyAfter).to.equal(expectedTotalSupplyAfter);
-
-        const balanceOfAccountAfter = (await OPFTNativeUpgradeableInstance.balanceOf(multiSigWalletInstance.address)).toString();
-
-        expect(balanceOfAccountAfter).to.equal(bigInt(expectedChangeInTotalSupply).plus(balanceOfAccountBefore).toString());
-    });
-
-    it("doesn't allow a non-PFT-contract-controller account to mint tokens", async () => {
-        const amountToMint = web3.utils.toWei('1', 'ether');
-
-        await localExpect(OPFTNativeUpgradeableInstance.mint(account4, amountToMint, { from: account4 })).to.eventually.be.rejected;
-
-        const balanceOfAccount = (await OPFTNativeUpgradeableInstance.balanceOf(account4)).toString();
-
-        expect(balanceOfAccount).to.equal('0');
-    });
-
-    it("doesn't allow a non-PFT-contract-controller account to burn tokens", async () => {
-        const amountToMint = web3.utils.toWei('1', 'ether');
-        const amountToBurn = web3.utils.toWei('0.1', 'ether');
-
-        let data = OPFTNativeUpgradeableContract.methods.mint(account5, amountToMint).encodeABI();
-        await multiSigWalletInstance.submitTransaction(OPFTNativeUpgradeableInstance.address, 0, data, { from: owner });
-        let txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
-        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
-
-        await localExpect(OPFTNativeUpgradeableInstance.burn(account5, amountToBurn, { from: account5 })).to.eventually.be.rejected;
-
-        const balanceOfAccount = (await OPFTNativeUpgradeableInstance.balanceOf(account5)).toString();
-
-        expect(balanceOfAccount).to.equal(amountToMint);
-    });
-
     it('can be upgraded and store new state variables from the new contract', async () => {
         let tokenSymbol = await OPFTNativeUpgradeableInstance.symbol();
         expect(tokenSymbol).to.equal('PFT');
-
-        const amountToMint = web3.utils.toWei('1', 'ether');
-        const totalSupplyBefore = (await OPFTNativeUpgradeableInstance.totalSupply()).toString();
-        const expectedTotalSupplyAfter = bigInt(amountToMint).add(bigInt(totalSupplyBefore)).toString();
-
-        let data = OPFTNativeUpgradeableContract.methods.mint(account2, amountToMint).encodeABI();
-        await multiSigWalletInstance.submitTransaction(OPFTNativeUpgradeableInstance.address, 0, data, { from: owner });
-        let txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
-        await localExpect(multiSigWalletInstance.confirmTransaction(txId, { from: account1 })).to.eventually.be.fulfilled;
 
         OPFTNativeUpgradeableTestInstance = (await upgradeProxy(OPFTNativeUpgradeableInstance.address, OPFTNativeUpgradeableTest as any)) as OPFTNativeUpgradeableTestInstance;
 
@@ -183,16 +68,9 @@ contract.skip('OPFTNativeUpgradeable.sol', ([owner, account1, account2, account3
         tokenSymbol = await OPFTNativeUpgradeableInstance.symbol();
         expect(tokenSymbol).to.equal('PFT');
 
-        // The mint function is missing in the test contract so shouldn't be able to mint any more tokens
-        data = OPFTNativeUpgradeableContract.methods.mint(account2, amountToMint).encodeABI();
-        await multiSigWalletInstance.submitTransaction(OPFTNativeUpgradeableInstance.address, 0, data, { from: owner });
-        txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
-        await localExpect(multiSigWalletInstance.confirmTransaction(txId, { from: account1 })).to.eventually.be.fulfilled;
-
-        const totalSupplyAfter = (await OPFTNativeUpgradeableInstance.totalSupply()).toString();
-
-        // No new tokens minted, even though we tried to mint amountToMintToVault a second time
-        expect(totalSupplyAfter).to.equal(expectedTotalSupplyAfter);
+        await OPFTNativeUpgradeableTestInstance.setTestNum('123');
+        const testNum = (await OPFTNativeUpgradeableTestInstance.testNum()).toString();
+        expect(testNum).to.equal('123');
     });
 
     it('allows a user to set the trusted remotes', async () => {
