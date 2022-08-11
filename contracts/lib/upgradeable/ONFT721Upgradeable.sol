@@ -2,27 +2,24 @@
 
 pragma solidity ^0.8.0;
 
-import "./ERC721Upgradeable.sol";
 import "./IERC165Upgradeable.sol";
 import "./ONFT721CoreUpgradeable.sol";
 import "./IONFT721Upgradeable.sol";
-import "../ERC721.sol";
+import "./ERC721RoyaltyUpgradeable.sol";
 
-// NOTE: this ONFT contract has no public minting logic.
-// must implement your own minting logic in child classes
 contract ONFT721Upgradeable is
     Initializable,
     ONFT721CoreUpgradeable,
-    ERC721Upgradeable,
-    IONFT721Upgradeable
+    IONFT721Upgradeable,
+    ERC721RoyaltyUpgradeable
 {
     function __ONFT721Upgradeable_init(
         string memory _name,
         string memory _symbol,
         address _lzEndpoint
     ) internal onlyInitializing {
-        __ERC721_init_unchained(_name, _symbol);
         __ONFT721CoreUpgradeable_init_unchained(_lzEndpoint);
+        __ERC721Royalty_init(_name, _symbol);
     }
 
     function __ONFT721Upgradeable_init_unchained(
@@ -35,7 +32,11 @@ contract ONFT721Upgradeable is
         public
         view
         virtual
-        override(ONFT721CoreUpgradeable, ERC721Upgradeable, IERC165Upgradeable)
+        override(
+            ONFT721CoreUpgradeable,
+            IERC165Upgradeable,
+            ERC721RoyaltyUpgradeable
+        )
         returns (bool)
     {
         return
@@ -49,14 +50,10 @@ contract ONFT721Upgradeable is
         bytes memory,
         uint256 _tokenId
     ) internal virtual override {
-        require(
-            _isApprovedOrOwner(_msgSender(), _tokenId),
-            "ONFT721: send caller is not owner nor approved"
-        );
-        require(
-            ERC721Upgradeable.ownerOf(_tokenId) == _from,
-            "ONFT721: send from incorrect owner"
-        );
+        // "ONFT721:1" -> "ONFT721: send caller is not owner nor approved"
+        require(_isApprovedOrOwner(_msgSender(), _tokenId), "ONFT721:1");
+        // "ONFT721:2" -> "ONFT721: send from incorrect owner"
+        require(ERC721Upgradeable.ownerOf(_tokenId) == _from, "ONFT721:2");
         _transfer(_from, address(this), _tokenId);
     }
 

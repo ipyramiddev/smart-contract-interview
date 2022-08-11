@@ -70,10 +70,8 @@ abstract contract NonblockingLzAppUpgradeable is
         bytes memory _payload
     ) public virtual {
         // only internal transaction
-        require(
-            _msgSender() == address(this),
-            "NonblockingLzApp: caller must be LzApp"
-        );
+        // "NonblockingLzApp:1" -> "NonblockingLzApp: caller must be LzApp"
+        require(_msgSender() == address(this), "NonblockingLzApp:1");
         _nonblockingLzReceive(_srcChainId, _srcAddress, _nonce, _payload);
     }
 
@@ -93,14 +91,10 @@ abstract contract NonblockingLzAppUpgradeable is
     ) public payable virtual {
         // assert there is message to retry
         bytes32 payloadHash = failedMessages[_srcChainId][_srcAddress][_nonce];
-        require(
-            payloadHash != bytes32(0),
-            "NonblockingLzApp: no stored message"
-        );
-        require(
-            keccak256(_payload) == payloadHash,
-            "NonblockingLzApp: invalid payload"
-        );
+        // "NonblockingLzApp:2" -> "NonblockingLzApp: no stored message"
+        require(payloadHash != bytes32(0), "NonblockingLzApp:2");
+        // "NonblockingLzApp:3" -> "NonblockingLzApp: invalid payload"
+        require(keccak256(_payload) == payloadHash, "NonblockingLzApp:3");
         // clear the stored message
         failedMessages[_srcChainId][_srcAddress][_nonce] = bytes32(0);
         // execute the message. revert if it fails again

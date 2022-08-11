@@ -50,17 +50,16 @@ abstract contract LzAppUpgradeable is
         bytes memory _payload
     ) public virtual override {
         // lzReceive must be called by the endpoint for security
-        require(
-            _msgSender() == address(lzEndpoint),
-            "LzApp: invalid endpoint caller"
-        );
+        // "LzApp:2" -> "LzApp: invalid endpoint caller"
+        require(_msgSender() == address(lzEndpoint), "LzApp:2");
 
         bytes memory trustedRemote = trustedRemoteLookup[_srcChainId];
         // if will still block the message pathway from (srcChainId, srcAddress). should not receive message from untrusted remote.
+        // "LzApp:3" -> "LzApp: invalid source sending contract"
         require(
             _srcAddress.length == trustedRemote.length &&
                 keccak256(_srcAddress) == keccak256(trustedRemote),
-            "LzApp: invalid source sending contract"
+            "LzApp:3"
         );
 
         _blockingLzReceive(_srcChainId, _srcAddress, _nonce, _payload);
@@ -82,10 +81,8 @@ abstract contract LzAppUpgradeable is
         bytes memory _adapterParams
     ) internal virtual {
         bytes memory trustedRemote = trustedRemoteLookup[_dstChainId];
-        require(
-            trustedRemote.length != 0,
-            "LzApp: destination chain is not a trusted source"
-        );
+        // "LzApp:4" -> "LzApp: destination chain is not a trusted source"
+        require(trustedRemote.length != 0, "LzApp:4");
         lzEndpoint.send{value: msg.value}(
             _dstChainId,
             trustedRemote,
@@ -104,8 +101,10 @@ abstract contract LzAppUpgradeable is
     ) internal view {
         uint256 providedGasLimit = getGasLimit(_adapterParams);
         uint256 minGasLimit = minDstGasLookup[_dstChainId][_type] + _extraGas;
-        require(minGasLimit > 0, "LzApp: minGasLimit not set");
-        require(providedGasLimit >= minGasLimit, "LzApp: gas limit is too low");
+        // "LzApp:5" -> "LzApp: minGasLimit not set"
+        require(minGasLimit > 0, "LzApp:5");
+        // "LzApp:6" -> "LzApp: gas limit is too low"
+        require(providedGasLimit >= minGasLimit, "LzApp:6");
     }
 
     function getGasLimit(bytes memory _adapterParams)
@@ -174,7 +173,8 @@ abstract contract LzAppUpgradeable is
         uint256 _type,
         uint256 _dstGasAmount
     ) external onlyOwner {
-        require(_dstGasAmount > 0, "LzApp: invalid _dstGasAmount");
+        // "LzApp:7" -> "LzApp: invalid _dstGasAmount"
+        require(_dstGasAmount > 0, "LzApp:7");
         minDstGasLookup[_dstChainId][_type] = _dstGasAmount;
         emit SetMinDstGasLookup(_dstChainId, _type, _dstGasAmount);
     }

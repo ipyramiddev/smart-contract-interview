@@ -12,7 +12,7 @@ const config = require('./config').config;
 // configuration available to edit for the subnet-evm script
 
 module.exports = {
-    plugins: ['truffle-plugin-verify'],
+    plugins: ['truffle-plugin-verify', 'truffle-contract-size'],
 
     api_keys: {
         etherscan: process.env.SNOWTRACE_API_KEY,
@@ -42,12 +42,20 @@ module.exports = {
                         testPrivateAccountsData.privateTestAccount1.privateKey,
                         testPrivateAccountsData.privateTestAccount2.privateKey,
                         testPrivateAccountsData.privateTestAccount3.privateKey,
+                        testPrivateAccountsData.privateTestAccount4.privateKey,
+                        testPrivateAccountsData.privateTestAccount5.privateKey,
+                        testPrivateAccountsData.privateTestAccount6.privateKey,
+                        testPrivateAccountsData.privateTestAccount7.privateKey,
+                        testPrivateAccountsData.privateTestAccount8.privateKey,
+                        testPrivateAccountsData.privateTestAccount9.privateKey,
+                        testPrivateAccountsData.privateTestAccount10.privateKey,
                     ],
                     config.AVAX.testnetHTTP
                 ),
             // provider: () => new HDWalletProvider([testAccountsData[0].privateKey, testAccountsData[1].privateKey, testAccountsData[2].privateKey], config.AVAX.testnetHTTP),
             network_id: '*',
-            gas: 6721975,
+            // gas: 6721975,
+            gas: 8000000,
             skipDryRun: true,
             networkCheckTimeout: 1000000,
             timeoutBlocks: 200,
@@ -59,12 +67,20 @@ module.exports = {
                         testPrivateAccountsData.privateTestAccount1.privateKey,
                         testPrivateAccountsData.privateTestAccount2.privateKey,
                         testPrivateAccountsData.privateTestAccount3.privateKey,
+                        testPrivateAccountsData.privateTestAccount4.privateKey,
+                        testPrivateAccountsData.privateTestAccount5.privateKey,
+                        testPrivateAccountsData.privateTestAccount6.privateKey,
+                        testPrivateAccountsData.privateTestAccount7.privateKey,
+                        testPrivateAccountsData.privateTestAccount8.privateKey,
+                        testPrivateAccountsData.privateTestAccount9.privateKey,
+                        testPrivateAccountsData.privateTestAccount10.privateKey,
                     ],
                     config.AVAX.testnetSubnetHTTP
                 ),
             // provider: () => new HDWalletProvider([testAccountsData[0].privateKey, testAccountsData[1].privateKey, testAccountsData[2].privateKey], config.AVAX.testnetHTTP),
             network_id: '*',
-            gas: 6721975,
+            // gas: 6721975,
+            gas: 8000000,
             skipDryRun: true,
             networkCheckTimeout: 1000000,
             timeoutBlocks: 200,
