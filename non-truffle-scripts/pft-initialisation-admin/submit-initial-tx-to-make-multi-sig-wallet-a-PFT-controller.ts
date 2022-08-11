@@ -1,6 +1,6 @@
 // @NOTE: KEEP THE PROD KEY IMPORT COMMENTED OUT BY DEFAULT TO SAFEGUARD AGAINST ACCIDENTAL SCRIPT RUNS
 // import masterKeys from "../prod-master-keys";
-import masterKeys from '../../test-master-keys';
+import { testMasterKeys as masterKeys } from '../../test-master-keys';
 
 import Web3 from 'web3';
 import { AbiItem } from 'web3-utils';

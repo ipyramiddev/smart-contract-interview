@@ -104,10 +104,8 @@ abstract contract ONFT721CoreUpgradeable is
                 NO_EXTRA_GAS
             );
         } else {
-            require(
-                _adapterParams.length == 0,
-                "LzApp: _adapterParams must be empty."
-            );
+            // "LzApp:1" -> "LzApp: _adapterParams must be empty."
+            require(_adapterParams.length == 0, "LzApp:1");
         }
         _lzSend(
             _dstChainId,

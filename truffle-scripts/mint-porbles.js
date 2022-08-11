@@ -1,16 +1,16 @@
 const ethers = require('ethers');
 const config = require('../config').config;
-const testAccountsData = require('../test/data/test-accounts-data').testAccountsData;
+const testMasterKeys = require('../test-master-keys').testMasterKeys;
 
-const rpcEndpoint = config.AVAX.testnetHTTP;
+const rpcEndpoint = config.AVAX.testnetSubnetHTTP;
 const provider = new ethers.providers.JsonRpcProvider(rpcEndpoint);
-const signer = new ethers.Wallet(testAccountsData[1].privateKey, provider);
+const signer = new ethers.Wallet(testMasterKeys.privateTestAccount2.privateKey, provider);
 
-const PorbleUpgradeable = artifacts.require('PorbleUpgradeable');
+const PorbleUpgradeable = artifacts.require('PorbleONFTNativeUpgradeable');
 
 // Copy these over from .env file because it's safer to do it manually
-const PORBLE_TRANSPARENT_PROXY_ADDRESS = '0x52Ffde6ae9964F047C28174DeAc2b7Ad0d5360Ee';
-const TOKEN_IDS_TO_MINT = ['2', '3', '4', '5', '6', '7', '8', '9'];
+const PORBLE_TRANSPARENT_PROXY_ADDRESS = '0x5b75FABD04E22088eEb6E9a0b7E5A218723BeAa7';
+const TOKEN_IDS_TO_MINT = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
 
 module.exports = async function (callback) {
     try {
@@ -25,12 +25,12 @@ module.exports = async function (callback) {
 
         const tokenIds = TOKEN_IDS_TO_MINT;
 
-        const porbleMintConditions = { minter: testAccountsData[1].address, tokenIds };
+        const porbleMintConditions = { minter: testMasterKeys.privateTestAccount1.address, tokenIds };
 
         const domain = {
             name: 'PortalFantasy',
             version: '1',
-            chainId: 43113,
+            chainId: 808,
             verifyingContract: porbleUpgradeableInstance.address,
         };
 
@@ -38,7 +38,7 @@ module.exports = async function (callback) {
         const signature = await signer._signTypedData(domain, types, porbleMintConditions);
 
         // The tokenId and tx sender must match those that have been signed for
-        await porbleUpgradeableInstance.safeMintTokens(signature, tokenIds, { from: testAccountsData[1].address });
+        await porbleUpgradeableInstance.safeMintTokens(signature, tokenIds, { from: testMasterKeys.privateTestAccount1.address });
 
         console.log('Mint successful');
     } catch (error) {
