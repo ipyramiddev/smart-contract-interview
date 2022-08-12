@@ -2,20 +2,17 @@
 
 pragma solidity ^0.8.0;
 
-import "../../lib/upgradeable/draft-EIP712Upgradeable.sol";
-import "../../lib/upgradeable/IERC20Upgradeable.sol";
-import "../../lib/upgradeable/IERC2981Upgradeable.sol";
-import "../../lib/upgradeable/ERC721RoyaltyUpgradeable.sol";
-import "../../lib/upgradeable/ContractURIStorageUpgradeable.sol";
-import "../../lib/upgradeable/OwnableUpgradeable.sol";
-import "../../lib/upgradeable/PausableUpgradeable.sol";
+import "../lib/upgradeable/draft-EIP712Upgradeable.sol";
+import "../lib/upgradeable/ContractURIStorageUpgradeable.sol";
+import "../lib/upgradeable/ONFT721Upgradeable.sol";
+import "../lib/upgradeable/IERC20Upgradeable.sol";
 
-contract ArchitectUpgradeable is
-    ERC721RoyaltyUpgradeable,
+// @NOTE: Remove setBaseURI function to test the contract upgrade
+
+contract GeneralONFTsNativeUpgradeableTest is
     ContractURIStorageUpgradeable,
     EIP712Upgradeable,
-    OwnableUpgradeable,
-    PausableUpgradeable
+    ONFT721Upgradeable
 {
     string public baseURIString;
 
@@ -25,18 +22,22 @@ contract ArchitectUpgradeable is
     // The address of the USDP contract
     IERC20Upgradeable public USDP;
 
-    // The vault contract to deposit earned USDP and royalties
+    // The vault contract to deposit earned USDP/PFT and royalties
     address public vault;
 
     function initialize(
         address _signer,
         address _USDP,
-        address _vault
+        address _vault,
+        address _lzEndpoint
     ) public initializer {
-        __ERC721_init("Portal Fantasy Architect", "PHAR");
+        __ONFT721Upgradeable_init(
+            "Portal Fantasy General NFTs",
+            "PFGN",
+            _lzEndpoint
+        );
         __EIP712_init("PortalFantasy", "1");
-        __ContractURIStorage_init("https://www.portalfantasy.io/architect/");
-        __Ownable_init();
+        __ContractURIStorage_init("https://www.portalfantasy.io/generalNFTs/");
 
         // @TODO: Have added a placeholder baseURIString. Need to replace with actual when it's implemented.
         baseURIString = "https://www.portalfantasy.io/";
@@ -54,17 +55,6 @@ contract ArchitectUpgradeable is
      */
     function _baseURI() internal view virtual override returns (string memory) {
         return baseURIString;
-    }
-
-    /**
-     * Allows the owner to set a new base URI
-     * @param _baseURIString the new base URI to point to
-     */
-    function setBaseURIString(string calldata _baseURIString)
-        external
-        onlyOwner
-    {
-        baseURIString = _baseURIString;
     }
 
     /**
@@ -103,7 +93,7 @@ contract ArchitectUpgradeable is
             keccak256(
                 abi.encode(
                     keccak256(
-                        "ArchitectMintConditions(address minter,uint256[] tokenIds,uint256[] tokenPrices)"
+                        "GeneralNFTMintConditions(address minter,uint256[] tokenIds,uint256[] tokenPrices)"
                     ),
                     _msgSender(),
                     keccak256(abi.encodePacked(tokenIds)),
@@ -116,7 +106,7 @@ contract ArchitectUpgradeable is
 
         require(
             signer == mintSigner,
-            "ArchitectMintConditions: invalid signature"
+            "GeneralNFTMintConditions: invalid signature"
         );
         require(signer != address(0), "ECDSA: invalid signature");
 
@@ -124,15 +114,6 @@ contract ArchitectUpgradeable is
             USDP.transferFrom(_msgSender(), vault, tokenPrices[i]);
             _safeMint(_msgSender(), tokenIds[i]);
         }
-    }
-
-    /**
-     * Enable the owner to pause / unpause minting
-     * @param _paused paused when set to `true`, unpause when set to `false`
-     */
-    function setPaused(bool _paused) external onlyOwner {
-        if (_paused) _pause();
-        else _unpause();
     }
 
     /**
@@ -157,25 +138,5 @@ contract ArchitectUpgradeable is
      */
     function setDefaultRoyalty(uint96 _feeNumerator) external onlyOwner {
         _setDefaultRoyalty(vault, _feeNumerator);
-    }
-
-    /**
-     * Allows the owner to set a custom royalty for a specific token
-     * @param _tokenId the token to set a custom royalty for
-     * @param _feeNumerator in bips. Cannot be greater than the fee denominator (10000)
-     */
-    function setTokenRoyalty(uint256 _tokenId, uint96 _feeNumerator)
-        external
-        onlyOwner
-    {
-        _setTokenRoyalty(_tokenId, vault, _feeNumerator);
-    }
-
-    /**
-     * Allows the owner to reset a specific token's royalty to the global default
-     * @param _tokenId the token to set a custom royalty for
-     */
-    function resetTokenRoyalty(uint256 _tokenId) external onlyOwner {
-        _resetTokenRoyalty(_tokenId);
     }
 }

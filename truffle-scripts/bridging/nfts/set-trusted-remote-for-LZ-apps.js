@@ -7,14 +7,14 @@ const getTxIdFromMultiSigWallet = require('../../../test/lib/test-helpers').getT
 
 const MultiSigWallet = artifacts.require('MultiSigWallet');
 const ONFTUpgradeable = artifacts.require('PorbleONFTNativeUpgradeable');
-const web3 = new Web3(new Web3.providers.HttpProvider(config.AVAX.localSubnetHTTP));
+const web3 = new Web3(new Web3.providers.HttpProvider(config.AVAX.testnetHTTP));
 
 // Copy these over from .env file because it's safer to do it manually
-const MULTI_SIG_WALLET_ADDRESS = '0x9eF416998B7b85778c8a3C166eF77E34c7165007';
-const ONFT_TRANSPARENT_PROXY_ADDRESS = '0x45f8B611f87e81a14D9Ec6B8DE9a02A30f4e37fA';
+const MULTI_SIG_WALLET_ADDRESS = '0x1d3B20e4124BEa92d832EB3e4D1Cb0Bd3991BB9B';
+const ONFT_TRANSPARENT_PROXY_ADDRESS = '0x09d06F3E2708b383f75955eF95fE7a1595749aF4';
 const TRUSTED_CHAIN_ID = '10028'; // PF-chain
 // const TRUSTED_CHAIN_ID = '10006'; // C-chain
-const TRUSTED_ADDRESS = '0x5b75FABD04E22088eEb6E9a0b7E5A218723BeAa7';
+const TRUSTED_ADDRESS = '0x0144fF0f17d16EEAEA0E5a1C4dc07461Aa2401a5';
 
 const TRUSTED_ADDRESS_BYTES = ethers.utils.solidityPack(['address'], [TRUSTED_ADDRESS]);
 

@@ -116,7 +116,7 @@ contract GeneralNFTsUpgradeable is
 
         require(
             signer == mintSigner,
-            "PorbleMintConditions: invalid signature"
+            "GeneralNFTMintConditions: invalid signature"
         );
         require(signer != address(0), "ECDSA: invalid signature");
 
