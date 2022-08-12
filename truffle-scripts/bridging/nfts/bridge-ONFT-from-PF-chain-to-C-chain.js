@@ -16,10 +16,10 @@ const ONFTUpgradeable = artifacts.require('PorbleONFTNativeUpgradeable');
 const web3 = new Web3(new Web3.providers.HttpProvider(config.AVAX.testnetSubnetHTTP));
 
 // Copy these over from .env file because it's safer to do it manually
-const MULTI_SIG_WALLET_ADDRESS = '0xeD6fF8195AB996d98E78025CD2A8879C060748EE';
-const ONFT_TRANSPARENT_PROXY_ADDRESS = '0x5b75FABD04E22088eEb6E9a0b7E5A218723BeAa7';
+const MULTI_SIG_WALLET_ADDRESS = '0xAdef14f261cA04Afc5287940c96A2417F74aA197';
+const ONFT_TRANSPARENT_PROXY_ADDRESS = '0x0144fF0f17d16EEAEA0E5a1C4dc07461Aa2401a5';
 const ONFT_HOLDER = testMasterKeys.privateTestAccount1.address;
-const TOKEN_ID_TO_BRIDGE = '9';
+const TOKEN_ID_TO_BRIDGE = '5';
 const DESTINATION_CHAIN_ID = '10006';
 const DESTINATION_ADDRESS = testMasterKeys.privateTestAccount3.address;
 

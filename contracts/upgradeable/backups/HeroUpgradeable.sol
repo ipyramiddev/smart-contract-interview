@@ -114,10 +114,7 @@ contract HeroUpgradeable is
 
         address signer = ECDSAUpgradeable.recover(digest, signature);
 
-        require(
-            signer == mintSigner,
-            "PorbleMintConditions: invalid signature"
-        );
+        require(signer == mintSigner, "HeroMintConditions: invalid signature");
         require(signer != address(0), "ECDSA: invalid signature");
 
         for (uint8 i = 0; i < tokenIds.length; i++) {
