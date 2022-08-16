@@ -1,5 +1,5 @@
 import { BigInt } from '@graphprotocol/graph-ts';
-import { PorbleStat, Porble, User } from '../generated/schema';
+import { PorbleStat, Porble, User, Listing, NFTCollection } from '../generated/schema';
 
 export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
@@ -63,4 +63,38 @@ export function fetchPartialUser(id: string): User {
     const user = new User(id);
     user.save();
     return <User>user;
+}
+
+export function fetchListing(id: string): Listing {
+    let listing = Listing.load(id);
+
+    if (!listing) {
+        listing = new Listing(id);
+        listing.save();
+    }
+
+    return <Listing>listing;
+}
+
+export function fetchPartialListing(id: string): Listing {
+    const listing = new Listing(id);
+    listing.save();
+    return <Listing>listing;
+}
+
+export function fetchNFTCollection(id: string): NFTCollection {
+    let NFTCollectionInstance = NFTCollection.load(id);
+
+    if (!NFTCollectionInstance) {
+        NFTCollectionInstance = new NFTCollection(id);
+        NFTCollectionInstance.save();
+    }
+
+    return <NFTCollection>NFTCollectionInstance;
+}
+
+export function fetchPartialNFTCollection(id: string): NFTCollection {
+    let NFTCollectionInstance = new NFTCollection(id);
+    NFTCollectionInstance.save();
+    return <NFTCollection>NFTCollectionInstance;
 }

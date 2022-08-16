@@ -1,7 +1,6 @@
 import { BigInt, Address } from '@graphprotocol/graph-ts';
 import { Transfer } from '../generated/Porble/Porble';
-import { PorbleStat, Porble, User } from '../generated/schema';
-import { fetchPorbleStat, fetchPorble, fetchUser, fetchPartialUser, fetchPartialPorble, fetchPartialPorbleStat, ZERO_ADDRESS } from './helpers';
+import { fetchPorbleStat, fetchPartialUser, fetchPartialPorble, ZERO_ADDRESS } from './helpers';
 
 // It is also possible to access smart contracts from mappings. For
 // example, the contract that has emitted the event can be connected to

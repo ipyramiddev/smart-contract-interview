@@ -22,3 +22,29 @@ dataSources:
               - event: Transfer(indexed address,indexed address,indexed uint256)
                 handler: handlePorbleTransfer
           file: ./src/porble.ts
+    - kind: ethereum
+      name: NFTMarketplace
+      network: fuji
+      source:
+          address: '0xD1560077A5466773b64c9a4a3835CB600363f29b'
+          abi: NFTMarketplace
+          startBlock: 12549984
+      mapping:
+          kind: ethereum/events
+          apiVersion: 0.0.6
+          language: wasm/assemblyscript
+          entities:
+              - ItemListed
+              - ItemBought
+              - ItemCancelled
+          abis:
+              - name: NFTMarketplace
+                file: ./abis/NFTMarketplace.json
+          eventHandlers:
+              - event: ItemListed(uint256,indexed address,indexed address,indexed uint256,uint256)
+                handler: handleItemListed
+              - event: ItemBought(uint256,indexed address,indexed address,indexed uint256,uint256)
+                handler: handleItemBought
+              - event: ItemCancelled(uint256,indexed address,indexed address,indexed uint256)
+                handler: handleItemCancelled
+          file: ./src/NFTMarketplace.ts
