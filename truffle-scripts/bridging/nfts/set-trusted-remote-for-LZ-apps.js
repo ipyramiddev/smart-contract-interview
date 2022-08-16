@@ -10,11 +10,11 @@ const ONFTUpgradeable = artifacts.require('PorbleONFTNativeUpgradeable');
 const web3 = new Web3(new Web3.providers.HttpProvider(config.AVAX.testnetHTTP));
 
 // Copy these over from .env file because it's safer to do it manually
-const MULTI_SIG_WALLET_ADDRESS = '0x1d3B20e4124BEa92d832EB3e4D1Cb0Bd3991BB9B';
-const ONFT_TRANSPARENT_PROXY_ADDRESS = '0x09d06F3E2708b383f75955eF95fE7a1595749aF4';
+const MULTI_SIG_WALLET_ADDRESS = '0x9D4FC7884108d2377d0F23DD92AF601f7E326295';
+const ONFT_TRANSPARENT_PROXY_ADDRESS = '0x2A957D1aD33d0106413968EDfe1efBDf14d1579c';
 const TRUSTED_CHAIN_ID = '10028'; // PF-chain
 // const TRUSTED_CHAIN_ID = '10006'; // C-chain
-const TRUSTED_ADDRESS = '0x0144fF0f17d16EEAEA0E5a1C4dc07461Aa2401a5';
+const TRUSTED_ADDRESS = '0x6Af959598BEe92D7AFCc506A53b8EdCB22C5432a';
 
 const TRUSTED_ADDRESS_BYTES = ethers.utils.solidityPack(['address'], [TRUSTED_ADDRESS]);
 

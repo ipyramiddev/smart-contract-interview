@@ -13,3 +13,19 @@ type User @entity {
     id: ID!
     porbles: [Porble!] @derivedFrom(field: "owner")
 }
+
+type Listing @entity {
+    id: ID!
+    seller: User
+    buyer: User
+    collection: NFTCollection
+    tokenId: String
+    price: BigInt
+    status: String
+    lastStatusTimestamp: BigInt
+}
+
+type NFTCollection @entity {
+    id: ID!
+    listings: [Listing!] @derivedFrom(field: "collection")
+}
