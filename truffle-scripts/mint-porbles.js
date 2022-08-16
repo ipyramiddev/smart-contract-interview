@@ -9,7 +9,7 @@ const signer = new ethers.Wallet(testMasterKeys.privateTestAccount2.privateKey, 
 const PorbleUpgradeable = artifacts.require('PorbleONFTNativeUpgradeable');
 
 // Copy these over from .env file because it's safer to do it manually
-const PORBLE_TRANSPARENT_PROXY_ADDRESS = '0x5b75FABD04E22088eEb6E9a0b7E5A218723BeAa7';
+const PORBLE_TRANSPARENT_PROXY_ADDRESS = '0x6Af959598BEe92D7AFCc506A53b8EdCB22C5432a';
 const TOKEN_IDS_TO_MINT = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
 
 module.exports = async function (callback) {

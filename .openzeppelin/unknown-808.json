@@ -1,50 +1,60 @@
 {
   "manifestVersion": "3.2",
   "admin": {
-    "address": "0x33C0D0607347E980C7178cd45120d2A805f3023E",
-    "txHash": "0xc15d6e049c71c4c503ee9ca16d660b8879199feee51cc0600bc1e3541a2965cd"
+    "address": "0x1b473fBC0a44237d15B3F987a8C241Ef05CEA55f",
+    "txHash": "0xcadc742f9bfae433915680e6050ebd3e7a40317e7840fa40736e7611dde1ff8e"
   },
   "proxies": [
     {
-      "address": "0x7fc10Be12B9D8dCA7D77e5eD209f3e3FD09F2680",
-      "txHash": "0x7b8fd25a2352ad125bacb5ad3b5c4181448399a57a372dacb183594192c6ea4f",
+      "address": "0xE2Ad9357E374E16a80bF81680397CB1e7B199975",
+      "txHash": "0xfae2b2a8425bdd86d27fe6c8fae0c49b5dbaac11c08529120c11c8d2615aab47",
       "kind": "transparent"
     },
     {
-      "address": "0xd32972eC98A74928fCdb0C4Acbf155a473b1352e",
-      "txHash": "0xc2cf154e37f07f4f79f0c9eafde538be78a69561e92fe435a138248127f5cdaf",
+      "address": "0xbd5CFCcBbf8Aa674d304D42e087130145362653b",
+      "txHash": "0x5e2c3994af02462daf33e1c0123a756ec9c0b3add2c5e9cfd3a8024e7b91464c",
       "kind": "transparent"
     },
     {
-      "address": "0x307b11325d623302eC665126911Bd67B59E2dE58",
-      "txHash": "0xb09bb67125308eff617141594eec8cabc6ee0b44c86911d8105177e06b4e92d4",
+      "address": "0xB36003b475462705CBc512816eF551C27ec43158",
+      "txHash": "0x78cab4d1acc87c13b2e5ec67a91e652168d5bb10b7938c279741aa4751b461cc",
       "kind": "transparent"
     },
     {
-      "address": "0xA0AF44E7159520B43Fc49AAd5A7E53d4214078B2",
-      "txHash": "0xe313cbcfa77638505a054e35c30f63168b83fa48f9a3cf1ce33d06553a140a10",
+      "address": "0x2aF5A06a323280CDa236c65bF597a1CD5AFfc705",
+      "txHash": "0x768c3b1aefa8c0ce81d60134c457a3f5d54c7db07af92829aadb7769e6136ef5",
       "kind": "transparent"
     },
     {
-      "address": "0x09d06F3E2708b383f75955eF95fE7a1595749aF4",
-      "txHash": "0x7548b30a2a130deba812d3e674ba7ff9d4aee88ae932f20b050a9acd7b78fcd3",
+      "address": "0xe94aD69545338eBc73C2F6D5aAB7378c0C6415eB",
+      "txHash": "0x891ffae9b6c1c9b608474ea970977a6587778b7e795a1b254ece3f2176ac6db6",
       "kind": "transparent"
     },
     {
-      "address": "0xFA102188Ef62d4f32DDC47C281a52E16BB431815",
-      "txHash": "0x79a0c266983acb507044236bb4f4eb898180feb40524abac81e805cae95c66c7",
+      "address": "0x1b6D13Cb6CbeEE073f6d68D6B7eDA62fa2eE1f45",
+      "txHash": "0x8e0e5490c038c51d411a574e2fcad71aae1fe0e0e72bbb79e717704ddd2f9bbe",
       "kind": "transparent"
     },
     {
-      "address": "0x3EB8A6F71BE57EfCa841c813011cE1F0B5E354e3",
-      "txHash": "0x9acfa283cf002fc98a233c35b4cfb7d5e6028aaaad33918e8a632c79ed4600e6",
+      "address": "0x6Af959598BEe92D7AFCc506A53b8EdCB22C5432a",
+      "txHash": "0x88bb6bc15e4847f2c46674970429ae001d7b46ac69c1714da63c1775bf269c4a",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xd28eA56DDd6e1B5ea5C4F49ca484Db1EdBCABA4e",
+      "txHash": "0x8ea67c1235500ce4e14d32699a29c48e16acbadba211c4f0e1a56faa82737e71",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x621f280bDa34a1065B846F28558BAEe5AD086bE9",
+      "txHash": "0xd7c0b08448992f9283849ef268af034605a60833f02c78f91f05ed40f18be5f5",
       "kind": "transparent"
     }
   ],
   "impls": {
-    "0518ecbdade02e1c9ed247cd47a40637a4e2c6477447b98d1cccce2125497e47": {
-      "address": "0xde7a28d87E6AD996168ea37cB6898582B77DEda1",
-      "txHash": "0xebd1b7a2737d9ad04dbd7b53b0a49c1b0e6efe77c7600c38973b352d99d3ee26",
+    "6c4083d2bfd8e16af6e6717019392eacf5bea00d4c5babe713b3d905c928d202": {
+      "address": "0x2Fa7B890d360c9A6bBcF0a9a3aB1E2C452d87055",
+      "txHash": "0xf873741eb54c7a8e639625f47d4435c6e9561dabc55a18e3131aa7de2124dcd3",
       "layout": {
         "storage": [
           {
@@ -114,22 +124,16 @@
             "src": "../project:/contracts/lib/upgradeable/NonblockingLzAppUpgradeable.sol:109"
           },
           {
-            "contract": "ERC165Upgradeable",
-            "label": "__gap",
-            "type": "t_array(t_uint256)50_storage",
-            "src": "../project:/contracts/lib/upgradeable/ERC165Upgradeable.sol:46"
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "_status",
+            "type": "t_uint256",
+            "src": "../project:/contracts/lib/upgradeable/ReentrancyGuardUpgradeable.sol:38"
           },
           {
-            "contract": "OFT20CoreUpgradeable",
-            "label": "useCustomAdapterParams",
-            "type": "t_bool",
-            "src": "../project:/contracts/lib/upgradeable/OFT20CoreUpgradeable.sol:17"
-          },
-          {
-            "contract": "OFT20CoreUpgradeable",
+            "contract": "ReentrancyGuardUpgradeable",
             "label": "__gap",
-            "type": "t_array(t_uint256)50_storage",
-            "src": "../project:/contracts/lib/upgradeable/OFT20CoreUpgradeable.sol:176"
+            "type": "t_array(t_uint256)49_storage",
+            "src": "../project:/contracts/lib/upgradeable/ReentrancyGuardUpgradeable.sol:74"
           },
           {
             "contract": "ERC20Upgradeable",
@@ -168,13 +172,22 @@
             "src": "../project:/contracts/lib/upgradeable/ERC20Upgradeable.sol:444"
           },
           {
-            "contract": "OFT20Upgradeable",
+            "contract": "ERC165Upgradeable",
             "label": "__gap",
             "type": "t_array(t_uint256)50_storage",
-            "src": "../project:/contracts/lib/upgradeable/OFT20Upgradeable.sol:80"
+            "src": "../project:/contracts/lib/upgradeable/ERC165Upgradeable.sol:46"
+          },
+          {
+            "contract": "NativeProxyOFT20Upgradeable",
+            "label": "useCustomAdapterParams",
+            "type": "t_bool",
+            "src": "../project:/contracts/lib/upgradeable/NativeProxyOFT20Upgradeable.sol:21"
           }
         ],
         "types": {
+          "t_bool": {
+            "label": "bool"
+          },
           "t_array(t_uint256)50_storage": {
             "label": "uint256[50]"
           },
@@ -196,8 +209,8 @@
           "t_array(t_uint256)45_storage": {
             "label": "uint256[45]"
           },
-          "t_bool": {
-            "label": "bool"
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
           },
           "t_mapping(t_uint16,t_mapping(t_bytes_memory_ptr,t_mapping(t_uint64,t_bytes32)))": {
             "label": "mapping(uint16 => mapping(bytes => mapping(uint64 => bytes32)))"
@@ -232,9 +245,6 @@
           "t_mapping(t_uint256,t_uint256)": {
             "label": "mapping(uint256 => uint256)"
           },
-          "t_array(t_uint256)49_storage": {
-            "label": "uint256[49]"
-          },
           "t_uint8": {
             "label": "uint8"
           }
@@ -242,8 +252,8 @@
       }
     },
     "1e8aa46c1bb6b1649f1b6ba1d8b5973e6f77b5c614c1853fe74d030e3f2e1a3f": {
-      "address": "0x1965f16f756D6BA907330650e5A215eEeE7a1ed9",
-      "txHash": "0xc440fd98f0921b9b5e7cc9f9da1b9e9b3c5b6734ac7d8a6698feeff527d0fdf4",
+      "address": "0xA8287Fd5aa9454b59A3044b20883d609763F8A63",
+      "txHash": "0x8fa505ab8f10527da6e2b02301cd1fb6bdfd884803d98e6acd47d68ab6cda346",
       "layout": {
         "storage": [
           {
@@ -372,8 +382,8 @@
       }
     },
     "fd3117e7e3844dba13d1be00e337abb0271fda76cdf44ac82e896d40087a245d": {
-      "address": "0x7Cc6b32b8A39fB8c37bE8345a25075210476F4bE",
-      "txHash": "0xd8b046c1abaf6be268e345d3063896235b3e8904a4b87f7a6d36708c44a7a1eb",
+      "address": "0x353eA550647A441c017603DFf139F0b063bEfCd8",
+      "txHash": "0x66f78f433aa6eeb73517d279bc064c2f93b6e3da715ca7fc0f8488b44b37a9b1",
       "layout": {
         "storage": [
           {
@@ -486,9 +496,9 @@
         }
       }
     },
-    "95ed141a42c54e4e6779cba710b75e8b99baf59f7b28a4e6b8753d96f1c824cc": {
-      "address": "0x5039A5d38ACC530c65622C20E1CC3c4Fbbdb5820",
-      "txHash": "0xd1f386b40560429c82fc31d81eb6a4dba214477643aa544119af46c9cf1308bd",
+    "4a0905a67f9d9b6a1bae781f37cbe6f3678421cf9ced95256aac76e596198fe2": {
+      "address": "0x45cC497ef71e6e3D1572dB2c3a3dBE6A9F804774",
+      "txHash": "0x3bd836335b506233f94345364e6a071ef09908c362cdecb6d8f0c27adca4d4f0",
       "layout": {
         "storage": [
           {
@@ -508,6 +518,24 @@
             "label": "contractURIString",
             "type": "t_string_storage",
             "src": "../project:/contracts/lib/upgradeable/ContractURIStorageUpgradeable.sol:11"
+          },
+          {
+            "contract": "EIP712Upgradeable",
+            "label": "_HASHED_NAME",
+            "type": "t_bytes32",
+            "src": "../project:/contracts/lib/upgradeable/draft-EIP712Upgradeable.sol:31"
+          },
+          {
+            "contract": "EIP712Upgradeable",
+            "label": "_HASHED_VERSION",
+            "type": "t_bytes32",
+            "src": "../project:/contracts/lib/upgradeable/draft-EIP712Upgradeable.sol:32"
+          },
+          {
+            "contract": "EIP712Upgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "../project:/contracts/lib/upgradeable/draft-EIP712Upgradeable.sol:148"
           },
           {
             "contract": "ContextUpgradeable",
@@ -654,16 +682,28 @@
             "src": "../project:/contracts/lib/upgradeable/ONFT721Upgradeable.sol:82"
           },
           {
-            "contract": "HeroONFTExternalUpgradeable",
+            "contract": "HeroONFTNativeUpgradeable",
             "label": "baseURIString",
             "type": "t_string_storage",
-            "src": "../project:/contracts/upgradeable/HeroONFTExternalUpgradeable.sol:12"
+            "src": "../project:/contracts/upgradeable/HeroONFTNativeUpgradeable.sol:15"
           },
           {
-            "contract": "HeroONFTExternalUpgradeable",
+            "contract": "HeroONFTNativeUpgradeable",
+            "label": "mintSigner",
+            "type": "t_address",
+            "src": "../project:/contracts/upgradeable/HeroONFTNativeUpgradeable.sol:18"
+          },
+          {
+            "contract": "HeroONFTNativeUpgradeable",
+            "label": "USDP",
+            "type": "t_contract(IERC20Upgradeable)12493",
+            "src": "../project:/contracts/upgradeable/HeroONFTNativeUpgradeable.sol:21"
+          },
+          {
+            "contract": "HeroONFTNativeUpgradeable",
             "label": "vault",
             "type": "t_address",
-            "src": "../project:/contracts/upgradeable/HeroONFTExternalUpgradeable.sol:15"
+            "src": "../project:/contracts/upgradeable/HeroONFTNativeUpgradeable.sol:24"
           }
         ],
         "types": {
@@ -672,6 +712,9 @@
           },
           "t_address": {
             "label": "address"
+          },
+          "t_contract(IERC20Upgradeable)12493": {
+            "label": "contract IERC20Upgradeable"
           },
           "t_array(t_uint256)50_storage": {
             "label": "uint256[50]"
@@ -761,9 +804,9 @@
         }
       }
     },
-    "725fa10e0cb8c6426f28183929e04be9451eebdb26414a9de355160ebabc6126": {
-      "address": "0x861c54811D879e48f23260B31aeBe5406A1C79FA",
-      "txHash": "0x0f67080d917599e56f0a14a5c6bcd40b1074d1699b096e76b83bd3c7aa1cc2b4",
+    "e2ec0c3b29edf32abcb8002fdc5b64feac22077be5d4c061c0113cfa57619145": {
+      "address": "0xf154FF3670Fe40f5B00B63a3E42f7AE45053f9a5",
+      "txHash": "0x28d923418a3a816af83eb14a16e18f2e05707e490f7c2b87bb2fc0129955544c",
       "layout": {
         "storage": [
           {
@@ -783,6 +826,24 @@
             "label": "contractURIString",
             "type": "t_string_storage",
             "src": "../project:/contracts/lib/upgradeable/ContractURIStorageUpgradeable.sol:11"
+          },
+          {
+            "contract": "EIP712Upgradeable",
+            "label": "_HASHED_NAME",
+            "type": "t_bytes32",
+            "src": "../project:/contracts/lib/upgradeable/draft-EIP712Upgradeable.sol:31"
+          },
+          {
+            "contract": "EIP712Upgradeable",
+            "label": "_HASHED_VERSION",
+            "type": "t_bytes32",
+            "src": "../project:/contracts/lib/upgradeable/draft-EIP712Upgradeable.sol:32"
+          },
+          {
+            "contract": "EIP712Upgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "../project:/contracts/lib/upgradeable/draft-EIP712Upgradeable.sol:148"
           },
           {
             "contract": "ContextUpgradeable",
@@ -929,16 +990,28 @@
             "src": "../project:/contracts/lib/upgradeable/ONFT721Upgradeable.sol:82"
           },
           {
-            "contract": "ArchitectONFTExternalUpgradeable",
+            "contract": "ArchitectONFTNativeUpgradeable",
             "label": "baseURIString",
             "type": "t_string_storage",
-            "src": "../project:/contracts/upgradeable/ArchitectONFTExternalUpgradeable.sol:12"
+            "src": "../project:/contracts/upgradeable/ArchitectONFTNativeUpgradeable.sol:15"
           },
           {
-            "contract": "ArchitectONFTExternalUpgradeable",
+            "contract": "ArchitectONFTNativeUpgradeable",
+            "label": "mintSigner",
+            "type": "t_address",
+            "src": "../project:/contracts/upgradeable/ArchitectONFTNativeUpgradeable.sol:18"
+          },
+          {
+            "contract": "ArchitectONFTNativeUpgradeable",
+            "label": "USDP",
+            "type": "t_contract(IERC20Upgradeable)12493",
+            "src": "../project:/contracts/upgradeable/ArchitectONFTNativeUpgradeable.sol:21"
+          },
+          {
+            "contract": "ArchitectONFTNativeUpgradeable",
             "label": "vault",
             "type": "t_address",
-            "src": "../project:/contracts/upgradeable/ArchitectONFTExternalUpgradeable.sol:15"
+            "src": "../project:/contracts/upgradeable/ArchitectONFTNativeUpgradeable.sol:24"
           }
         ],
         "types": {
@@ -947,6 +1020,9 @@
           },
           "t_address": {
             "label": "address"
+          },
+          "t_contract(IERC20Upgradeable)12493": {
+            "label": "contract IERC20Upgradeable"
           },
           "t_array(t_uint256)50_storage": {
             "label": "uint256[50]"
@@ -1036,9 +1112,9 @@
         }
       }
     },
-    "5083ba37718ca1d7e2f88ba2def10d0b4dccb30c28fc89ca115333bf6aacc3b1": {
-      "address": "0xC1B29993b1c440a0eE35069D07c609fD4C4eBc32",
-      "txHash": "0x1c1cc82c4636001c3292a031a7017ff90a822110c5ee0abed811acf020393d7c",
+    "8ec81690b5a1cb1e6e796026ce09e20095535f095d557f1a3ee80af0a74293e7": {
+      "address": "0xF7A8E471f63cAA9e147261555C2A667A9Ac9d25C",
+      "txHash": "0x30e67d1e0ca1a13f2c4d68b0de481d1988aefd45e535b310710195cfac4c76c2",
       "layout": {
         "storage": [
           {
@@ -1058,6 +1134,24 @@
             "label": "contractURIString",
             "type": "t_string_storage",
             "src": "../project:/contracts/lib/upgradeable/ContractURIStorageUpgradeable.sol:11"
+          },
+          {
+            "contract": "EIP712Upgradeable",
+            "label": "_HASHED_NAME",
+            "type": "t_bytes32",
+            "src": "../project:/contracts/lib/upgradeable/draft-EIP712Upgradeable.sol:31"
+          },
+          {
+            "contract": "EIP712Upgradeable",
+            "label": "_HASHED_VERSION",
+            "type": "t_bytes32",
+            "src": "../project:/contracts/lib/upgradeable/draft-EIP712Upgradeable.sol:32"
+          },
+          {
+            "contract": "EIP712Upgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "../project:/contracts/lib/upgradeable/draft-EIP712Upgradeable.sol:148"
           },
           {
             "contract": "ContextUpgradeable",
@@ -1204,16 +1298,28 @@
             "src": "../project:/contracts/lib/upgradeable/ONFT721Upgradeable.sol:82"
           },
           {
-            "contract": "GeneralONFTsExternalUpgradeable",
+            "contract": "GeneralONFTsNativeUpgradeable",
             "label": "baseURIString",
             "type": "t_string_storage",
-            "src": "../project:/contracts/upgradeable/GeneralONFTsExternalUpgradeable.sol:12"
+            "src": "../project:/contracts/upgradeable/GeneralONFTsNativeUpgradeable.sol:15"
           },
           {
-            "contract": "GeneralONFTsExternalUpgradeable",
+            "contract": "GeneralONFTsNativeUpgradeable",
+            "label": "mintSigner",
+            "type": "t_address",
+            "src": "../project:/contracts/upgradeable/GeneralONFTsNativeUpgradeable.sol:18"
+          },
+          {
+            "contract": "GeneralONFTsNativeUpgradeable",
+            "label": "USDP",
+            "type": "t_contract(IERC20Upgradeable)12493",
+            "src": "../project:/contracts/upgradeable/GeneralONFTsNativeUpgradeable.sol:21"
+          },
+          {
+            "contract": "GeneralONFTsNativeUpgradeable",
             "label": "vault",
             "type": "t_address",
-            "src": "../project:/contracts/upgradeable/GeneralONFTsExternalUpgradeable.sol:15"
+            "src": "../project:/contracts/upgradeable/GeneralONFTsNativeUpgradeable.sol:24"
           }
         ],
         "types": {
@@ -1222,6 +1328,9 @@
           },
           "t_address": {
             "label": "address"
+          },
+          "t_contract(IERC20Upgradeable)12493": {
+            "label": "contract IERC20Upgradeable"
           },
           "t_array(t_uint256)50_storage": {
             "label": "uint256[50]"
@@ -1311,9 +1420,9 @@
         }
       }
     },
-    "0b7a7d01f14d5b6fa34f91a1b0864812df51bef127d6db5619eb9ad338e8042a": {
-      "address": "0x1e20E6de608aCB3663FFAb886568FAcf7Bc2bcbB",
-      "txHash": "0xa31159dc273bbded799cba720a8eed6423f0206944c6ebd816b6873dbb21936d",
+    "f318241f76800ff0ca601f051b5e38bf03a42971dc20130c95cc9566cd57a526": {
+      "address": "0x411a6Ea323cbAd83B5A85152DAf6E7D96F925865",
+      "txHash": "0x599a09debde34f1109028f2dbccd2b796a8ee2d915795e172349cbcca66d9568",
       "layout": {
         "storage": [
           {
@@ -1333,6 +1442,24 @@
             "label": "contractURIString",
             "type": "t_string_storage",
             "src": "../project:/contracts/lib/upgradeable/ContractURIStorageUpgradeable.sol:11"
+          },
+          {
+            "contract": "EIP712Upgradeable",
+            "label": "_HASHED_NAME",
+            "type": "t_bytes32",
+            "src": "../project:/contracts/lib/upgradeable/draft-EIP712Upgradeable.sol:31"
+          },
+          {
+            "contract": "EIP712Upgradeable",
+            "label": "_HASHED_VERSION",
+            "type": "t_bytes32",
+            "src": "../project:/contracts/lib/upgradeable/draft-EIP712Upgradeable.sol:32"
+          },
+          {
+            "contract": "EIP712Upgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "../project:/contracts/lib/upgradeable/draft-EIP712Upgradeable.sol:148"
           },
           {
             "contract": "ContextUpgradeable",
@@ -1479,16 +1606,28 @@
             "src": "../project:/contracts/lib/upgradeable/ONFT721Upgradeable.sol:82"
           },
           {
-            "contract": "PorbleONFTExternalUpgradeable",
+            "contract": "PorbleONFTNativeUpgradeable",
             "label": "baseURIString",
             "type": "t_string_storage",
-            "src": "../project:/contracts/upgradeable/PorbleONFTExternalUpgradeable.sol:12"
+            "src": "../project:/contracts/upgradeable/PorbleONFTNativeUpgradeable.sol:14"
           },
           {
-            "contract": "PorbleONFTExternalUpgradeable",
+            "contract": "PorbleONFTNativeUpgradeable",
+            "label": "signer",
+            "type": "t_address",
+            "src": "../project:/contracts/upgradeable/PorbleONFTNativeUpgradeable.sol:17"
+          },
+          {
+            "contract": "PorbleONFTNativeUpgradeable",
             "label": "vault",
             "type": "t_address",
-            "src": "../project:/contracts/upgradeable/PorbleONFTExternalUpgradeable.sol:15"
+            "src": "../project:/contracts/upgradeable/PorbleONFTNativeUpgradeable.sol:20"
+          },
+          {
+            "contract": "PorbleONFTNativeUpgradeable",
+            "label": "userFusionInfo",
+            "type": "t_mapping(t_address,t_mapping(t_uint256,t_bool))",
+            "src": "../project:/contracts/upgradeable/PorbleONFTNativeUpgradeable.sol:24"
           }
         ],
         "types": {
@@ -1498,11 +1637,20 @@
           "t_address": {
             "label": "address"
           },
-          "t_array(t_uint256)50_storage": {
-            "label": "uint256[50]"
+          "t_mapping(t_address,t_mapping(t_uint256,t_bool))": {
+            "label": "mapping(address => mapping(uint256 => bool))"
+          },
+          "t_mapping(t_uint256,t_bool)": {
+            "label": "mapping(uint256 => bool)"
           },
           "t_uint256": {
             "label": "uint256"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
           },
           "t_mapping(t_uint256,t_address)": {
             "label": "mapping(uint256 => address)"
@@ -1515,9 +1663,6 @@
           },
           "t_mapping(t_address,t_bool)": {
             "label": "mapping(address => bool)"
-          },
-          "t_bool": {
-            "label": "bool"
           },
           "t_array(t_uint256)44_storage": {
             "label": "uint256[44]"
@@ -1582,6 +1727,254 @@
           },
           "t_uint8": {
             "label": "uint8"
+          }
+        }
+      }
+    },
+    "b1f3ec773fe98aa50b852b4e86df82c26605a97be84b56c997665b9073fc1e60": {
+      "address": "0x202A05Ad3A88E69F8F0bB52b794DFd63dB12212A",
+      "txHash": "0xb280daa545d9e25dbc19fd33b0561df588d3ef583789b14aa15d8370c2c0af06",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_uint8",
+            "src": "../project:/contracts/lib/upgradeable/Initializable.sol:60"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "../project:/contracts/lib/upgradeable/Initializable.sol:65"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "_status",
+            "type": "t_uint256",
+            "src": "../project:/contracts/lib/upgradeable/ReentrancyGuardUpgradeable.sol:38"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "../project:/contracts/lib/upgradeable/ReentrancyGuardUpgradeable.sol:74"
+          },
+          {
+            "contract": "ContextUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "../project:/contracts/lib/upgradeable/ContextUpgradeable.sol:35"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "../project:/contracts/lib/upgradeable/OwnableUpgradeable.sol:22"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "../project:/contracts/lib/upgradeable/OwnableUpgradeable.sol:100"
+          },
+          {
+            "contract": "NFTMarketplaceUpgradeable",
+            "label": "USDPAddress",
+            "type": "t_address",
+            "src": "../project:/contracts/upgradeable/NFTMarketplaceUpgradeable.sol:82"
+          },
+          {
+            "contract": "NFTMarketplaceUpgradeable",
+            "label": "listings",
+            "type": "t_mapping(t_address,t_mapping(t_uint256,t_struct(Listing)22121_storage))",
+            "src": "../project:/contracts/upgradeable/NFTMarketplaceUpgradeable.sol:84"
+          },
+          {
+            "contract": "NFTMarketplaceUpgradeable",
+            "label": "counter",
+            "type": "t_uint256",
+            "src": "../project:/contracts/upgradeable/NFTMarketplaceUpgradeable.sol:86"
+          },
+          {
+            "contract": "NFTMarketplaceUpgradeable",
+            "label": "collectionsWhitelist",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "../project:/contracts/upgradeable/NFTMarketplaceUpgradeable.sol:89"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address"
+          },
+          "t_mapping(t_address,t_mapping(t_uint256,t_struct(Listing)22121_storage))": {
+            "label": "mapping(address => mapping(uint256 => struct NFTMarketplaceUpgradeable.Listing))"
+          },
+          "t_mapping(t_uint256,t_struct(Listing)22121_storage)": {
+            "label": "mapping(uint256 => struct NFTMarketplaceUpgradeable.Listing)"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_struct(Listing)22121_storage": {
+            "label": "struct NFTMarketplaceUpgradeable.Listing",
+            "members": [
+              {
+                "label": "id",
+                "type": "t_uint256"
+              },
+              {
+                "label": "price",
+                "type": "t_uint256"
+              },
+              {
+                "label": "seller",
+                "type": "t_address"
+              }
+            ]
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          },
+          "t_uint8": {
+            "label": "uint8"
+          }
+        }
+      }
+    },
+    "7b0ae0aeaf76c8d5ca7c501354c2f3e858c711433db6fd38065d29325954d819": {
+      "address": "0x776214Caa4DF2E3C3c8e8752803264bB7de4213b",
+      "txHash": "0xcb9628f397fae5d2bcc23a9164cfb16d77ea4a4bb48f9695169cdc8c676f5e47",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_uint8",
+            "src": "../project:/contracts/lib/upgradeable/Initializable.sol:60"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "../project:/contracts/lib/upgradeable/Initializable.sol:65"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "_status",
+            "type": "t_uint256",
+            "src": "../project:/contracts/lib/upgradeable/ReentrancyGuardUpgradeable.sol:38"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "../project:/contracts/lib/upgradeable/ReentrancyGuardUpgradeable.sol:74"
+          },
+          {
+            "contract": "ContextUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "../project:/contracts/lib/upgradeable/ContextUpgradeable.sol:35"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "../project:/contracts/lib/upgradeable/OwnableUpgradeable.sol:22"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "../project:/contracts/lib/upgradeable/OwnableUpgradeable.sol:100"
+          },
+          {
+            "contract": "VestingVaultUpgradeable",
+            "label": "claimer",
+            "type": "t_address",
+            "src": "../project:/contracts/upgradeable/VestingVaultUpgradeable.sol:36"
+          },
+          {
+            "contract": "VestingVaultUpgradeable",
+            "label": "PFT",
+            "type": "t_contract(IERC20Upgradeable)12493",
+            "src": "../project:/contracts/upgradeable/VestingVaultUpgradeable.sol:38"
+          },
+          {
+            "contract": "VestingVaultUpgradeable",
+            "label": "tokenGrants",
+            "type": "t_mapping(t_address,t_struct(Grant)23823_storage)",
+            "src": "../project:/contracts/upgradeable/VestingVaultUpgradeable.sol:41"
+          },
+          {
+            "contract": "VestingVaultUpgradeable",
+            "label": "totalClaimedByAll",
+            "type": "t_uint256",
+            "src": "../project:/contracts/upgradeable/VestingVaultUpgradeable.sol:43"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address"
+          },
+          "t_contract(IERC20Upgradeable)12493": {
+            "label": "contract IERC20Upgradeable"
+          },
+          "t_mapping(t_address,t_struct(Grant)23823_storage)": {
+            "label": "mapping(address => struct VestingVaultUpgradeable.Grant)"
+          },
+          "t_struct(Grant)23823_storage": {
+            "label": "struct VestingVaultUpgradeable.Grant",
+            "members": [
+              {
+                "label": "startTime",
+                "type": "t_uint256"
+              },
+              {
+                "label": "amount",
+                "type": "t_uint256"
+              },
+              {
+                "label": "vestingDuration",
+                "type": "t_uint16"
+              },
+              {
+                "label": "monthsClaimed",
+                "type": "t_uint16"
+              },
+              {
+                "label": "totalClaimed",
+                "type": "t_uint256"
+              }
+            ]
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_uint16": {
+            "label": "uint16"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          },
+          "t_uint8": {
+            "label": "uint8"
+          },
+          "t_bool": {
+            "label": "bool"
           }
         }
       }

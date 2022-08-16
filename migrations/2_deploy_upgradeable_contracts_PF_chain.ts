@@ -99,23 +99,23 @@ module.exports = (artifacts: Truffle.Artifacts, web3: Web3) => {
         )) as PorbleONFTNativeUpgradeableInstance;
         await porbleUpgradeableTransparentProxyInstance.transferOwnership(multiSigWalletInstance.address);
 
-        // const NFTMarketplaceUpgradeable = artifacts.require('NFTMarketplaceUpgradeable');
-        // const NFTMarketplaceUpgradeableTransparentProxyInstance = (await deployProxy(NFTMarketplaceUpgradeable as any, [USDPUpgradeableTransparentProxyInstance.address], {
-        //     deployer: deployer as any,
-        //     initializer: 'initialize',
-        // })) as NFTMarketplaceUpgradeableInstance;
-        // await NFTMarketplaceUpgradeableTransparentProxyInstance.updateCollectionsWhitelist(heroUpgradeableTransparentProxyInstance.address, true);
-        // await NFTMarketplaceUpgradeableTransparentProxyInstance.updateCollectionsWhitelist(architectUpgradeableTransparentProxyInstance.address, true);
-        // await NFTMarketplaceUpgradeableTransparentProxyInstance.updateCollectionsWhitelist(porbleUpgradeableTransparentProxyInstance.address, true);
-        // await NFTMarketplaceUpgradeableTransparentProxyInstance.updateCollectionsWhitelist(generalNFTsUpgradeableTransparentProxyInstance.address, true);
-        // await NFTMarketplaceUpgradeableTransparentProxyInstance.transferOwnership(multiSigWalletInstance.address);
+        const NFTMarketplaceUpgradeable = artifacts.require('NFTMarketplaceUpgradeable');
+        const NFTMarketplaceUpgradeableTransparentProxyInstance = (await deployProxy(NFTMarketplaceUpgradeable as any, [USDPUpgradeableTransparentProxyInstance.address], {
+            deployer: deployer as any,
+            initializer: 'initialize',
+        })) as NFTMarketplaceUpgradeableInstance;
+        await NFTMarketplaceUpgradeableTransparentProxyInstance.updateCollectionsWhitelist(heroUpgradeableTransparentProxyInstance.address, true);
+        await NFTMarketplaceUpgradeableTransparentProxyInstance.updateCollectionsWhitelist(architectUpgradeableTransparentProxyInstance.address, true);
+        await NFTMarketplaceUpgradeableTransparentProxyInstance.updateCollectionsWhitelist(porbleUpgradeableTransparentProxyInstance.address, true);
+        await NFTMarketplaceUpgradeableTransparentProxyInstance.updateCollectionsWhitelist(generalNFTsUpgradeableTransparentProxyInstance.address, true);
+        await NFTMarketplaceUpgradeableTransparentProxyInstance.transferOwnership(multiSigWalletInstance.address);
 
-        // const VestingVaultUpgradeable = artifacts.require('VestingVaultUpgradeable');
-        // const vestingVaultUpgradeableTransparentProxyInstance = (await deployProxy(VestingVaultUpgradeable as any, [(PFTUpgradeableTransparentProxyInstance as any).address], {
-        //     deployer: deployer as any,
-        //     initializer: 'initialize',
-        // })) as VestingVaultUpgradeableInstance;
-        // await vestingVaultUpgradeableTransparentProxyInstance.transferOwnership(multiSigWalletInstance.address);
+        const VestingVaultUpgradeable = artifacts.require('VestingVaultUpgradeable');
+        const vestingVaultUpgradeableTransparentProxyInstance = (await deployProxy(VestingVaultUpgradeable as any, [(PFTUpgradeableTransparentProxyInstance as any).address], {
+            deployer: deployer as any,
+            initializer: 'initialize',
+        })) as VestingVaultUpgradeableInstance;
+        await vestingVaultUpgradeableTransparentProxyInstance.transferOwnership(multiSigWalletInstance.address);
 
         // Transfer proxy admin ownership to the MultiSigWallet so that upgrades can only be done via a multisig
         // Not running in local test environments in order to prevent the tests from breaking (since the tests repeatedly call this function)

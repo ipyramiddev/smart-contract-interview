@@ -26,12 +26,12 @@ module.exports = (artifacts: Truffle.Artifacts, web3: Web3) => {
         await deployer.deploy(multiSigWallet, owners, requiredThreshold);
         const multiSigWalletInstance = await multiSigWallet.deployed();
 
-        const PFTUpgradeable = artifacts.require('OPFTExternalUpgradeable');
-        const PFTUpgradeableTransparentProxyInstance = (await deployProxy(PFTUpgradeable as any, [LZ_ENDPOINT_C_CHAIN], {
-            deployer: deployer as any,
-            initializer: 'initialize',
-        })) as OPFTExternalUpgradeableInstance;
-        await PFTUpgradeableTransparentProxyInstance.transferOwnership(multiSigWalletInstance.address);
+        // const PFTUpgradeable = artifacts.require('OPFTExternalUpgradeable');
+        // const PFTUpgradeableTransparentProxyInstance = (await deployProxy(PFTUpgradeable as any, [LZ_ENDPOINT_C_CHAIN], {
+        //     deployer: deployer as any,
+        //     initializer: 'initialize',
+        // })) as OPFTExternalUpgradeableInstance;
+        // await PFTUpgradeableTransparentProxyInstance.transferOwnership(multiSigWalletInstance.address);
 
         const TokenVault = artifacts.require('TokenVaultUpgradeable');
         const TokenVaultUpgradeableTransparentProxyInstance = (await deployProxy(TokenVault as any, [accounts[1]], {
@@ -95,16 +95,16 @@ module.exports = (artifacts: Truffle.Artifacts, web3: Web3) => {
         )) as PorbleONFTExternalUpgradeableInstance;
         await porbleUpgradeableTransparentProxyInstance.transferOwnership(multiSigWalletInstance.address);
 
-        // const NFTMarketplaceUpgradeable = artifacts.require('NFTMarketplaceUpgradeable');
-        // const NFTMarketplaceUpgradeableTransparentProxyInstance = (await deployProxy(NFTMarketplaceUpgradeable as any, [USDPUpgradeableTransparentProxyInstance.address], {
-        //     deployer: deployer as any,
-        //     initializer: 'initialize',
-        // })) as NFTMarketplaceUpgradeableInstance;
-        // await NFTMarketplaceUpgradeableTransparentProxyInstance.updateCollectionsWhitelist(heroUpgradeableTransparentProxyInstance.address, true);
-        // await NFTMarketplaceUpgradeableTransparentProxyInstance.updateCollectionsWhitelist(architectUpgradeableTransparentProxyInstance.address, true);
-        // await NFTMarketplaceUpgradeableTransparentProxyInstance.updateCollectionsWhitelist(porbleUpgradeableTransparentProxyInstance.address, true);
-        // await NFTMarketplaceUpgradeableTransparentProxyInstance.updateCollectionsWhitelist(generalNFTsUpgradeableTransparentProxyInstance.address, true);
-        // await NFTMarketplaceUpgradeableTransparentProxyInstance.transferOwnership(multiSigWalletInstance.address);
+        const NFTMarketplaceUpgradeable = artifacts.require('NFTMarketplaceUpgradeable');
+        const NFTMarketplaceUpgradeableTransparentProxyInstance = (await deployProxy(NFTMarketplaceUpgradeable as any, [USDPUpgradeableTransparentProxyInstance.address], {
+            deployer: deployer as any,
+            initializer: 'initialize',
+        })) as NFTMarketplaceUpgradeableInstance;
+        await NFTMarketplaceUpgradeableTransparentProxyInstance.updateCollectionsWhitelist(heroUpgradeableTransparentProxyInstance.address, true);
+        await NFTMarketplaceUpgradeableTransparentProxyInstance.updateCollectionsWhitelist(architectUpgradeableTransparentProxyInstance.address, true);
+        await NFTMarketplaceUpgradeableTransparentProxyInstance.updateCollectionsWhitelist(porbleUpgradeableTransparentProxyInstance.address, true);
+        await NFTMarketplaceUpgradeableTransparentProxyInstance.updateCollectionsWhitelist(generalNFTsUpgradeableTransparentProxyInstance.address, true);
+        await NFTMarketplaceUpgradeableTransparentProxyInstance.transferOwnership(multiSigWalletInstance.address);
 
         // const VestingVaultUpgradeable = artifacts.require('VestingVaultUpgradeable');
         // const vestingVaultUpgradeableTransparentProxyInstance = (await deployProxy(VestingVaultUpgradeable as any, [(PFTUpgradeableTransparentProxyInstance as any).address], {

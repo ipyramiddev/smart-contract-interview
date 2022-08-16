@@ -1,7 +1,5 @@
 import { assert, describe, test, clearStore, afterEach, beforeEach } from 'matchstick-as/assembly/index';
 import { Address, BigInt } from '@graphprotocol/graph-ts';
-import { Porble } from '../generated/schema';
-import { Transfer } from '../generated/Porble/Porble';
 import { handlePorbleTransfer } from '../src/porble';
 import { createTransferEvent } from './utils';
 
