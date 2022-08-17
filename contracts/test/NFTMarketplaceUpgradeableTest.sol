@@ -10,18 +10,20 @@ import "../lib/upgradeable/ReentrancyGuardUpgradeable.sol";
 
 // @NOTE: Remove getListing function to test the contract upgrade
 
-contract NFTMarketplaceUpgradeableTest is
+contract NFTMarketplaceUpgradeable is
     ReentrancyGuardUpgradeable,
     OwnableUpgradeable
 {
     // Structs
     struct Listing {
+        uint256 id;
         uint256 price;
         address seller;
     }
 
     // Events
     event ItemListed(
+        uint256 id,
         address indexed seller,
         address indexed NFTAddress,
         uint256 indexed tokenId,
@@ -29,12 +31,14 @@ contract NFTMarketplaceUpgradeableTest is
     );
 
     event ItemCancelled(
+        uint256 id,
         address indexed seller,
         address indexed NFTAddress,
         uint256 indexed tokenId
     );
 
     event ItemBought(
+        uint256 id,
         address indexed buyer,
         address indexed NFTAddress,
         uint256 indexed tokenId,
@@ -81,6 +85,8 @@ contract NFTMarketplaceUpgradeableTest is
 
     mapping(address => mapping(uint256 => Listing)) private listings;
 
+    uint256 counter;
+
     // NFT contracts must be whitelisted before its tokens can be listed
     mapping(address => bool) collectionsWhitelist;
 
@@ -113,8 +119,9 @@ contract NFTMarketplaceUpgradeableTest is
                 address(this),
             "Not approved for marketplace"
         );
-        listings[NFTAddress][tokenId] = Listing(price, msg.sender);
-        emit ItemListed(msg.sender, NFTAddress, tokenId, price);
+        listings[NFTAddress][tokenId] = Listing(counter, price, msg.sender);
+        emit ItemListed(counter, msg.sender, NFTAddress, tokenId, price);
+        counter++;
     }
 
     function cancelListing(address NFTAddress, uint256 tokenId)
@@ -122,8 +129,9 @@ contract NFTMarketplaceUpgradeableTest is
         isNFTOwner(NFTAddress, tokenId, msg.sender)
         isListed(NFTAddress, tokenId)
     {
+        Listing memory listedItem = listings[NFTAddress][tokenId];
         delete (listings[NFTAddress][tokenId]);
-        emit ItemCancelled(msg.sender, NFTAddress, tokenId);
+        emit ItemCancelled(listedItem.id, msg.sender, NFTAddress, tokenId);
     }
 
     function buyItem(address NFTAddress, uint256 tokenId)
@@ -157,7 +165,13 @@ contract NFTMarketplaceUpgradeableTest is
             msg.sender,
             tokenId
         );
-        emit ItemBought(msg.sender, NFTAddress, tokenId, listedItem.price);
+        emit ItemBought(
+            listedItem.id,
+            msg.sender,
+            NFTAddress,
+            tokenId,
+            listedItem.price
+        );
     }
 
     function updateListing(
@@ -173,7 +187,14 @@ contract NFTMarketplaceUpgradeableTest is
     {
         require(newPrice > 0, "Price must be above zero");
         listings[NFTAddress][tokenId].price = newPrice;
-        emit ItemListed(msg.sender, NFTAddress, tokenId, newPrice);
+        Listing memory listedItem = listings[NFTAddress][tokenId];
+        emit ItemListed(
+            listedItem.id,
+            msg.sender,
+            NFTAddress,
+            tokenId,
+            newPrice
+        );
     }
 
     // Admin functions
@@ -182,7 +203,8 @@ contract NFTMarketplaceUpgradeableTest is
         onlyOwner
         isListed(NFTAddress, tokenId)
     {
+        Listing memory listedItem = listings[NFTAddress][tokenId];
         delete (listings[NFTAddress][tokenId]);
-        emit ItemCancelled(msg.sender, NFTAddress, tokenId);
+        emit ItemCancelled(listedItem.id, msg.sender, NFTAddress, tokenId);
     }
 }

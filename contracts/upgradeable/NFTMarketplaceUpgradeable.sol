@@ -184,8 +184,8 @@ contract NFTMarketplaceUpgradeable is
         isNFTOwner(NFTAddress, tokenId, msg.sender)
     {
         require(newPrice > 0, "Price must be above zero");
+        listings[NFTAddress][tokenId].price = newPrice;
         Listing memory listedItem = listings[NFTAddress][tokenId];
-        listedItem.price = newPrice;
         emit ItemListed(
             listedItem.id,
             msg.sender,
@@ -211,6 +211,6 @@ contract NFTMarketplaceUpgradeable is
     {
         Listing memory listedItem = listings[NFTAddress][tokenId];
         delete (listings[NFTAddress][tokenId]);
-        emit ItemCancelled(listedItem.price, msg.sender, NFTAddress, tokenId);
+        emit ItemCancelled(listedItem.id, msg.sender, NFTAddress, tokenId);
     }
 }
