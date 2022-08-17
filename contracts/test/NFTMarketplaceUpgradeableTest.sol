@@ -205,6 +205,6 @@ contract NFTMarketplaceUpgradeable is
     {
         Listing memory listedItem = listings[NFTAddress][tokenId];
         delete (listings[NFTAddress][tokenId]);
-        emit ItemCancelled(listedItem.price, msg.sender, NFTAddress, tokenId);
+        emit ItemCancelled(listedItem.id, msg.sender, NFTAddress, tokenId);
     }
 }
