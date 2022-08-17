@@ -10,7 +10,7 @@ import "../lib/upgradeable/ReentrancyGuardUpgradeable.sol";
 
 // @NOTE: Remove getListing function to test the contract upgrade
 
-contract NFTMarketplaceUpgradeable is
+contract NFTMarketplaceUpgradeableTest is
     ReentrancyGuardUpgradeable,
     OwnableUpgradeable
 {

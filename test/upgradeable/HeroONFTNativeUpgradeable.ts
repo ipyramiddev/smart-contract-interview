@@ -165,14 +165,14 @@ contract.skip('HeroONFTNativeUpgradeable.sol', ([owner, account1, account2, acco
         })) as USDPUpgradeableInstance;
 
         // Should fail since caller is not the owner
-        await localExpect(HeroONFTNativeUpgradeableInstance.setUSDP(newUSDPUpgradeableInstance.address, { from: account1 })).to.eventually.be.rejected;
+        await localExpect(HeroONFTNativeUpgradeableInstance.setTokenToPay(newUSDPUpgradeableInstance.address, { from: account1 })).to.eventually.be.rejected;
 
-        const data = HeroONFTNativeUpgradeableContract.methods.setUSDP(newUSDPUpgradeableInstance.address).encodeABI();
+        const data = HeroONFTNativeUpgradeableContract.methods.setTokenToPay(newUSDPUpgradeableInstance.address).encodeABI();
         await multiSigWalletInstance.submitTransaction(HeroONFTNativeUpgradeableInstance.address, 0, data, { from: owner });
         const txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
         await localExpect(multiSigWalletInstance.confirmTransaction(txId, { from: account1 })).to.eventually.be.fulfilled;
 
-        const contractUSDPAddress = (await HeroONFTNativeUpgradeableInstance.USDP()).toString();
+        const contractUSDPAddress = (await HeroONFTNativeUpgradeableInstance.tokenToPay()).toString();
         expect(contractUSDPAddress).to.equal(newUSDPUpgradeableInstance.address);
     });
 

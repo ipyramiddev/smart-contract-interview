@@ -17,15 +17,15 @@ contract HeroONFTNativeUpgradeable is
     // The expected signer of the signature required for minting
     address public mintSigner;
 
-    // The address of the USDP contract
-    IERC20Upgradeable public USDP;
+    // The address of the ERC20 token used to pay for the hero tokens
+    IERC20Upgradeable public tokenToPay;
 
-    // The vault contract to deposit earned USDP/PFT and royalties
+    // The vault contract to deposit earned ERC20/PFT and royalties
     address public vault;
 
     function initialize(
         address _signer,
-        address _USDP,
+        address _tokenToPay,
         address _vault,
         address _lzEndpoint
     ) public initializer {
@@ -36,7 +36,7 @@ contract HeroONFTNativeUpgradeable is
         // @TODO: Have added a placeholder baseURIString. Need to replace with actual when it's implemented.
         baseURIString = "https://www.portalfantasy.io/";
         mintSigner = _signer;
-        USDP = IERC20Upgradeable(_USDP);
+        tokenToPay = IERC20Upgradeable(_tokenToPay);
         vault = _vault;
 
         // Set the default token royalty to 4%
@@ -113,21 +113,21 @@ contract HeroONFTNativeUpgradeable is
         require(signer != address(0), "ECDSA: invalid signature");
 
         for (uint8 i = 0; i < tokenIds.length; i++) {
-            USDP.transferFrom(_msgSender(), vault, tokenPrices[i]);
+            tokenToPay.transferFrom(_msgSender(), vault, tokenPrices[i]);
             _safeMint(_msgSender(), tokenIds[i]);
         }
     }
 
     /**
-     * Allows the owner to set a new USDP contract address to point to
-     * @param _USDP the new USDP address
+     * Allows the owner to set a new ERC20 token contract address to point to
+     * @param _tokenToPay the new ERC20 address
      */
-    function setUSDP(address _USDP) external onlyOwner {
-        USDP = IERC20Upgradeable(_USDP);
+    function setTokenToPay(address _tokenToPay) external onlyOwner {
+        tokenToPay = IERC20Upgradeable(_tokenToPay);
     }
 
     /**
-     * Allows the owner to set a new vault to deposit earned USDP
+     * Allows the owner to set a new vault to deposit earned ERC20 tokens
      * @param _vault the new address for the vault
      */
     function setVault(address _vault) external onlyOwner {
