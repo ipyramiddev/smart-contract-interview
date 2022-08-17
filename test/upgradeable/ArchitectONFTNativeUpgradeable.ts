@@ -170,14 +170,14 @@ contract.skip('ArchitectONFTNativeUpgradeable.sol', ([owner, account1, account2,
         })) as USDPUpgradeableInstance;
 
         // Should fail since caller is not the owner
-        await localExpect(ArchitectONFTNativeUpgradeableInstance.setUSDP(newUSDPUpgradeableInstance.address, { from: account1 })).to.eventually.be.rejected;
+        await localExpect(ArchitectONFTNativeUpgradeableInstance.setTokenToPay(newUSDPUpgradeableInstance.address, { from: account1 })).to.eventually.be.rejected;
 
-        const data = ArchitectONFTNativeUpgradeableContract.methods.setUSDP(newUSDPUpgradeableInstance.address).encodeABI();
+        const data = ArchitectONFTNativeUpgradeableContract.methods.setTokenToPay(newUSDPUpgradeableInstance.address).encodeABI();
         await multiSigWalletInstance.submitTransaction(ArchitectONFTNativeUpgradeableInstance.address, 0, data, { from: owner });
         const txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
         await localExpect(multiSigWalletInstance.confirmTransaction(txId, { from: account1 })).to.eventually.be.fulfilled;
 
-        const contractUSDPAddress = (await ArchitectONFTNativeUpgradeableInstance.USDP()).toString();
+        const contractUSDPAddress = (await ArchitectONFTNativeUpgradeableInstance.tokenToPay()).toString();
         expect(contractUSDPAddress).to.equal(newUSDPUpgradeableInstance.address);
     });
 
