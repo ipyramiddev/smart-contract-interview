@@ -55,6 +55,19 @@ contract.skip('PorbleONFTNativeUpgradeable.sol', ([owner, account1, account2, ac
         expect(contractOwner).to.equal(multiSigWalletInstance.address);
     });
 
+    it('only allows the owner to change the mintSigner', async () => {
+        // Should fail since caller is not the owner
+        await localExpect(PorbleONFTNativeUpgradeableInstance.setMintSigner(account3, { from: account1 })).to.eventually.be.rejected;
+
+        const data = porbleUpgradeableContract.methods.setMintSigner(account3).encodeABI();
+        await multiSigWalletInstance.submitTransaction(PorbleONFTNativeUpgradeableInstance.address, 0, data, { from: owner });
+        const txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await localExpect(multiSigWalletInstance.confirmTransaction(txId, { from: account1 })).to.eventually.be.fulfilled;
+
+        const mintSigner = await PorbleONFTNativeUpgradeableInstance.signer();
+        expect(mintSigner).to.equal(account3);
+    });
+
     it('allows a porble token to be minted if the signature is successfully verified', async () => {
         const types = {
             PorbleMintConditions: [

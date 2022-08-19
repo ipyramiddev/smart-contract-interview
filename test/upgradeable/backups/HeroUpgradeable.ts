@@ -959,7 +959,7 @@ contract.skip('HeroUpgradeable.sol', ([owner, account1, account2, account3, acco
         await localExpect(heroUpgradeableInstance.safeMintTokens(tamperedSignature, tokenIds, tokenPrices, { from: testAccountsData[1].address })).to.eventually.be.rejected;
     });
 
-    it('only allows the owner to change the _mintSigner', async () => {
+    it('only allows the owner to change the mintSigner', async () => {
         // Should fail since caller is not the owner
         await localExpect(heroUpgradeableInstance.setMintSigner(account3, { from: account1 })).to.eventually.be.rejected;
 
