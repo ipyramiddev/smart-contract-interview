@@ -61,6 +61,19 @@ contract.skip('HeroONFTNativeUpgradeable.sol', ([owner, account1, account2, acco
         expect(tokenSymbol).to.equal('PHRO');
     });
 
+    it('only allows the owner to change the mintSigner', async () => {
+        // Should fail since caller is not the owner
+        await localExpect(HeroONFTNativeUpgradeableInstance.setMintSigner(account3, { from: account1 })).to.eventually.be.rejected;
+
+        const data = HeroONFTNativeUpgradeableContract.methods.setMintSigner(account3).encodeABI();
+        await multiSigWalletInstance.submitTransaction(HeroONFTNativeUpgradeableInstance.address, 0, data, { from: owner });
+        const txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await localExpect(multiSigWalletInstance.confirmTransaction(txId, { from: account1 })).to.eventually.be.fulfilled;
+
+        const mintSigner = await HeroONFTNativeUpgradeableInstance.mintSigner();
+        expect(mintSigner).to.equal(account3);
+    });
+
     it('allows an hero token to be minted if the signature is successfully verified. With payment in USDP', async () => {
         const types = {
             HeroMintConditions: [

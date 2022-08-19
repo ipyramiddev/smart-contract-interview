@@ -98,7 +98,9 @@ module.exports = {
             settings: {
                 optimizer: {
                     enabled: true,
-                    runs: 999999999,
+                    // runs: 999999999, // max runs
+                    // runs: 200, // default runs
+                    runs: 20000,
                 },
             },
         },
