@@ -7,7 +7,6 @@ import USDP_UPGRADEABLE_JSON from '../../build/contracts/USDPUpgradeable.json';
 import Web3 from 'web3';
 import { AbiItem } from 'web3-utils';
 import { getTxIdFromMultiSigWallet } from '../lib/test-helpers';
-import { AsyncLocalStorage } from 'async_hooks';
 
 const ethers = require('ethers');
 const config = require('../../config').config;
@@ -1114,7 +1113,7 @@ contract.skip('GeneralONFTsNativeUpgradeable.sol', ([owner, account1, account2, 
         let tokenIds = ['1'];
         const priceOfGeneralNFTsInUSDP = web3.utils.toWei('1', 'ether');
         const tokenPrices = [priceOfGeneralNFTsInUSDP];
-        let generalNFTMintConditions = { minter: testAccountsData[1].address, tokenIds, tokenPrices };
+        let generalNFTMintConditions = { minter: testAccountsData[1].address, tokenIds, tokenPrices, isPaymentInPFT: false };
 
         const domain = {
             name: 'PortalFantasy',
@@ -1201,5 +1200,65 @@ contract.skip('GeneralONFTsNativeUpgradeable.sol', ([owner, account1, account2, 
         await localExpect(multiSigWalletInstance.confirmTransaction(txId, { from: account1 })).to.eventually.be.fulfilled;
         const baseURIString = await GeneralONFTsNativeUpgradeableTestInstance.baseURIString();
         expect(baseURIString).to.not.equal('https://www.foo.com/');
+    });
+
+    it('allows multiple tokens to be burnt only by the owner or approved operator', async () => {
+        const types = {
+            GeneralNFTMintConditions: [
+                { name: 'minter', type: 'address' },
+                { name: 'tokenIds', type: 'uint256[]' },
+                { name: 'tokenPrices', type: 'uint256[]' },
+                { name: 'isPaymentInPFT', type: 'bool' },
+            ],
+        };
+
+        const tokenIds = ['1', '100', '1234'];
+        const tokenPrices = [web3.utils.toWei('1', 'ether'), web3.utils.toWei('2', 'ether'), web3.utils.toWei('3', 'ether')];
+        const generalNFTsMintConditions = { minter: testAccountsData[1].address, tokenIds, tokenPrices, isPaymentInPFT: false };
+
+        const domain = {
+            name: 'PortalFantasy',
+            version: '1',
+            chainId: 43214,
+            verifyingContract: GeneralONFTsNativeUpgradeableInstance.address,
+        };
+
+        // Sign according to the EIP-712 standard
+        const signature = await signer._signTypedData(domain, types, generalNFTsMintConditions);
+
+        const initialUSDPAmountMintedToBuyer = web3.utils.toWei('1000000000', 'ether');
+
+        // Add controller for USDP
+        let data = USDPUpgradeableContract.methods.addController(multiSigWalletInstance.address).encodeABI();
+        await multiSigWalletInstance.submitTransaction(USDPUpgradeableInstance.address, 0, data, { from: owner });
+        let txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
+
+        // Mint USDP
+        data = USDPUpgradeableContract.methods.mint(account1, initialUSDPAmountMintedToBuyer).encodeABI();
+        await multiSigWalletInstance.submitTransaction(USDPUpgradeableInstance.address, 0, data, { from: owner });
+        txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
+
+        const USDPAmountToApprove = tokenPrices.reduce((acc, tokenPrice) => bigInt(acc).add(tokenPrice).toString());
+        await USDPUpgradeableInstance.approve(GeneralONFTsNativeUpgradeableInstance.address, USDPAmountToApprove, { from: account1 });
+
+        data = GeneralONFTsNativeUpgradeableContract.methods.setIsERC20PaymentEnabled(true).encodeABI();
+        await multiSigWalletInstance.submitTransaction(GeneralONFTsNativeUpgradeableInstance.address, 0, data, { from: owner });
+        txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
+
+        // The tokenId and tx sender must match those that have been signed for
+        await GeneralONFTsNativeUpgradeableInstance.safeMintTokens(signature, tokenIds, tokenPrices, false, { from: testAccountsData[1].address });
+
+        await localExpect(GeneralONFTsNativeUpgradeableInstance.burnTokens(['1', '100'], { from: testAccountsData[2].address })).to.eventually.be.rejected;
+        await localExpect(GeneralONFTsNativeUpgradeableInstance.burnTokens(['1', '100'], { from: testAccountsData[1].address })).to.eventually.be.fulfilled;
+
+        await GeneralONFTsNativeUpgradeableInstance.setApprovalForAll(testAccountsData[2].address, true, { from: testAccountsData[1].address });
+        await localExpect(GeneralONFTsNativeUpgradeableInstance.burnTokens(['1234'], { from: testAccountsData[2].address })).to.eventually.be.fulfilled;
+
+        await localExpect(GeneralONFTsNativeUpgradeableInstance.ownerOf('1')).to.eventually.be.rejected;
+        await localExpect(GeneralONFTsNativeUpgradeableInstance.ownerOf('100')).to.eventually.be.rejected;
+        await localExpect(GeneralONFTsNativeUpgradeableInstance.ownerOf('1234')).to.eventually.be.rejected;
     });
 });

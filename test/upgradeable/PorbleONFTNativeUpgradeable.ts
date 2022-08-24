@@ -705,4 +705,38 @@ contract.skip('PorbleONFTNativeUpgradeable.sol', ([owner, account1, account2, ac
         // Fusion has completed
         expect(await PorbleONFTNativeUpgradeableInstance.hasFusionCompleted(account1, fusionId)).to.be.true;
     });
+
+    it('allows multiple porble tokens to be burnt by the owner or approved operator', async () => {
+        const types = {
+            PorbleMintConditions: [
+                { name: 'minter', type: 'address' },
+                { name: 'tokenIds', type: 'uint256[]' },
+            ],
+        };
+
+        const porbleMintConditions = { minter: testAccountsData[1].address, tokenIds: ['1', '23', '454'] };
+
+        const domain = {
+            name: 'PortalFantasy',
+            version: '1',
+            chainId: 43214,
+            verifyingContract: PorbleONFTNativeUpgradeableInstance.address,
+        };
+
+        // Sign according to the EIP-712 standard
+        const signature = await signer._signTypedData(domain, types, porbleMintConditions);
+
+        // The tokenId and tx sender must match those that have been signed for
+        await PorbleONFTNativeUpgradeableInstance.safeMintTokens(signature, ['1', '23', '454'], { from: testAccountsData[1].address });
+
+        await localExpect(PorbleONFTNativeUpgradeableInstance.burnTokens(['1', '23'], { from: testAccountsData[2].address })).to.eventually.be.rejected;
+        await localExpect(PorbleONFTNativeUpgradeableInstance.burnTokens(['1', '23'], { from: testAccountsData[1].address })).to.eventually.be.fulfilled;
+
+        await PorbleONFTNativeUpgradeableInstance.setApprovalForAll(testAccountsData[2].address, true, { from: testAccountsData[1].address });
+        await localExpect(PorbleONFTNativeUpgradeableInstance.burnTokens(['454'], { from: testAccountsData[2].address })).to.eventually.be.fulfilled;
+
+        await localExpect(PorbleONFTNativeUpgradeableInstance.ownerOf('1')).to.eventually.be.rejected;
+        await localExpect(PorbleONFTNativeUpgradeableInstance.ownerOf('23')).to.eventually.be.rejected;
+        await localExpect(PorbleONFTNativeUpgradeableInstance.ownerOf('454')).to.eventually.be.rejected;
+    });
 });

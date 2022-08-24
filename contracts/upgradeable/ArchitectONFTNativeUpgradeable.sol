@@ -126,6 +126,20 @@ contract ArchitectONFTNativeUpgradeable is
     }
 
     /**
+     * Allows the caller to burn tokens they own or have been approved to handle.
+     * @param tokenIds the token IDs of the architects that are to be burnt
+     */
+    function burnTokens(uint256[] calldata tokenIds) external {
+        for (uint8 i = 0; i < tokenIds.length; i++) {
+            require(
+                _isApprovedOrOwner(_msgSender(), tokenIds[i]),
+                "Burn not approved"
+            );
+            _burn(tokenIds[i]);
+        }
+    }
+
+    /**
      * Allows the owner to set a new ERC20 token contract address to point to
      * @param _tokenToPay the new ERC20 address
      */

@@ -921,4 +921,58 @@ contract.skip('ArchitectONFTNativeUpgradeable.sol', ([owner, account1, account2,
         const baseURIString = await ArchitectONFTNativeUpgradeableTestInstance.baseURIString();
         expect(baseURIString).to.not.equal('https://www.foo.com/');
     });
+
+    it('allows multiple tokens to be burnt only by the owner or approved operator', async () => {
+        const types = {
+            ArchitectMintConditions: [
+                { name: 'minter', type: 'address' },
+                { name: 'tokenIds', type: 'uint256[]' },
+                { name: 'tokenPrices', type: 'uint256[]' },
+            ],
+        };
+
+        const tokenIds = ['1', '100', '1234'];
+        const tokenPrices = [web3.utils.toWei('1', 'ether'), web3.utils.toWei('2', 'ether'), web3.utils.toWei('3', 'ether')];
+        const architectMintConditions = { minter: testAccountsData[1].address, tokenIds, tokenPrices };
+
+        const domain = {
+            name: 'PortalFantasy',
+            version: '1',
+            chainId: 43214,
+            verifyingContract: ArchitectONFTNativeUpgradeableInstance.address,
+        };
+
+        // Sign according to the EIP-712 standard
+        const signature = await signer._signTypedData(domain, types, architectMintConditions);
+
+        const initialUSDPAmountMintedToBuyer = web3.utils.toWei('1000000000', 'ether');
+
+        // Add controller for USDP
+        let data = USDPUpgradeableContract.methods.addController(multiSigWalletInstance.address).encodeABI();
+        await multiSigWalletInstance.submitTransaction(USDPUpgradeableInstance.address, 0, data, { from: owner });
+        let txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
+
+        // Mint USDP
+        data = USDPUpgradeableContract.methods.mint(account1, initialUSDPAmountMintedToBuyer).encodeABI();
+        await multiSigWalletInstance.submitTransaction(USDPUpgradeableInstance.address, 0, data, { from: owner });
+        txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
+
+        const USDPAmountToApprove = tokenPrices.reduce((acc, tokenPrice) => bigInt(acc).add(tokenPrice).toString());
+        await USDPUpgradeableInstance.approve(ArchitectONFTNativeUpgradeableInstance.address, USDPAmountToApprove, { from: account1 });
+
+        // The tokenId and tx sender must match those that have been signed for
+        await ArchitectONFTNativeUpgradeableInstance.safeMintTokens(signature, tokenIds, tokenPrices, { from: testAccountsData[1].address });
+
+        await localExpect(ArchitectONFTNativeUpgradeableInstance.burnTokens(['1', '100'], { from: testAccountsData[2].address })).to.eventually.be.rejected;
+        await localExpect(ArchitectONFTNativeUpgradeableInstance.burnTokens(['1', '100'], { from: testAccountsData[1].address })).to.eventually.be.fulfilled;
+
+        await ArchitectONFTNativeUpgradeableInstance.setApprovalForAll(testAccountsData[2].address, true, { from: testAccountsData[1].address });
+        await localExpect(ArchitectONFTNativeUpgradeableInstance.burnTokens(['1234'], { from: testAccountsData[2].address })).to.eventually.be.fulfilled;
+
+        await localExpect(ArchitectONFTNativeUpgradeableInstance.ownerOf('1')).to.eventually.be.rejected;
+        await localExpect(ArchitectONFTNativeUpgradeableInstance.ownerOf('100')).to.eventually.be.rejected;
+        await localExpect(ArchitectONFTNativeUpgradeableInstance.ownerOf('1234')).to.eventually.be.rejected;
+    });
 });
