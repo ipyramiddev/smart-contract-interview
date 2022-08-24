@@ -1161,7 +1161,7 @@ contract.skip('GeneralONFTsNativeUpgradeable.sol', ([owner, account1, account2, 
         expect(ownerOfMintedArchitect1).to.equal(account1);
 
         tokenIds = ['2'];
-        generalNFTMintConditions = { minter: testAccountsData[2].address, tokenIds, tokenPrices };
+        generalNFTMintConditions = { minter: testAccountsData[2].address, tokenIds, tokenPrices, isPaymentInPFT: false };
 
         // Sign according to the EIP-712 standard
         signature = await signer._signTypedData(domain, types, generalNFTMintConditions);
