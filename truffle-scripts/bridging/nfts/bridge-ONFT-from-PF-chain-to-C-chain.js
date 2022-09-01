@@ -19,7 +19,7 @@ const web3 = new Web3(new Web3.providers.HttpProvider(config.AVAX.testnetSubnetH
 const MULTI_SIG_WALLET_ADDRESS = '0x2A6ea17600f4dF457D5a7e6a46E6933ba3C079Ef';
 const ONFT_TRANSPARENT_PROXY_ADDRESS = '0x6Af959598BEe92D7AFCc506A53b8EdCB22C5432a';
 const ONFT_HOLDER = testMasterKeys.privateTestAccount1.address;
-const TOKEN_ID_TO_BRIDGE = '5';
+const TOKEN_ID_TO_BRIDGE = '6';
 const DESTINATION_CHAIN_ID = '10006';
 const DESTINATION_ADDRESS = testMasterKeys.privateTestAccount3.address;
 

@@ -48,7 +48,6 @@ module.exports = (artifacts: Truffle.Artifacts, web3: Web3) => {
         // await PFTStakingUpgradeableTransparentProxyInstance.transferOwnership(multiSigWalletInstance.address);
 
         const USDPUpgradeable = artifacts.require('USDPUpgradeable');
-        await deployer.deploy<any[]>(USDPUpgradeable, accounts[1], multiSigWalletInstance.address);
         const USDPUpgradeableTransparentProxyInstance = (await deployProxy(USDPUpgradeable as any, [], {
             deployer: deployer as any,
             initializer: 'initialize',
