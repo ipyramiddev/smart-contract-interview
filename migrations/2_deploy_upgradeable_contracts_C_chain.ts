@@ -26,12 +26,12 @@ module.exports = (artifacts: Truffle.Artifacts, web3: Web3) => {
         await deployer.deploy(multiSigWallet, owners, requiredThreshold);
         const multiSigWalletInstance = await multiSigWallet.deployed();
 
-        // const PFTUpgradeable = artifacts.require('OPFTExternalUpgradeable');
-        // const PFTUpgradeableTransparentProxyInstance = (await deployProxy(PFTUpgradeable as any, [LZ_ENDPOINT_C_CHAIN], {
-        //     deployer: deployer as any,
-        //     initializer: 'initialize',
-        // })) as OPFTExternalUpgradeableInstance;
-        // await PFTUpgradeableTransparentProxyInstance.transferOwnership(multiSigWalletInstance.address);
+        const PFTUpgradeable = artifacts.require('OPFTExternalUpgradeable');
+        const PFTUpgradeableTransparentProxyInstance = (await deployProxy(PFTUpgradeable as any, [LZ_ENDPOINT_C_CHAIN], {
+            deployer: deployer as any,
+            initializer: 'initialize',
+        })) as OPFTExternalUpgradeableInstance;
+        await PFTUpgradeableTransparentProxyInstance.transferOwnership(multiSigWalletInstance.address);
 
         const TokenVault = artifacts.require('TokenVaultUpgradeable');
         const TokenVaultUpgradeableTransparentProxyInstance = (await deployProxy(TokenVault as any, [accounts[1]], {
@@ -40,6 +40,7 @@ module.exports = (artifacts: Truffle.Artifacts, web3: Web3) => {
         })) as TokenVaultUpgradeableInstance;
         await TokenVaultUpgradeableTransparentProxyInstance.transferOwnership(multiSigWalletInstance.address);
 
+        // @TODO: Only including the staking contract because we're testing indexing on the C-chain. Can remove this when the indexer is set up for the PF-chain
         // const PFTStaking = artifacts.require('PFTStakingUpgradeable');
         // const PFTStakingUpgradeableTransparentProxyInstance = (await deployProxy(PFTStaking as any, ['1000'], {
         //     deployer: deployer as any,
@@ -94,6 +95,7 @@ module.exports = (artifacts: Truffle.Artifacts, web3: Web3) => {
         )) as PorbleONFTExternalUpgradeableInstance;
         await porbleUpgradeableTransparentProxyInstance.transferOwnership(multiSigWalletInstance.address);
 
+        // @TODO: Only including the marketplace contract because we're testing indexing on the C-chain. Can remove this when the indexer is set up for the PF-chain
         const NFTMarketplaceUpgradeable = artifacts.require('NFTMarketplaceUpgradeable');
         const NFTMarketplaceUpgradeableTransparentProxyInstance = (await deployProxy(NFTMarketplaceUpgradeable as any, [USDPUpgradeableTransparentProxyInstance.address], {
             deployer: deployer as any,
@@ -105,12 +107,12 @@ module.exports = (artifacts: Truffle.Artifacts, web3: Web3) => {
         await NFTMarketplaceUpgradeableTransparentProxyInstance.updateCollectionsWhitelist(generalNFTsUpgradeableTransparentProxyInstance.address, true);
         await NFTMarketplaceUpgradeableTransparentProxyInstance.transferOwnership(multiSigWalletInstance.address);
 
-        // const VestingVaultUpgradeable = artifacts.require('VestingVaultUpgradeable');
-        // const vestingVaultUpgradeableTransparentProxyInstance = (await deployProxy(VestingVaultUpgradeable as any, [(PFTUpgradeableTransparentProxyInstance as any).address], {
-        //     deployer: deployer as any,
-        //     initializer: 'initialize',
-        // })) as VestingVaultUpgradeableInstance;
-        // await vestingVaultUpgradeableTransparentProxyInstance.transferOwnership(multiSigWalletInstance.address);
+        const VestingVaultUpgradeable = artifacts.require('VestingVaultUpgradeable');
+        const vestingVaultUpgradeableTransparentProxyInstance = (await deployProxy(VestingVaultUpgradeable as any, [(PFTUpgradeableTransparentProxyInstance as any).address], {
+            deployer: deployer as any,
+            initializer: 'initialize',
+        })) as VestingVaultUpgradeableInstance;
+        await vestingVaultUpgradeableTransparentProxyInstance.transferOwnership(multiSigWalletInstance.address);
 
         // Transfer proxy admin ownership to the MultiSigWallet so that upgrades can only be done via a multisig
         // Not running in local test environments in order to prevent the tests from breaking (since the tests repeatedly call this function)
