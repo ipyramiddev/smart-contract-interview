@@ -8,9 +8,7 @@ import "../lib/upgradeable/OwnableUpgradeable.sol";
 import "../lib/upgradeable/ReentrancyGuardUpgradeable.sol";
 import "../lib/upgradeable/PausableUpgradeable.sol";
 
-// @NOTE: Remove issueFullRefund function to test the contract upgrade
-
-contract TokenVaultUpgradeableTest is
+contract TokenVaultNativeUpgradeable is
     ReentrancyGuardUpgradeable,
     EIP712Upgradeable,
     OwnableUpgradeable,
@@ -49,6 +47,27 @@ contract TokenVaultUpgradeableTest is
         );
         userPaymentsInfo[msg.sender][opId] = msg.value;
         emit Payment(msg.sender, opId, int256(msg.value));
+    }
+
+    /**
+     * Allows the contract owner to issue a user a full refund
+     * @param user the address of the user that made the payment
+     * @param opId the operation Id that the user made the payment in relation to
+     */
+    function issueFullRefund(address user, uint256 opId)
+        external
+        onlyOwner
+        nonReentrant
+    {
+        uint256 refundAmount = userPaymentsInfo[user][opId];
+        require(
+            refundAmount > 0,
+            "There is no refund to issue for this combination of user and opId"
+        );
+        delete userPaymentsInfo[user][opId];
+        (bool success, ) = payable(user).call{value: refundAmount}("");
+        require(success, "refund failed");
+        emit Payment(user, opId, -int256(refundAmount));
     }
 
     /**
@@ -126,8 +145,8 @@ contract TokenVaultUpgradeableTest is
     /**
      * Allows the contract owner (should be MultiSigWallet) to withdraw a specific amount of ERC20 tokens to an address
      * @param token the ERC20 token address, e.g. USDP
-     * @param to the address to withdraw the PFT to
-     * @param amount the amount of PFT to withdraw from this contract
+     * @param to the address to withdraw the tokens to
+     * @param amount the amount of tokens to withdraw from this contract
      */
     function withdrawTokens(
         address token,

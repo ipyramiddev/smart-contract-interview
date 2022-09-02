@@ -6,7 +6,7 @@ import {
     PFTStakingUpgradeableInstance,
     GeneralNFTsUpgradeableInstance,
     USDPUpgradeableInstance,
-    TokenVaultUpgradeableInstance,
+    TokenVaultNativeUpgradeableInstance,
     OPFTNativeUpgradeableInstance,
     PorbleONFTNativeUpgradeableInstance,
     HeroONFTNativeUpgradeableInstance,
@@ -33,12 +33,12 @@ module.exports = (artifacts: Truffle.Artifacts, web3: Web3) => {
         })) as OPFTNativeUpgradeableInstance;
         await PFTUpgradeableTransparentProxyInstance.transferOwnership(multiSigWalletInstance.address);
 
-        const TokenVault = artifacts.require('TokenVaultUpgradeable');
-        const TokenVaultUpgradeableTransparentProxyInstance = (await deployProxy(TokenVault as any, [accounts[1]], {
+        const TokenVault = artifacts.require('TokenVaultNativeUpgradeable');
+        const TokenVaultNativeUpgradeableTransparentProxyInstance = (await deployProxy(TokenVault as any, [accounts[1]], {
             deployer: deployer as any,
             initializer: 'initialize',
-        })) as TokenVaultUpgradeableInstance;
-        await TokenVaultUpgradeableTransparentProxyInstance.transferOwnership(multiSigWalletInstance.address);
+        })) as TokenVaultNativeUpgradeableInstance;
+        await TokenVaultNativeUpgradeableTransparentProxyInstance.transferOwnership(multiSigWalletInstance.address);
 
         const PFTStaking = artifacts.require('PFTStakingUpgradeable');
         const PFTStakingUpgradeableTransparentProxyInstance = (await deployProxy(PFTStaking as any, ['1000'], {
@@ -57,7 +57,7 @@ module.exports = (artifacts: Truffle.Artifacts, web3: Web3) => {
         const heroUpgradeable = artifacts.require('HeroONFTNativeUpgradeable');
         const heroUpgradeableTransparentProxyInstance = (await deployProxy(
             heroUpgradeable as any,
-            [accounts[1], USDPUpgradeable.address, TokenVaultUpgradeableTransparentProxyInstance.address, LZ_ENDPOINT_PF_CHAIN],
+            [accounts[1], USDPUpgradeable.address, TokenVaultNativeUpgradeableTransparentProxyInstance.address, LZ_ENDPOINT_PF_CHAIN],
             {
                 deployer: deployer as any,
                 initializer: 'initialize',
@@ -68,7 +68,7 @@ module.exports = (artifacts: Truffle.Artifacts, web3: Web3) => {
         const architectUpgradeable = artifacts.require('ArchitectONFTNativeUpgradeable');
         const architectUpgradeableTransparentProxyInstance = (await deployProxy(
             architectUpgradeable as any,
-            [accounts[1], USDPUpgradeable.address, TokenVaultUpgradeableTransparentProxyInstance.address, LZ_ENDPOINT_PF_CHAIN],
+            [accounts[1], USDPUpgradeable.address, TokenVaultNativeUpgradeableTransparentProxyInstance.address, LZ_ENDPOINT_PF_CHAIN],
             {
                 deployer: deployer as any,
                 initializer: 'initialize',
@@ -79,7 +79,7 @@ module.exports = (artifacts: Truffle.Artifacts, web3: Web3) => {
         const generalNFTsUpgradeable = artifacts.require('GeneralONFTsNativeUpgradeable');
         const generalNFTsUpgradeableTransparentProxyInstance = (await deployProxy(
             generalNFTsUpgradeable as any,
-            [accounts[1], USDPUpgradeable.address, TokenVaultUpgradeableTransparentProxyInstance.address, LZ_ENDPOINT_PF_CHAIN],
+            [accounts[1], USDPUpgradeable.address, TokenVaultNativeUpgradeableTransparentProxyInstance.address, LZ_ENDPOINT_PF_CHAIN],
             {
                 deployer: deployer as any,
                 initializer: 'initialize',
@@ -90,7 +90,7 @@ module.exports = (artifacts: Truffle.Artifacts, web3: Web3) => {
         const porbleUpgradeable = artifacts.require('PorbleONFTNativeUpgradeable');
         const porbleUpgradeableTransparentProxyInstance = (await deployProxy(
             porbleUpgradeable as any,
-            [accounts[1], TokenVaultUpgradeableTransparentProxyInstance.address, LZ_ENDPOINT_PF_CHAIN],
+            [accounts[1], TokenVaultNativeUpgradeableTransparentProxyInstance.address, LZ_ENDPOINT_PF_CHAIN],
             {
                 deployer: deployer as any,
                 initializer: 'initialize',
