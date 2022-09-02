@@ -5,7 +5,7 @@ import {
     VestingVaultUpgradeableInstance,
     PFTStakingUpgradeableInstance,
     USDPUpgradeableInstance,
-    TokenVaultUpgradeableInstance,
+    TokenVaultExternalUpgradeableInstance,
     PorbleONFTExternalUpgradeableInstance,
     OPFTExternalUpgradeableInstance,
     HeroONFTExternalUpgradeableInstance,
@@ -33,14 +33,14 @@ module.exports = (artifacts: Truffle.Artifacts, web3: Web3) => {
         })) as OPFTExternalUpgradeableInstance;
         await PFTUpgradeableTransparentProxyInstance.transferOwnership(multiSigWalletInstance.address);
 
-        const TokenVault = artifacts.require('TokenVaultUpgradeable');
-        const TokenVaultUpgradeableTransparentProxyInstance = (await deployProxy(TokenVault as any, [accounts[1]], {
+        const TokenVault = artifacts.require('TokenVaultExternalUpgradeable');
+        const TokenVaultExternalUpgradeableTransparentProxyInstance = (await deployProxy(TokenVault as any, [accounts[1]], {
             deployer: deployer as any,
             initializer: 'initialize',
-        })) as TokenVaultUpgradeableInstance;
-        await TokenVaultUpgradeableTransparentProxyInstance.transferOwnership(multiSigWalletInstance.address);
+        })) as TokenVaultExternalUpgradeableInstance;
+        await TokenVaultExternalUpgradeableTransparentProxyInstance.transferOwnership(multiSigWalletInstance.address);
 
-        // @TODO: Only including the staking contract because we're testing indexing on the C-chain. Can remove this when the indexer is set up for the PF-chain
+        // @TODO: Only including the staking contract here because we're testing indexing on the C-chain. Can remove this when the indexer is set up for the PF-chain
         // const PFTStaking = artifacts.require('PFTStakingUpgradeable');
         // const PFTStakingUpgradeableTransparentProxyInstance = (await deployProxy(PFTStaking as any, ['1000'], {
         //     deployer: deployer as any,
@@ -56,16 +56,20 @@ module.exports = (artifacts: Truffle.Artifacts, web3: Web3) => {
         await USDPUpgradeableTransparentProxyInstance.transferOwnership(multiSigWalletInstance.address);
 
         const heroUpgradeable = artifacts.require('HeroONFTExternalUpgradeable');
-        const heroUpgradeableTransparentProxyInstance = (await deployProxy(heroUpgradeable as any, [TokenVaultUpgradeableTransparentProxyInstance.address, LZ_ENDPOINT_C_CHAIN], {
-            deployer: deployer as any,
-            initializer: 'initialize',
-        })) as HeroONFTExternalUpgradeableInstance;
+        const heroUpgradeableTransparentProxyInstance = (await deployProxy(
+            heroUpgradeable as any,
+            [TokenVaultExternalUpgradeableTransparentProxyInstance.address, LZ_ENDPOINT_C_CHAIN],
+            {
+                deployer: deployer as any,
+                initializer: 'initialize',
+            }
+        )) as HeroONFTExternalUpgradeableInstance;
         await heroUpgradeableTransparentProxyInstance.transferOwnership(multiSigWalletInstance.address);
 
         const architectUpgradeable = artifacts.require('ArchitectONFTExternalUpgradeable');
         const architectUpgradeableTransparentProxyInstance = (await deployProxy(
             architectUpgradeable as any,
-            [TokenVaultUpgradeableTransparentProxyInstance.address, LZ_ENDPOINT_C_CHAIN],
+            [TokenVaultExternalUpgradeableTransparentProxyInstance.address, LZ_ENDPOINT_C_CHAIN],
             {
                 deployer: deployer as any,
                 initializer: 'initialize',
@@ -76,7 +80,7 @@ module.exports = (artifacts: Truffle.Artifacts, web3: Web3) => {
         const generalNFTsUpgradeable = artifacts.require('GeneralONFTsExternalUpgradeable');
         const generalNFTsUpgradeableTransparentProxyInstance = (await deployProxy(
             generalNFTsUpgradeable as any,
-            [TokenVaultUpgradeableTransparentProxyInstance.address, LZ_ENDPOINT_C_CHAIN],
+            [TokenVaultExternalUpgradeableTransparentProxyInstance.address, LZ_ENDPOINT_C_CHAIN],
             {
                 deployer: deployer as any,
                 initializer: 'initialize',
@@ -87,7 +91,7 @@ module.exports = (artifacts: Truffle.Artifacts, web3: Web3) => {
         const porbleUpgradeable = artifacts.require('PorbleONFTExternalUpgradeable');
         const porbleUpgradeableTransparentProxyInstance = (await deployProxy(
             porbleUpgradeable as any,
-            [TokenVaultUpgradeableTransparentProxyInstance.address, LZ_ENDPOINT_C_CHAIN],
+            [TokenVaultExternalUpgradeableTransparentProxyInstance.address, LZ_ENDPOINT_C_CHAIN],
             {
                 deployer: deployer as any,
                 initializer: 'initialize',
