@@ -1,9 +1,11 @@
+import { deployProxy } from '@openzeppelin/truffle-upgrades';
 import { bigInt, localExpect } from './lib/test-libraries';
-import { HeroInstance, PORBInstance, MultiSigWalletInstance, PFTInstance } from '../types/truffle-contracts';
+import { HeroInstance, PORBInstance, MultiSigWalletInstance, PFTInstance, OPFTNativeUpgradeableInstance } from '../types/truffle-contracts';
 import MULTI_SIG_WALLET_JSON from '../build/contracts/MultiSigWallet.json';
 import HERO_JSON from '../build/contracts/Hero.json';
 import PORB_JSON from '../build/contracts/PORB.json';
 import PFT_JSON from '../build/contracts/PFT.json';
+import OPFT_UPGRADEABLE_JSON from '../build/contracts/OPFTNativeUpgradeable.json';
 import Web3 from 'web3';
 import { AbiItem } from 'web3-utils';
 import { getTxIdFromMultiSigWallet } from './lib/test-helpers';
@@ -13,12 +15,14 @@ const config = require('../config').config;
 const hero = artifacts.require('Hero');
 const PORB = artifacts.require('PORB');
 const PFT = artifacts.require('PFT');
+const OPFTNativeUpgradeable = artifacts.require('OPFTNativeUpgradeable');
 const multiSigWallet = artifacts.require('MultiSigWallet');
 
 const web3 = new Web3(new Web3.providers.HttpProvider(config.AVAX.localSubnetHTTP));
 const HERO_ABI = HERO_JSON.abi as AbiItem[];
 const PORB_ABI = PORB_JSON.abi as AbiItem[];
 const PFT_ABI = PFT_JSON.abi as AbiItem[];
+const OPFT_NATIVE_UPGRADEABLE_ABI = OPFT_UPGRADEABLE_JSON.abi as AbiItem[];
 const MULTI_SIG_WALLET_ABI = MULTI_SIG_WALLET_JSON.abi as AbiItem[];
 
 contract.skip('MultiSigWallet.sol', ([owner, account1, account2, account3, account4, account5, account6, account7, account8, account9]) => {
@@ -26,16 +30,22 @@ contract.skip('MultiSigWallet.sol', ([owner, account1, account2, account3, accou
     let heroInstance: HeroInstance;
     let PORBInstance: PORBInstance;
     let PFTInstance: PFTInstance;
+    let OPFTNativeUpgradeableInstance: OPFTNativeUpgradeableInstance;
     let heroContract: any;
     let multiSigWalletContract: any;
     let PORBContract: any;
     let PFTContract: any;
+    let OPFTNativeUpgradeableContract: any;
     let requiredConfirmations = 4;
+    const MOCK_LZ_ENDPOINT_PF_CHAIN = account9;
 
     beforeEach(async () => {
         multiSigWalletInstance = await multiSigWallet.new([owner, account1, account2, account3, account4], requiredConfirmations);
         PORBInstance = await PORB.new(account1, owner);
         PFTInstance = await PFT.new();
+        OPFTNativeUpgradeableInstance = (await deployProxy(OPFTNativeUpgradeable as any, [MOCK_LZ_ENDPOINT_PF_CHAIN], {
+            initializer: 'initialize',
+        })) as OPFTNativeUpgradeableInstance;
         heroInstance = await hero.new(PORBInstance.address, account9);
         await heroInstance.transferOwnership(multiSigWalletInstance.address);
         await PORBInstance.transferOwnership(multiSigWalletInstance.address);
@@ -259,45 +269,6 @@ contract.skip('MultiSigWallet.sol', ([owner, account1, account2, account3, accou
         expect(avaxWithdrawn).to.equal(avaxAmountToSend);
     });
 
-    it('can withdraw the PORB balance of the contract with a multiSig', async () => {
-        // MultiSig for adding MultiSigWallet contract as a controller
-        // Even though MultiSigWallet is currently the owner, it must be a controller before it can mint
-        PORBContract = new web3.eth.Contract(PORB_ABI, PORBInstance.address);
-        let data = PORBContract.methods.addController(multiSigWalletInstance.address).encodeABI();
-        await multiSigWalletInstance.submitTransaction(PORBInstance.address, 0, data, { from: owner });
-        let txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
-        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
-        await multiSigWalletInstance.confirmTransaction(txId, { from: account2 });
-        await multiSigWalletInstance.confirmTransaction(txId, { from: account3 });
-
-        // Mint to MultiSigWallet
-        const initialAmountMintedToOwner = web3.utils.toWei('1', 'ether');
-        data = PORBContract.methods.mint(multiSigWalletInstance.address, initialAmountMintedToOwner).encodeABI();
-        await multiSigWalletInstance.submitTransaction(PORBInstance.address, 0, data, { from: owner });
-        txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
-        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
-        await multiSigWalletInstance.confirmTransaction(txId, { from: account2 });
-        await multiSigWalletInstance.confirmTransaction(txId, { from: account3 });
-
-        // Withdraw PORB to a different account
-        const accountBalanceBeforeWithdrawal = (await PORBInstance.balanceOf(account9)).toString();
-
-        // Withdrawal requires a multiSig so this should fail
-        await localExpect(PORBInstance.transfer(account9, initialAmountMintedToOwner)).to.eventually.be.rejected;
-
-        data = PORBContract.methods.transfer(account9, initialAmountMintedToOwner).encodeABI();
-        await multiSigWalletInstance.submitTransaction(PORBInstance.address, 0, data, { from: owner });
-        txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
-        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
-        await multiSigWalletInstance.confirmTransaction(txId, { from: account2 });
-        await multiSigWalletInstance.confirmTransaction(txId, { from: account3 });
-
-        const accountBalanceAfterWithdrawal = (await PORBInstance.balanceOf(account9)).toString();
-        const PORBWithdrawn = bigInt(accountBalanceAfterWithdrawal).subtract(accountBalanceBeforeWithdrawal).toString();
-
-        expect(PORBWithdrawn).to.equal(initialAmountMintedToOwner);
-    });
-
     it('can withdraw the PFT balance of the contract with a multiSig', async () => {
         // MultiSig for adding MultiSigWallet contract as a controller
         // Even though MultiSigWallet is currently the owner, it must be a controller before it can mint
@@ -335,5 +306,31 @@ contract.skip('MultiSigWallet.sol', ([owner, account1, account2, account3, accou
         const PFTWithdrawn = bigInt(accountBalanceAfterWithdrawal).subtract(accountBalanceBeforeWithdrawal).toString();
 
         expect(PFTWithdrawn).to.equal(initialAmountMintedToOwner);
+    });
+
+    it('can send PFT to a payable function on another contract via a multsig', async () => {
+        const testPFTAmount = '123';
+
+        await multiSigWalletInstance.sendTransaction({ from: account1, value: testPFTAmount });
+
+        let multiSigPFTBalance = (await web3.eth.getBalance(multiSigWalletInstance.address)).toString();
+        expect(multiSigPFTBalance).to.equal(testPFTAmount);
+
+        OPFTNativeUpgradeableContract = new web3.eth.Contract(OPFT_NATIVE_UPGRADEABLE_ABI, OPFTNativeUpgradeableInstance.address);
+        let data = OPFTNativeUpgradeableContract.methods.deposit().encodeABI();
+        await multiSigWalletInstance.submitTransaction(OPFTNativeUpgradeableInstance.address, testPFTAmount, data, { from: owner });
+        let txId = await getTxIdFromMultiSigWallet(multiSigWalletInstance);
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account1 });
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account2 });
+        await multiSigWalletInstance.confirmTransaction(txId, { from: account3 });
+
+        multiSigPFTBalance = (await web3.eth.getBalance(multiSigWalletInstance.address)).toString();
+        expect(multiSigPFTBalance).to.equal('0');
+
+        const multiSigWPFTBalance = (await OPFTNativeUpgradeableInstance.balanceOf(multiSigWalletInstance.address)).toString();
+        expect(multiSigWPFTBalance).to.equal(testPFTAmount);
+
+        const OPFTNativeUpgradeableInstancePFTBalance = (await web3.eth.getBalance(OPFTNativeUpgradeableInstance.address)).toString();
+        expect(OPFTNativeUpgradeableInstancePFTBalance).to.equal(testPFTAmount);
     });
 });
