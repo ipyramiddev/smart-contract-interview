@@ -17,7 +17,7 @@ const web3 = new Web3(new Web3.providers.HttpProvider(config.AVAX.localSubnetHTT
 const OPFT_EXTERNAL_UPGRADEABLE_ABI = OPFT_EXTERNAL_UPGRADEABLE_JSON.abi as AbiItem[];
 const MOCK_LZ_ENDPOINT_PF_CHAIN = testAccountsData[5].address;
 const PFT_TO_BRIDGE_AMOUNT = web3.utils.toWei('0.001', 'ether');
-const DESTINATION_CHAIN_ID = '10028';
+const DESTINATION_CHAIN_ID = '10128';
 const MOCK_DESTINATION_ADDRESS = testAccountsData[6].address;
 const MOCK_DESTINATION_ADDRESS_BYTES = web3.utils.hexToBytes(MOCK_DESTINATION_ADDRESS);
 

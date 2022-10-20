@@ -20,7 +20,7 @@ const MULTI_SIG_WALLET_ADDRESS = '0x76E24135C622f3f55C2A5b8CdC69715D4483b4aB';
 const PFT_TRANSPARENT_PROXY_ADDRESS = '0xf898Dfd1f01C9dD12126f3325c3bEE30A075c458';
 const PFT_HOLDER = testMasterKeys.privateTestAccount2.address;
 const PFT_TO_BRIDGE_AMOUNT = web3.utils.toWei('0.001', 'ether');
-const DESTINATION_CHAIN_ID = '10006';
+const DESTINATION_CHAIN_ID = '10106';
 const DESTINATION_ADDRESS = testMasterKeys.privateTestAccount3.address;
 
 const DESTINATION_ADDRESS_BYTES = ethers.utils.solidityPack(['address'], [DESTINATION_ADDRESS]);
