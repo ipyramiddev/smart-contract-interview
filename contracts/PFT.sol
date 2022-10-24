@@ -2,23 +2,19 @@
 
 pragma solidity ^0.8.0;
 
-import "../../lib/upgradeable/ERC20Upgradeable.sol";
-import "../../lib/upgradeable/OwnableUpgradeable.sol";
-import "../../lib/upgradeable/Initializable.sol";
+import "./lib/ERC20.sol";
+import "./lib/Ownable.sol";
 
-contract USDPUpgradeable is ERC20Upgradeable, OwnableUpgradeable {
+contract PFT is ERC20, Ownable {
+    constructor() ERC20("Portal Fantasy Token", "PFT") {}
+
     // Mapping from an address to whether or not it can mint / burn
     mapping(address => bool) public controllers;
 
-    function initialize() public initializer {
-        __ERC20_init("Portal Fantasy USD", "USDP");
-        __Ownable_init();
-    }
-
     /**
-     * Mints USDP to a recipient
-     * @param to the recipient of the USDP
-     * @param amount the amount of USDP to mint
+     * Mints PORB to a recipient
+     * @param to the recipient of the PORB
+     * @param amount the amount of PORB to mint
      */
     function mint(address to, uint256 amount) external {
         require(controllers[msg.sender], "Only controllers can mint");
@@ -26,9 +22,9 @@ contract USDPUpgradeable is ERC20Upgradeable, OwnableUpgradeable {
     }
 
     /**
-     * Burns USDP from a holder
-     * @param from the holder of the USDP
-     * @param amount the amount of USDP to burn
+     * Burns PORB from a holder
+     * @param from the holder of the PORB
+     * @param amount the amount of PORB to burn
      */
     function burn(address from, uint256 amount) external {
         require(controllers[msg.sender], "Only controllers can burn");
