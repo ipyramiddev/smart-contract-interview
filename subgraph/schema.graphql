@@ -1,17 +1,5 @@
-type Porble @entity {
-    id: ID!
-    owner: User
-    mintedAt: BigInt
-}
-
-type PorbleStat @entity {
-    id: ID!
-    count: BigInt!
-}
-
 type User @entity {
     id: ID!
-    porbles: [Porble!] @derivedFrom(field: "owner")
 }
 
 type Listing @entity {

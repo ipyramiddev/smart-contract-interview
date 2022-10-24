@@ -1,2 +1,0 @@
-- Can switch to using config.ETH.localHTTP when debugging contracts with Ganache
-- Will also need to deploy using a truffle migrate --network developmentGanache
