@@ -16,11 +16,22 @@ contract NFTMarketplace is ReentrancyGuard, Ownable {
     }
 
     // Events
-    event ItemListed();
+    event ItemListed(
+        address indexed NFTAddress,
+        uint256 indexed tokenId,
+        uint256 price,
+        address indexed seller
+    );
 
-    event ItemCancelled();
+    event ItemCancelled(address indexed NFTAddress, uint256 indexed tokenId);
 
-    event ItemBought();
+    event ItemBought(
+        address indexed NFTAddress,
+        uint256 indexed tokenId,
+        uint256 price,
+        address seller,
+        address indexed buyer
+    );
 
     // Modifiers
     modifier notListed(

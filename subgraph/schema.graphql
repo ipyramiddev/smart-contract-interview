@@ -1,0 +1,20 @@
+type Query {
+  "Get tracks array for homepage grid"
+  IndexedData: [Data!]!
+}
+
+"A Data is a group of information regarding contract and collection required "
+type Data {
+  tokenId: String!
+  lastSoldPrice: Int
+  NFTcollectionPrice: [NFTcollectionPrice!]!
+  listPrice: Int
+  seller: String
+}
+
+"NFTcollectionPrice contains various price informations "
+type NFTcollectionPrice {
+  highestSoldPrice: Int
+  floorPrice: Int
+  averagePrice: Int
+}
