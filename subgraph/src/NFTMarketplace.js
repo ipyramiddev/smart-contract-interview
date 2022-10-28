@@ -19,6 +19,7 @@ export function handleItemBought(event: ItemBought) {
     let Item = Item.load(tokenID);
     // Update the Item entity.
     Item.status = "Bought";
+    Item.seller = event.params.seller;
     Item.save();
 
     // Create BoughtItem entity.

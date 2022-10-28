@@ -20,7 +20,8 @@ contract NFTMarketplace is ReentrancyGuard, Ownable {
         address indexed NFTAddress,
         uint256 indexed tokenId,
         uint256 price,
-        address indexed seller
+        address indexed seller,
+        uint256 created
     );
 
     event ItemCancelled(address indexed NFTAddress, uint256 indexed tokenId);
@@ -30,7 +31,8 @@ contract NFTMarketplace is ReentrancyGuard, Ownable {
         uint256 indexed tokenId,
         uint256 price,
         address seller,
-        address indexed buyer
+        address indexed buyer,
+        uint256 created
     );
 
     // Modifiers

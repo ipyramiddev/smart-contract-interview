@@ -15,3 +15,43 @@ type BoughtItem @entity {
   buyer: Bytes
   boughtCreated: BigInt
 }
+
+type IndexedData @entity {
+  NFTContract: [NFTContract!]!
+  lastSoldPrice: Int
+  NFTCollection: [NFTCollection!]!
+}
+
+type NFTContract @entity {
+  tokenId: ID!
+  listPrice: Int!
+  NFTaddress: Bytes!
+}
+
+type NFTCollection @entity {
+  highestSoldPrice: Int
+  floorPrice: Int
+  averagePrice: Int
+}
+
+"""
+This is the GraphQL queries to get the data
+"""
+
+"""
+query IndexingQuery {
+  NFTDataForIndexing {
+    NFTContract {
+      tokenId
+      listPrice
+      NFTaddress
+    } 
+    lastSoldPrice
+    NFTCollection {
+      highestSoldPrice
+      floorPrice
+      averagePrice
+    }
+  }
+}
+"""
