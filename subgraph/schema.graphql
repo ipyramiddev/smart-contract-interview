@@ -1,20 +1,17 @@
-type Query {
-  "Get tracks array for homepage grid"
-  IndexedData: [Data!]!
+type Item @entity {
+  tokenId: ID!
+  NFTAddress: Bytes!
+  price: Int!
+  seller: Bytes!
+  status: String!
+  created: BigInt!
 }
 
-"A Data is a group of information regarding contract and collection required "
-type Data {
-  tokenId: String!
-  lastSoldPrice: Int
-  NFTcollectionPrice: [NFTcollectionPrice!]!
-  listPrice: Int
-  seller: String
-}
-
-"NFTcollectionPrice contains various price informations "
-type NFTcollectionPrice {
-  highestSoldPrice: Int
-  floorPrice: Int
-  averagePrice: Int
+type BoughtItem @entity {
+  tokenId: ID!
+  NFTAddress: Bytes!
+  price: Int!
+  seller: Bytes!
+  buyer: Bytes
+  boughtCreated: BigInt
 }
